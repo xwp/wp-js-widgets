@@ -27,6 +27,22 @@ class JS_Widgets_Plugin {
 	public $rest_controllers = array();
 
 	/**
+	 * Record of the original `sanitize_callback` args for registered widget settings.
+	 *
+	 * @see JS_Widgets_Plugin::filter_widget_customizer_setting_args()
+	 * @var array
+	 */
+	protected $original_customize_sanitize_callbacks = array();
+
+	/**
+	 * Record of the original `sanitize_js_callback` args for registered widget settings.
+	 *
+	 * @see JS_Widgets_Plugin::filter_widget_customizer_setting_args()
+	 * @var array
+	 */
+	protected $original_customize_sanitize_js_callbacks = array();
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -281,15 +297,9 @@ class JS_Widgets_Plugin {
 	public function filter_widget_customizer_setting_args( $args, $setting_id ) {
 		global $wp_customize;
 		$parsed_setting_id = $wp_customize->widgets->parse_widget_setting_id( $setting_id );
-		if ( is_wp_error( $parsed_setting_id ) ) {
-			return $args;
-		}
-		$widget = $this->get_widget_instance( $parsed_setting_id['id_base'] );
-		if ( ! $widget ) {
-			return $args;
-		}
-
-		if ( $widget instanceof WP_JS_Widget ) {
+		if ( is_array( $parsed_setting_id ) && ! empty( $parsed_setting_id['number'] ) ) {
+			$this->original_customize_sanitize_callbacks[ $setting_id ] = $args['sanitize_callback'];
+			$this->original_customize_sanitize_js_callbacks[ $setting_id ] = $args['sanitize_js_callback'];
 			$args['sanitize_callback'] = array( $this, 'sanitize_widget_instance' );
 			$args['sanitize_js_callback'] = array( $this, 'sanitize_widget_js_instance' );
 		}
@@ -298,6 +308,9 @@ class JS_Widgets_Plugin {
 
 	/**
 	 * Sanitizes a widget instance.
+	 *
+	 * Calls the standard `WP_Customize_Widgets::sanitize_widget_instance()` if
+	 * the setting does not represent a `WP_JS_Widget`.
 	 *
 	 * @see WP_Customize_Widget::update()
 	 * @see WP_Customize_Widgets::sanitize_widget_instance()
@@ -309,14 +322,19 @@ class JS_Widgets_Plugin {
 	 * @return array|false Sanitized widget instance.
 	 */
 	public function sanitize_widget_instance( $new_instance, WP_Customize_Setting $setting, $strict = false ) {
+		if ( isset( $this->original_customize_sanitize_callbacks[ $setting->id ] ) ) {
+			$original_sanitize_callback = $this->original_customize_sanitize_callbacks[ $setting->id ];
+		} else {
+			$original_sanitize_callback = array( $setting->manager->widgets, 'sanitize_widget_instance' );
+		}
 
 		$parsed_setting_id = $setting->manager->widgets->parse_widget_setting_id( $setting->id );
 		if ( is_wp_error( $parsed_setting_id ) ) {
-			return null;
+			return call_user_func( $original_sanitize_callback, $new_instance, $setting, $strict );
 		}
 		$widget = $this->get_widget_instance( $parsed_setting_id['id_base'] );
 		if ( ! $widget || ! ( $widget instanceof WP_JS_Widget ) ) {
-			return null;
+			return call_user_func( $original_sanitize_callback, $new_instance, $setting, $strict );
 		}
 
 		// The customize_validate_settings action is part of the Customize Setting Validation plugin.
@@ -364,16 +382,34 @@ class JS_Widgets_Plugin {
 	/**
 	 * Converts a `$value` into a JSON-serializable value.
 	 *
-	 * Passes through a value since it is already representable in JSON.
+	 * Passes through a value since it is already representable in JSON if it is a `WP_JS_Widget`.
 	 *
 	 * @see WP_Customize_Setting::js_value()
 	 * @see WP_Customize_Widgets::sanitize_widget_js_instance()
 	 * @access public
 	 *
-	 * @param array $value Widget instance.
+	 * @param array                $value   Widget instance.
+	 * @param WP_Customize_Setting $setting Setting for this widget instance.
+	 * @param bool                 $strict  Whether validation is being done. This is part of the proposed patch in in #34893.
 	 * @return array Widget instance.
 	 */
-	public function sanitize_widget_js_instance( $value ) {
+	public function sanitize_widget_js_instance( $value, WP_Customize_Setting $setting, $strict = false ) {
+		if ( isset( $this->original_customize_sanitize_js_callbacks[ $setting->id ] ) ) {
+			$original_sanitize_js_callback = $this->original_customize_sanitize_js_callbacks[ $setting->id ];
+		} else {
+			$original_sanitize_js_callback = array( $setting->manager->widgets, 'sanitize_widget_js_instance' );
+		}
+
+		$parsed_setting_id = $setting->manager->widgets->parse_widget_setting_id( $setting->id );
+		if ( is_wp_error( $parsed_setting_id ) ) {
+			return call_user_func( $original_sanitize_js_callback, $value, $setting, $strict );
+		}
+		$widget = $this->get_widget_instance( $parsed_setting_id['id_base'] );
+		if ( ! $widget || ! ( $widget instanceof WP_JS_Widget ) ) {
+			return call_user_func( $original_sanitize_js_callback, $value, $setting, $strict );
+		}
+
+		// Otherwise pass through the value as-is because it is a valid WP_JS_Widget, so there is no encoded serializations.
 		return $value;
 	}
 
