@@ -57,26 +57,26 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			'title'      => 'widget_' . $this->widget->id_base,
 			'type'       => 'object',
 			'properties' => array(
-				'id_base' => array(
-					'description' => __( 'Type of widget.' ),
+				'id' => array(
+					'description' => __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-				'widget_number' => array(
-					'description' => __( 'Instance number for this widget.' ),
-					'type'        => 'integer',
+				'type' => array(
+					'description' => __( 'Type of widget (aka id_base).', 'js-widgets' ),
+					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'raw' => array(
-					'description' => __( 'Schema for instance data.' ),
+					'description' => __( 'Schema for instance data.', 'js-widgets' ),
 					'type' => 'object',
 					'properties' => $this->widget->get_instance_schema(),
 					'context' => array( 'edit' ),
 				),
 				'rendered' => array(
-					'description' => __( 'Rendered markup string for widget or data object to return to frontend.' ),
+					'description' => __( 'Rendered markup string for widget or data object to return to frontend.', 'js-widgets' ),
 					'anyOf' => array(
 						'type' => array( 'string', 'object' ),
 					),
@@ -205,7 +205,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	public function get_item( WP_REST_Request $request ) {
 		$instances = $this->widget->get_settings();
 		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
-			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
 		}
 
 		$instance = $instances[ $request['widget_number'] ];
@@ -262,8 +262,8 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		$this->widget->_set( -1 );
 
 		$data = array(
-			'widget_number' => $widget_number,
-			'id_base' => $this->widget->id_base,
+			'id' => $this->widget->id_base . '-' . $widget_number,
+			'type' => $this->widget->id_base,
 			'raw' => $instance,
 			'rendered' => $rendered,
 		);

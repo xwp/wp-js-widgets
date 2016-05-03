@@ -33,9 +33,7 @@ class WP_Customize_JS_Widget_Control extends WP_Widget_Form_Customize_Control {
 	}
 
 	/**
-	 *
-	 *
-	 * @return string
+	 * Disable rendering the control wrapper since handled dynamically in JS.
 	 */
-	public function render() {}
+	protected function render() {}
 }
