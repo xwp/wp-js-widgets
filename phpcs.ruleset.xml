@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="JS Widgets Plugin">
+
+	<rule ref="WordPress-Core" />
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" value="js-widgets" />
+		</properties>
+	</rule>
+	<rule ref="WordPress-Docs" />
+
+	<rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
+		<severity>0</severity>
+	</rule>
+
+	<exclude-pattern>*/dev-lib/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+</ruleset>
