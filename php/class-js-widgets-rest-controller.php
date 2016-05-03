@@ -200,7 +200,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * Get widget instance for REST request.
 	 *
 	 * @param WP_REST_Request $request Request.
-	 * @return WP_Error
+	 * @return WP_Error|WP_REST_Response Response.
 	 */
 	public function get_item( WP_REST_Request $request ) {
 		$instances = $this->widget->get_settings();
@@ -215,15 +215,64 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Update one item from the collection.
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 *
+	 * @return WP_Error|WP_REST_Response Response.
+	 */
+	public function update_item( WP_REST_Request $request ) {
+		$instances = $this->widget->get_settings();
+		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
+			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
+		}
+
+		$old_instance = $instances[ $request['widget_number'] ];
+
+		$expected_id = $this->widget->id_base . '-' . $request['widget_number'];
+		if ( ! empty( $request['id'] ) && $expected_id !== $request['id'] ) {
+			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
+		}
+		if ( ! empty( $request['type'] ) && $this->widget->id_base !== $request['type'] ) {
+			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
+		}
+		if ( ! is_array( $request['raw'] ) ) {
+			return new WP_Error( 'rest_widget_missing_raw', __( 'Missing raw content.', 'js-widgets' ), array( 'status' => 400 ) );
+		}
+
+		// @todo Apply schema validation.
+		$new_instance = $request['raw'];
+
+		$instance = $this->widget->sanitize( $new_instance, array(
+			'old_instance' => $old_instance,
+			'strict' => true,
+		) );
+
+		if ( is_wp_error( $instance ) ) {
+			return $instance;
+		}
+		if ( ! is_array( $instance ) ) {
+			return new WP_Error( 'rest_widget_sanitize_failed', __( 'Sanitization failed.', 'js-widgets' ), array( 'status' => 400 ) );
+		}
+
+		$instances[ $request['widget_number'] ] = $instance;
+		$this->widget->save_settings( $instances );
+
+		$data = $this->prepare_item_for_response( $request['widget_number'], $instance, $request );
+		$response = rest_ensure_response( $data );
+		return $response;
+	}
+
+	/**
 	 * Get a collection of items.
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 *
 	 * @todo Add get_collection_params() to be able to paginate and search.
 	 *
-	 * @return WP_Error|WP_REST_Response
+	 * @return WP_Error|WP_REST_Response Response.
 	 */
-	public function get_items( $request ) {
+	public function get_items( WP_REST_Request $request ) {
 		$instances = array();
 		foreach ( $this->widget->get_settings() as $widget_number => $instance ) {
 			$data = $this->prepare_item_for_response( $widget_number, $instance, $request );
