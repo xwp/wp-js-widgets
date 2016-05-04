@@ -69,21 +69,26 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-				'raw' => array(
-					'description' => __( 'Schema for instance data.', 'js-widgets' ),
-					'type' => 'object',
-					'properties' => $this->widget->get_instance_schema(),
-					'context' => array( 'edit' ),
-				),
-				'rendered' => array(
-					'description' => __( 'Rendered markup string for widget or data object to return to frontend.', 'js-widgets' ),
-					'anyOf' => array(
-						'type' => array( 'string', 'object' ),
-					),
-					'context' => array( 'view', 'edit', 'embed' ),
-				),
 			),
 		);
+
+		$reserved_field_ids = array( 'id', 'type', '_links', '_embedded' );
+
+		foreach ( $this->widget->get_instance_schema() as $field_id => $field_schema ) {
+
+			// Prevent clobbering reserved fields.
+			if ( in_array( $field_id, $reserved_field_ids, true ) ) {
+				_doing_it_wrong( get_class( $this->widget ) . '::get_instance_schema', sprintf( __( 'The field "%s" is reserved.', 'js-widgets' ), esc_html( $field_id ) ), '' ); // WPCS: xss ok.
+				continue;
+			}
+
+			// By default, widget properties are private and only available in an edit context.
+			if ( ! isset( $field_schema['context'] ) ) {
+				$field_schema['context'] = array( 'edit' );
+			}
+
+			$schema['properties'][ $field_id ] = $field_schema;
+		}
 
 		return $this->add_additional_fields_schema( $schema );
 	}
@@ -310,35 +315,22 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_widget_unavailable_widget_number', __( 'Unknown widget number.', 'js-widgets' ), array( 'status' => 500 ) );
 		}
 
+		// Just in case.
+		unset( $instance['id'] );
+		unset( $instance['type'] );
+
 		$widget_id = $this->widget->id_base . '-' . $widget_number;
-
-		// @todo There could be a request arg that specifies the sidebar_id.
-		$widget_args = array(
-			'before_widget' => sprintf( '<li id="%1$s" class="widget %2$s">', $widget_id, $this->widget->widget_options['classname'] ),
-			'after_widget' => "</li>\n",
-			'before_title' => '<h2 class="widgettitle">',
-			'after_title' => "</h2>\n",
-			'widget_id' => $widget_id,
+		$data = array_merge(
+			array(
+				'id' => $widget_id,
+				'type' => $this->widget->id_base, // @todo Should this be "widget_{$this->widget->id_base}"?
+			),
+			$instance
 		);
-
-		$this->widget->_set( $widget_number );
-		ob_start();
-		$rendered_return = $this->widget->render( $widget_args, $instance );
-		$rendered_echoed = ob_get_clean();
-		$rendered = ! is_null( $rendered_return ) ? $rendered_return : $rendered_echoed;
-		$this->widget->_set( -1 );
-
-		$data = array(
-			'id' => $this->widget->id_base . '-' . $widget_number,
-			'type' => $this->widget->id_base, // @todo Should this be "widget_{$this->widget->id_base}"?
-			'raw' => $instance,
-			'rendered' => $rendered,
-		);
-
-		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		// @todo Add a method to WP_JS_Widget that allows the data to be processed for response, to inject additional processed dynamic fields.
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 
 		// Wrap the data in a response object.

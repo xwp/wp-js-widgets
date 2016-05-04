@@ -51,45 +51,29 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
 				'type'        => 'object',
-				'context'     => array( 'view', 'edit', 'embed' ),
+				'context'     => array( 'edit' ),
 				'properties'  => array(
-					'raw' => array(
-						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'edit' ),
-						// @todo sanitize callback
-					),
-					'rendered' => array(
-						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit', 'embed' ),
-						'readonly'    => true,
-					),
+					'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+					// @todo sanitize callback
 				),
 			),
 			'text' => array(
-				'description' => __( 'The content for the object.' ),
+				'description' => __( 'The content for the object.', 'js-widgets' ),
 				'type'        => 'object',
-				'context'     => array( 'view', 'edit' ),
+				'context'     => array( 'edit' ),
 				'properties'  => array(
-					'raw' => array(
-						'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'edit' ),
-						// @todo sanitize callback
-					),
-					'rendered' => array(
-						'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit' ),
-						'readonly'    => true,
-					),
+					'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+					// @todo sanitize callback
 				),
 			),
 			'filter' => array(
 				'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
 				'type'        => 'boolean',
-				'context'     => array( 'view', 'edit' ),
+				'context'     => array( 'edit' ),
 				'default'     => true,
 			),
 		);
