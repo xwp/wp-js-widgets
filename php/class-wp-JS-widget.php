@@ -186,7 +186,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 		$rendered = ob_get_clean();
 		if ( $rendered ) {
 			echo $rendered; // XSS OK.
-		} else {
+		} elseif ( ! is_null( $data ) ) {
 			echo $args['before_widget']; // WPCS: XSS OK.
 			echo '<script type="application/json">';
 			echo wp_json_encode( $data );
