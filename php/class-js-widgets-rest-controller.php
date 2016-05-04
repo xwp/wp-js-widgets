@@ -102,7 +102,6 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		// @todo Rename 'widgets' to 'instances'?
 		$route = '/widgets/' . $this->rest_base;
 
-		// @todo Add an arg for URL context?
 		register_rest_route( $this->namespace, $route, array(
 			array(
 				'methods' => WP_REST_Server::READABLE,
@@ -141,7 +140,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				'methods' => WP_REST_Server::DELETABLE,
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-				'args' => array(),
+				'args' => $this->get_endpoint_args_for_item_schema( WP_REST_Server::DELETABLE ),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );

@@ -95,7 +95,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 			$customize_url = add_query_arg( array( 'autofocus[control]' => $customize_id ), wp_customize_url() );
 			?>
 			<p>
-				<?php echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.' ), esc_url( $customize_url ) ); // WPCS: xss ok. ?>
+				<?php echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok. ?>
 			</p>
 			<?php
 			return 'noform';
