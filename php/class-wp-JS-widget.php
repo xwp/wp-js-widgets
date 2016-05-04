@@ -122,9 +122,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
 	final public function update( $new_instance, $old_instance = array() ) {
-		return $this->sanitize( $new_instance, array(
+		$instance = $this->sanitize( $new_instance, array(
 			'old_instance' => $old_instance,
 		) );
+		if ( ! is_array( $instance ) ) {
+			return false;
+		}
+		return $instance;
 	}
 
 	/**
