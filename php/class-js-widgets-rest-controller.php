@@ -258,12 +258,19 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['type'] ) && $this->widget->id_base !== $request['type'] ) { // @todo Or with 'widget_' prefix?
 			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
-		if ( ! is_array( $request['raw'] ) ) {
-			return new WP_Error( 'rest_widget_missing_raw', __( 'Missing raw content.', 'js-widgets' ), array( 'status' => 400 ) );
-		}
 
-		// @todo Apply schema validation.
-		$new_instance = $request['raw'];
+		$new_instance = $request->get_params();
+
+		/*
+		 * Merge the new instance on top of the old instance. This is needed
+		 * because in a PUT (EDITABLE) request because
+		 * \WP_REST_Controller::get_endpoint_args_for_item_schema()
+		 * will skip applying required validation constraints if the request
+		 * is not a POST (CREATABLE) request.
+		 *
+		 * @todo Should this be fixed in the WP-API plugin?
+		 */
+		$new_instance = array_merge( $old_instance, $new_instance );
 
 		$instance = $this->widget->sanitize( $new_instance, array(
 			'old_instance' => $old_instance,
