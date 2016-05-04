@@ -99,6 +99,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
+		// @todo Make sure that any widget-specific fields have been defined at this point so that they are available in get_endpoint_args_for_item_schema().
 		// @todo Rename 'widgets' to 'instances'?
 		$route = '/widgets/' . $this->rest_base;
 

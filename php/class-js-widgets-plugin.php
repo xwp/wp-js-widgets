@@ -62,7 +62,7 @@ class JS_Widgets_Plugin {
 	public function init() {
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ) );
-		add_action( 'rest_api_init', array( $this, 'rest_api_init' ) );
+		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
