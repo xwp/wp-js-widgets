@@ -1,0 +1,31 @@
+{
+	"name": "xwp/wp-js-widgets",
+	"description": "The next generation of widgets in Core (Widgets 3.0), embracing JS for UI and powering the Widgets REST API.",
+	"version": "0.1.0",
+	"type": "wordpress-plugin",
+	"keywords": [ "customizer", "widgets", "rest-api" ],
+	"homepage": "https://github.com/xwp/wp-js-widgets/",
+	"license": [ "GPL-2.0+" ],
+	"repositories": [
+		{
+			"type": "git",
+			"url": "https://github.com/xwp/wp-js-widgets.git"
+		}
+	],
+	"dist": {
+		"url": "https://downloads.wordpress.org/plugin/js-widgets.zip",
+		"type": "zip"
+	},
+	"require": {
+		"php": ">=5.2.0"
+	},
+	"authors": [
+		{
+			"name": "Weston Ruter",
+			"homepage": "https://weston.ruter.net/"
+		}
+	],
+	"require-dev": {
+		"satooshi/php-coveralls": "dev-master"
+	}
+}

@@ -1,0 +1,24 @@
+{
+	"name": "js-widgets",
+	"title": "JS Widgets",
+	"homepage": "https://github.com/xwp/wp-js-widgets",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/xwp/wp-js-widgets.git"
+	},
+	"version": "0.1.0",
+	"license": "GPL-2.0+",
+	"private": true,
+	"devDependencies": {
+		"grunt": "~0.4.5",
+		"grunt-checktextdomain": "~1.0.0",
+		"grunt-contrib-clean": "~1.0.0",
+		"grunt-contrib-copy": "~1.0.0",
+		"grunt-contrib-cssmin": "~1.0.0",
+		"grunt-contrib-jshint": "~1.0.0",
+		"grunt-contrib-uglify": "~1.0.0",
+		"grunt-shell": "~1.3.0",
+		"grunt-wp-deploy": "^1.1.0"
+	},
+	"author": "XWP"
+}
