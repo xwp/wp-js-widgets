@@ -51,6 +51,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		$has_widget_posts = post_type_exists( 'widget_instance' );
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
@@ -58,8 +59,8 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id' => array(
-					'description' => __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
-					'type'        => 'string',
+					'description' => $has_widget_posts ? __( 'ID for widget_instance post', 'js-widgets' ) : __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
+					'type'        => $has_widget_posts ? 'integer' : 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
@@ -247,7 +248,11 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		$old_instance = $instances[ $request['widget_number'] ];
 
-		$expected_id = $this->widget->id_base . '-' . $request['widget_number'];
+		if ( post_type_exists( 'widget_instance' ) ) {
+			$expected_id = intval( $request['widget_number'] );
+		} else {
+			$expected_id = $this->widget->id_base . '-' . $request['widget_number'];
+		}
 		if ( ! empty( $request['id'] ) && $expected_id !== $request['id'] ) {
 			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
@@ -319,7 +324,11 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		unset( $instance['id'] );
 		unset( $instance['type'] );
 
-		$widget_id = $this->widget->id_base . '-' . $widget_number;
+		if ( post_type_exists( 'widget_instance' ) ) {
+			$widget_id = intval( $widget_number );
+		} else {
+			$widget_id = $this->widget->id_base . '-' . $request['widget_number'];
+		}
 		$data = array_merge(
 			array(
 				'id' => $widget_id,
