@@ -61,6 +61,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 				'description' => __( 'The content for the object.', 'js-widgets' ),
 				'type' => 'string',
 				'context' => array( 'edit' ),
+				'required' => true,
 				'arg_options' => array(
 					'validate_callback' => array( $this, 'validate_text_field' ),
 				),

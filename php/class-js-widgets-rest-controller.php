@@ -144,7 +144,68 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+	}
 
+	/**
+	 * Get an array of endpoint arguments from the item schema for the controller.
+	 *
+	 * @param string $method HTTP method of the request. The arguments
+	 *                       for `CREATABLE` requests are checked for required
+	 *                       values and may fall-back to a given default, this
+	 *                       is not done on `EDITABLE` requests. Default is
+	 *                       WP_REST_Server::CREATABLE.
+	 * @return array $endpoint_args
+	 */
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
+
+		$schema = $this->get_item_schema();
+		$schema_properties = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
+		$endpoint_args = array();
+		$is_create_or_edit = ( WP_REST_Server::EDITABLE === $method || WP_REST_Server::CREATABLE === $method );
+
+		foreach ( $schema_properties as $field_id => $params ) {
+
+			// Arguments specified as `readonly` are not allowed to be set.
+			if ( ! empty( $params['readonly'] ) ) {
+				continue;
+			}
+
+			$endpoint_args[ $field_id ] = array(
+				'validate_callback' => 'rest_validate_request_arg',
+				'sanitize_callback' => 'rest_sanitize_request_arg',
+			);
+
+			if ( isset( $params['description'] ) ) {
+				$endpoint_args[ $field_id ]['description'] = $params['description'];
+			}
+
+			if ( $is_create_or_edit && isset( $params['default'] ) ) {
+				$endpoint_args[ $field_id ]['default'] = $params['default'];
+			}
+
+			if ( $is_create_or_edit && ! empty( $params['required'] ) ) {
+				$endpoint_args[ $field_id ]['required'] = true;
+			}
+
+			foreach ( array( 'type', 'format', 'enum' ) as $schema_prop ) {
+				if ( isset( $params[ $schema_prop ] ) ) {
+					$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
+				}
+			}
+
+			// Merge in any options provided by the schema property.
+			if ( isset( $params['arg_options'] ) ) {
+
+				// Only use required / default from arg_options on CREATABLE/EDITABLE endpoints.
+				if ( ! $is_create_or_edit ) {
+					$params['arg_options'] = array_diff_key( $params['arg_options'], array( 'required' => '', 'default' => '' ) );
+				}
+
+				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
+			}
+		}
+
+		return $endpoint_args;
 	}
 
 	/**
@@ -260,18 +321,6 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		}
 
 		$new_instance = $request->get_params();
-
-		/*
-		 * Merge the new instance on top of the old instance. This is needed
-		 * because in a PUT (EDITABLE) request because
-		 * \WP_REST_Controller::get_endpoint_args_for_item_schema()
-		 * will skip applying required validation constraints if the request
-		 * is not a POST (CREATABLE) request.
-		 *
-		 * @todo Should this be fixed in the WP-API plugin?
-		 */
-		$new_instance = array_merge( $old_instance, $new_instance );
-
 		$instance = $this->widget->sanitize( $new_instance, array(
 			'old_instance' => $old_instance,
 			'strict' => true,
