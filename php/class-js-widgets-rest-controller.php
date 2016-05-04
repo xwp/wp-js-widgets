@@ -91,7 +91,19 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			$schema['properties'][ $field_id ] = $field_schema;
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$schema = $this->add_additional_fields_schema( $schema );
+
+		// Expose root-level required properties according to JSON Schema.
+		if ( ! isset( $schema['required'] ) ) {
+			$schema['required'] = array();
+		}
+		foreach ( $schema['properties'] as $field_id => $field_schema ) {
+			if ( ! empty( $field_schema['required'] ) ) {
+				$schema['required'][] = $field_id;
+			}
+		}
+
+		return $schema;
 	}
 
 	/**
