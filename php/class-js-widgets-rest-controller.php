@@ -54,7 +54,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'widget_' . $this->widget->id_base,
+			'title'      => 'widget_' . $this->widget->id_base, // @todo Or without the widget_ prefix?
 			'type'       => 'object',
 			'properties' => array(
 				'id' => array(
@@ -154,45 +154,58 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Check if a given request has access to get a specific item.
 	 *
+	 * @todo Allow public access to view and edit context.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return bool
 	 */
-	public function get_item_permissions_check() {
+	public function get_item_permissions_check( $request ) {
+		unset( $request );
 		return $this->current_user_can();
 	}
 
 	/**
 	 * Check if a given request has access to get items.
 	 *
+	 * @todo Allow public access to view and edit context.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
-	public function get_items_permissions_check() {
-		return $this->get_item_permissions_check();
+	public function get_items_permissions_check( $request ) {
+		return $this->get_item_permissions_check( $request );
 	}
 
 	/**
 	 * Check if a given request has access to create items.
 	 *
+	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
-	public function create_item_permissions_check() {
+	public function create_item_permissions_check( $request ) {
+		unset( $request );
 		return $this->current_user_can();
 	}
 
 	/**
 	 * Check if a given request has access to update a specific item.
 	 *
+	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
-	public function update_item_permissions_check() {
+	public function update_item_permissions_check( $request ) {
+		unset( $request );
 		return $this->current_user_can();
 	}
 
 	/**
 	 * Check if a given request has access to delete a specific item.
 	 *
+	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
-	public function delete_item_permissions_check() {
+	public function delete_item_permissions_check( $request ) {
+		unset( $request );
 		return $this->current_user_can();
 	}
 
@@ -202,14 +215,14 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request.
 	 * @return WP_Error|WP_REST_Response Response.
 	 */
-	public function get_item( WP_REST_Request $request ) {
+	public function get_item( $request ) {
 		$instances = $this->widget->get_settings();
 		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
 			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
 		}
 
 		$instance = $instances[ $request['widget_number'] ];
-		$data = $this->prepare_item_for_response( $request['widget_number'], $instance, $request );
+		$data = $this->prepare_item_for_response( $instance, $request, $request['widget_number'] );
 		$response = rest_ensure_response( $data );
 		return $response;
 	}
@@ -221,7 +234,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @return WP_Error|WP_REST_Response Response.
 	 */
-	public function update_item( WP_REST_Request $request ) {
+	public function update_item( $request ) {
 		$instances = $this->widget->get_settings();
 		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
 			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
@@ -233,7 +246,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['id'] ) && $expected_id !== $request['id'] ) {
 			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
-		if ( ! empty( $request['type'] ) && $this->widget->id_base !== $request['type'] ) {
+		if ( ! empty( $request['type'] ) && $this->widget->id_base !== $request['type'] ) { // @todo Or with 'widget_' prefix?
 			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
 		if ( ! is_array( $request['raw'] ) ) {
@@ -258,7 +271,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		$instances[ $request['widget_number'] ] = $instance;
 		$this->widget->save_settings( $instances );
 
-		$data = $this->prepare_item_for_response( $request['widget_number'], $instance, $request );
+		$data = $this->prepare_item_for_response( $instance, $request, $request['widget_number'] );
 		$response = rest_ensure_response( $data );
 		return $response;
 	}
@@ -272,10 +285,10 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @return WP_Error|WP_REST_Response Response.
 	 */
-	public function get_items( WP_REST_Request $request ) {
+	public function get_items( $request ) {
 		$instances = array();
 		foreach ( $this->widget->get_settings() as $widget_number => $instance ) {
-			$data = $this->prepare_item_for_response( $widget_number, $instance, $request );
+			$data = $this->prepare_item_for_response( $instance, $request, $widget_number );
 			$instances[] = $this->prepare_response_for_collection( $data );
 		}
 		return $instances;
@@ -284,13 +297,18 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single widget instance for response.
 	 *
-	 * @param int             $widget_number Widget number.
 	 * @param array           $instance      Instance data.
 	 * @param WP_REST_Request $request       Request object.
+	 * @param int             $widget_number Request object.
 	 * @return WP_REST_Response $data
 	 */
-	public function prepare_item_for_response( $widget_number, $instance, $request ) {
-		$widget_number = (int) $widget_number;
+	public function prepare_item_for_response( $instance, $request, $widget_number = null ) {
+		if ( empty( $widget_number ) ) {
+			$widget_number = $request['widget_number'];
+		}
+		if ( empty( $widget_number ) ) {
+			return new WP_Error( 'rest_widget_unavailable_widget_number', __( 'Unknown widget number.', 'js-widgets' ), array( 'status' => 500 ) );
+		}
 
 		$widget_id = $this->widget->id_base . '-' . $widget_number;
 
@@ -312,12 +330,14 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		$data = array(
 			'id' => $this->widget->id_base . '-' . $widget_number,
-			'type' => $this->widget->id_base,
+			'type' => $this->widget->id_base, // @todo Should this be "widget_{$this->widget->id_base}"?
 			'raw' => $instance,
 			'rendered' => $rendered,
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+		// @todo Add a method to WP_JS_Widget that allows the data to be processed for response, to inject additional processed dynamic fields.
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 
