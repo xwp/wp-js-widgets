@@ -87,13 +87,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 */
 	final public function form( $instance ) {
 		global $wp_customize;
-		unset( $instance );
 
 		if ( empty( $wp_customize ) ) {
 			// Note that %s used instead of %d for number because widget "template" sets $this->number to __i__.
 			$customize_id = sprintf( 'widget_%s[%s]', $this->id_base, $this->number );
 			$customize_url = add_query_arg( array( 'autofocus[control]' => $customize_id ), wp_customize_url() );
 			?>
+			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>"  name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
 			<p>
 				<?php echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok. ?>
 			</p>
