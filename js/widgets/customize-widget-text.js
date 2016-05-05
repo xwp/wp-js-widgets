@@ -87,16 +87,20 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 				newInstance.text = '';
 			}
 
-			// Strip tags.
-			newInstance.title = newInstance.title.replace( /<\/?\w+[^>]*>/gi, '' );
-
-			if ( ! form.config.unfiltered_html ) {
-
-				// Apply rudimentary wp_kses().
-				newInstance.text = newInstance.text.replace( /<\/?(script|iframe)[^>]*>/gi, '' );
+			// Warn about markup in title.
+			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
+				form.setValidationMessage( form.config.l10n.title_tags_invalid );
 			}
 
-			// Trim.
+			// Warn about unfiltered HTML.
+			if ( ! form.config.can_unfiltered_html && /<\/?(script|iframe)[^>]*>/i.test( newInstance.text ) ) {
+				form.setValidationMessage( form.config.l10n.text_unfiltered_html_invalid );
+			}
+
+			/*
+			 * Trim per sanitize_text_field().
+			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
+			 */
 			newInstance.title = $.trim( newInstance.title );
 			newInstance.text = $.trim( newInstance.text );
 

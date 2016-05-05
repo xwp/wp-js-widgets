@@ -257,6 +257,10 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	public function get_form_args() {
 		return array(
 			'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
+			'l10n' => array(
+				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
+			),
 		);
 	}
 }
