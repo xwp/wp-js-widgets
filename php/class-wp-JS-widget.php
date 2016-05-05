@@ -55,6 +55,23 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 */
 	abstract public function get_instance_schema();
 
+
+	/**
+	 * Get rest fields for registering additional rendered dynamic fields.
+	 *
+	 * All of the fields returned here will be forced to have `readonly` defined
+	 * in their schemas and will have any `update_callback` args unset. The
+	 * context will default to embed,view,edit, and it should be displayed by
+	 * default without edit capabilities.
+	 *
+	 * @see register_rest_field()
+	 *
+	 * @return array
+	 */
+	public function get_rendered_rest_fields() {
+		return array();
+	}
+
 	/**
 	 * Prepare links for the response.
 	 *

@@ -79,6 +79,67 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
+	 * Get rest fields for registering additional rendered dynamic fields.
+	 *
+	 * @inheritdoc
+	 * @return array
+	 */
+	public function get_rendered_rest_fields() {
+		return array(
+			'title_rendered' => array(
+				'get_callback' => array( $this, 'get_rendered_title' ),
+				'schema' => array(
+					'description' => __( 'The rendered title for the object.', 'js-widgets' ),
+					'type' => 'string',
+				),
+			),
+			'text_rendered' => array(
+				'get_callback' => array( $this, 'get_rendered_text' ),
+				'schema' => array(
+					'description' => __( 'The rendered text for the object.', 'js-widgets' ),
+					'type' => 'string',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Get rendered title.
+	 *
+	 * @see WP_JS_Widget_Text::get_rendered_rest_fields()
+	 * @see WP_Widget_Text::widget()
+	 *
+	 * @param array $instance Instance data.
+	 * @return string
+	 */
+	public function get_rendered_title( $instance ) {
+		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
+		$title_rendered = apply_filters( 'widget_title', empty( $instance['title'] ) ? '' : $instance['title'], $instance, $this->id_base );
+		return $title_rendered;
+	}
+
+	/**
+	 * Get rendered text.
+	 *
+	 * @see WP_Widget_Text::widget()
+	 * @see WP_JS_Widget_Text::get_rendered_rest_fields()
+	 *
+	 * @param array $instance Instance data.
+	 * @return string
+	 */
+	public function get_rendered_text( $instance ) {
+		$text_rendered = isset( $instance['text'] ) ? $instance['text'] : '';
+
+		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
+		$text_rendered = apply_filters( 'widget_text', $text_rendered, $instance, $this->proxied_widget );
+
+		if ( ! empty( $instance['filter'] ) ) {
+			$text_rendered = wpautop( $text_rendered );
+		}
+		return $text_rendered;
+	}
+
+	/**
 	 * Validate a title request argument based on details registered to the route.
 	 *
 	 * @param  mixed           $value   Value.

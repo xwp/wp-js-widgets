@@ -138,8 +138,20 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		// @todo Make sure that any widget-specific fields have been defined at this point so that they are available in get_endpoint_args_for_item_schema().
-		// @todo Rename 'widgets' to 'instances'?
+		$object_type = $this->get_object_type();
+		foreach ( $this->widget->get_rendered_rest_fields() as $field_id => $args ) {
+			unset( $args['update_callback'] );
+			if ( ! isset( $args['schema'] ) ) {
+				$args['schema'] = array();
+			}
+			$args['schema']['readonly'] = true;
+			unset( $args['schema']['required'] );
+			if ( ! isset( $args['schema']['context'] ) ) {
+				$args['schema']['context'] = array( 'embed', 'view', 'edit' );
+			}
+			register_rest_field( $object_type, $field_id, $args );
+		}
+
 		$route = '/widgets/' . $this->rest_base;
 
 		register_rest_route( $this->namespace, $route, array(
