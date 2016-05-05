@@ -113,8 +113,10 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 * @return string
 	 */
 	public function get_rendered_title( $instance ) {
+		$title_rendered = isset( $instance['title'] ) ? $instance['title'] : '';
+
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
-		$title_rendered = apply_filters( 'widget_title', empty( $instance['title'] ) ? '' : $instance['title'], $instance, $this->id_base );
+		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
 		return $title_rendered;
 	}
 
@@ -194,15 +196,12 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 *
 	 *     @type array $old_instance Old instance.
 	 *     @type WP_Customize_Setting $setting Setting.
-	 *     @type bool $strict Validate.
+	 *     @type bool $strict Validate. @todo REMOVE.
 	 * }
 	 *
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` on failure if `$strict`, and `null` otherwise.
 	 */
 	public function sanitize( $new_instance, $args = array() ) {
-
-		// @todo Apply the get_instance_schema().
-
 		$instance = $this->proxied_widget->update( $new_instance, $args['old_instance'] );
 		return $instance;
 	}

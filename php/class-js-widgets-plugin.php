@@ -307,6 +307,53 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
+	 * Sanitize and validate via the instance schema.
+	 *
+	 * The provided instance will be sanitized, filled with defaults, and then validated.
+	 * Applies the same logic as `WP_REST_Server::dispatch()`.
+	 *
+	 * @see WP_REST_Server::dispatch()
+	 * @access public
+	 *
+	 * @param array        $instance Array instance.
+	 * @param WP_JS_Widget $widget   Widget instance.
+	 * @return array|WP_Error Sanitized array on success, and WP_Error on validation failure.
+	 */
+	public function sanitize_and_validate_via_instance_schema( $instance, $widget ) {
+		$instance_schema = $widget->get_instance_schema();
+		if ( empty( $instance_schema ) ) {
+			return $instance;
+		}
+
+		$request = new WP_REST_Request( 'PUT' );
+		$attributes = array(
+			'args' => array(),
+		);
+		foreach ( $widget->get_instance_schema() as $field_id => $field_schema ) {
+			if ( isset( $field_schema['arg_options'] ) ) {
+				$field_schema = array_merge( $field_schema, $field_schema['arg_options'] );
+				unset( $field_schema['arg_options'] );
+			}
+			$attributes['args'][ $field_id ] = $field_schema;
+		}
+		$request->set_attributes( $attributes );
+		$request->set_body_params( $instance );
+		$request->sanitize_params();
+		$defaults = array();
+		foreach ( $attributes['args'] as $arg => $options ) {
+			if ( isset( $options['default'] ) ) {
+				$defaults[ $arg ] = $options['default'];
+			}
+		}
+		$request->set_default_params( $defaults );
+		$check_required = $request->has_valid_params();
+		if ( is_wp_error( $check_required ) ) {
+			return $check_required;
+		}
+		return $request->get_body_params();
+	}
+
+	/**
 	 * Sanitizes a widget instance.
 	 *
 	 * Calls the standard `WP_Customize_Widgets::sanitize_widget_instance()` if
@@ -339,15 +386,19 @@ class JS_Widgets_Plugin {
 
 		// The customize_validate_settings action is part of the Customize Setting Validation plugin.
 		if ( ! $strict && doing_action( 'customize_validate_settings' ) ) {
-			$strict = true;
+			$strict = true; // @todo Eliminate?
 		}
 
 		$old_instance = $setting->value();
-		$instance = $widget->sanitize( $new_instance, array(
-			'old_instance' => $old_instance,
-			'setting' => $setting,
-			'strict' => $strict,
-		) );
+		$instance = $this->sanitize_and_validate_via_instance_schema( $new_instance, $widget );
+
+		if ( is_array( $instance ) ) {
+			$instance = $widget->sanitize( $instance, array(
+				'old_instance' => $old_instance,
+				'setting' => $setting,
+				'strict' => $strict, // @todo Remove?
+			) );
+		}
 
 		if ( is_array( $instance ) ) {
 			/**
@@ -366,6 +417,7 @@ class JS_Widgets_Plugin {
 			$instance = apply_filters( 'widget_update_callback', $instance, $new_instance, $old_instance, $widget );
 		}
 
+		// @todo Remove the strict check once it is determined that Core supports returning WP_Error instances from sanitize callbacks?
 		if ( $strict ) {
 			if ( ! is_array( $instance ) && ! is_wp_error( $instance ) ) {
 				$instance = new WP_Error( 'invalid_instance', __( 'Invalid instance', 'js-widgets' ) );
