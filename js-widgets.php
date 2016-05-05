@@ -33,4 +33,4 @@ require_once __DIR__ . '/php/widgets/class-wp-js-widget-text.php';
 
 global $js_widgets_plugin;
 $js_widgets_plugin = new JS_Widgets_Plugin();
-$js_widgets_plugin->init();
+add_action( 'plugins_loaded', array( $js_widgets_plugin, 'init' ) );

@@ -60,6 +60,11 @@ class JS_Widgets_Plugin {
 	 * @access public
 	 */
 	public function init() {
+		if ( ! function_exists( 'rest_validate_request_arg' ) ) {
+			add_action( 'admin_notices', array( $this, 'print_admin_notice_missing_wp_api_dependency' ) );
+			return;
+		}
+
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
@@ -72,6 +77,17 @@ class JS_Widgets_Plugin {
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
 
 		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
+	}
+
+	/**
+	 * Show admin notice when the WP-API plugin is not active.
+	 */
+	public function print_admin_notice_missing_wp_api_dependency() {
+		?>
+		<div class="error">
+			<p><?php esc_html_e( 'The JS Widgets plugin depends on the WP-API plugin being active.', 'js-widgets' ) ?></p>
+		</div>
+		<?php
 	}
 
 	/**

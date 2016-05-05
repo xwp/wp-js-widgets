@@ -20,6 +20,11 @@ This plugin implements:
 * [WP-CORE#35574](https://core.trac.wordpress.org/ticket/35574): Add REST API JSON schema information to WP_Widget.
 * [WP-API#19](https://github.com/WP-API/WP-API/issues/19): Add widget endpoints to the WP REST API.
 
+Plugin Dependencies:
+
+* [WordPress REST API v2](https://wordpress.org/plugins/rest-api/)
+* [Customize Setting Validation](https://github.com/xwp/wp-customize-setting-validation) (recommended)
+
 Features:
 
 * Widget instance settings in the Customizer are exported from PHP as regular JSON without any PHP-serialized base64-encoded `encoded_serialized_instance`.
