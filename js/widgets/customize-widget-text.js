@@ -80,6 +80,13 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		sanitize: function( newInstance ) {
 			var form = this;
 
+			if ( ! newInstance.title ) {
+				newInstance.title = '';
+			}
+			if ( ! newInstance.text ) {
+				newInstance.text = '';
+			}
+
 			// Strip tags.
 			newInstance.title = newInstance.title.replace( /<\/?\w+[^>]*>/gi, '' );
 
