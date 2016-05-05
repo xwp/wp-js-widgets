@@ -46,6 +46,32 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Get the object type for the REST resource.
+	 *
+	 * @return string
+	 */
+	protected function get_object_type() {
+		return $this->widget->id_base . '-widget';
+	}
+
+	/**
+	 * Get a widget object (resource) ID.
+	 *
+	 * This is not great and shouldn't be long for this world.
+	 *
+	 * @param int $widget_number Widget number (or widget_instance post ID).
+	 * @return array Widget object ID.
+	 */
+	protected function get_object_id( $widget_number ) {
+		if ( post_type_exists( 'widget_instance' ) ) {
+			$widget_id = intval( $widget_number );
+		} else {
+			$widget_id = $this->widget->id_base . '-' . $widget_number;
+		}
+		return $widget_id;
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema.
 	 *
 	 * @return array
@@ -55,9 +81,10 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => 'widget_' . $this->widget->id_base, // @todo Or without the widget_ prefix?
+			'title'      => $this->get_object_type(),
 			'type'       => 'object',
 			'properties' => array(
+				// @todo change to widget_id containing id_base-widget_number, with an id field only available if Widget Posts are enabled?
 				'id' => array(
 					'description' => $has_widget_posts ? __( 'ID for widget_instance post', 'js-widgets' ) : __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
 					'type'        => $has_widget_posts ? 'integer' : 'string',
@@ -65,7 +92,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'type' => array(
-					'description' => __( 'Type of widget (aka id_base).', 'js-widgets' ),
+					'description' => __( 'Object type.', 'js-widgets' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
@@ -320,16 +347,11 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		}
 
 		$old_instance = $instances[ $request['widget_number'] ];
-
-		if ( post_type_exists( 'widget_instance' ) ) {
-			$expected_id = intval( $request['widget_number'] );
-		} else {
-			$expected_id = $this->widget->id_base . '-' . $request['widget_number'];
-		}
+		$expected_id = $this->get_object_id( $request['widget_number'] );
 		if ( ! empty( $request['id'] ) && $expected_id !== $request['id'] ) {
 			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
-		if ( ! empty( $request['type'] ) && $this->widget->id_base !== $request['type'] ) { // @todo Or with 'widget_' prefix?
+		if ( ! empty( $request['type'] ) && $this->get_object_type() !== $request['type'] ) {
 			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
 
@@ -392,20 +414,15 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		unset( $instance['id'] );
 		unset( $instance['type'] );
 
-		if ( post_type_exists( 'widget_instance' ) ) {
-			$widget_id = intval( $widget_number );
-		} else {
-			$widget_id = $this->widget->id_base . '-' . $request['widget_number'];
-		}
+		$widget_id = $this->get_object_id( $widget_number );
 		$data = array_merge(
 			array(
 				'id' => $widget_id,
-				'type' => $this->widget->id_base, // @todo Should this be "widget_{$this->widget->id_base}"?
+				'type' => $this->get_object_type(),
 			),
 			$instance
 		);
 
-		// @todo Add a method to WP_JS_Widget that allows the data to be processed for response, to inject additional processed dynamic fields.
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
