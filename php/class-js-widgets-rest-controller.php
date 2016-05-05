@@ -367,11 +367,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
 		}
 
+		// Note that $new_instance has gone through the validate and sanitize callbacks defined on the instance schema.
 		$new_instance = $request->get_params();
-		$instance = $this->widget->sanitize( $new_instance, array(
-			'old_instance' => $old_instance,
-			'strict' => true,
-		) );
+		$instance = $this->widget->sanitize( $new_instance, $old_instance );
 
 		if ( is_wp_error( $instance ) ) {
 			return $instance;

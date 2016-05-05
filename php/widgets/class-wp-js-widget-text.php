@@ -196,19 +196,12 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 *
 	 * @inheritdoc
 	 *
-	 * @param array $new_instance New instance.
-	 * @param array $args {
-	 *     Additional context for sanitization.
-	 *
-	 *     @type array $old_instance Old instance.
-	 *     @type WP_Customize_Setting $setting Setting.
-	 *     @type bool $strict Validate. @todo REMOVE.
-	 * }
-	 *
-	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` on failure if `$strict`, and `null` otherwise.
+	 * @param array $new_instance  New instance.
+	 * @param array $old_instance  Old instance.
+	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
-	public function sanitize( $new_instance, $args = array() ) {
-		$instance = $this->proxied_widget->update( $new_instance, $args['old_instance'] );
+	public function sanitize( $new_instance, $old_instance ) {
+		$instance = $this->proxied_widget->update( $new_instance, $old_instance );
 		return $instance;
 	}
 

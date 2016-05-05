@@ -393,11 +393,7 @@ class JS_Widgets_Plugin {
 		$instance = $this->sanitize_and_validate_via_instance_schema( $new_instance, $widget );
 
 		if ( is_array( $instance ) ) {
-			$instance = $widget->sanitize( $instance, array(
-				'old_instance' => $old_instance,
-				'setting' => $setting,
-				'strict' => $strict, // @todo Remove?
-			) );
+			$instance = $widget->sanitize( $instance, $old_instance );
 		}
 
 		if ( is_array( $instance ) ) {

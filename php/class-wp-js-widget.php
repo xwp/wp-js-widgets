@@ -129,7 +129,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * by `WP_Customize_Setting::update()`. The `WP_Widget::update()` method merely
 	 * sanitizes and should not have any side-effects.
 	 *
-	 * @inheritdoc
+	 * This method also returns false to prevent it from being used outside a
+	 * Customizer context, since only for the Customizer setting callback will
+	 * ensure that the instance JSON schema validation and sanitization applies
+	 * before being passed into the `WP_JS_Widget::sanitize()` callback.
+	 *
+	 * @deprecated
+	 * @see JS_Widgets_Plugin::sanitize_widget_instance()
 	 * @see WP_Customize_Setting::update()
 	 * @see WP_Customize_Setting::save()
 	 *
@@ -139,13 +145,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array Settings to save or bool false to cancel saving.
 	 */
 	final public function update( $new_instance, $old_instance = array() ) {
-		$instance = $this->sanitize( $new_instance, array(
-			'old_instance' => $old_instance,
-		) );
-		if ( ! is_array( $instance ) ) {
-			return false;
-		}
-		return $instance;
+		unset( $new_instance, $old_instance );
+		_doing_it_wrong( __METHOD__, esc_html__( 'The update method should not be called for WP_JS_Widets. Call sanitize instead.', 'js-widgets' ), '' );
+		return false;
 	}
 
 	/**
@@ -173,26 +175,19 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * the instance won't be saved/updated.
 	 *
 	 * Note that the Customizer setting will sanitize and validate the data according to the
-	 * defined instance schema, so this sanitize function may very well no-op.
-	 *
-	 * @todo There is no guarantee that the calling environment would have applied the schema validation.
+	 * defined instance schema, so this sanitize function may very well no-op as it
+	 * would be redundant. This is why the `WP_JS_Widget::update()` method is
+	 * final, deprecated, and returns false.
 	 *
 	 * @see WP_JS_Widget::get_instance_schema()
 	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
-	 * @param array $args {
-	 *     Additional context for sanitization.
-	 *
-	 *     @type array                $old_instance  Old instance.
-	 *     @type WP_Customize_Setting $setting       Setting.
-	 *     @type bool                 $strict        Validate. @todo Remove.
-	 * }
-	 *
-	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` on failure if `$strict`, and `null` otherwise.
+	 * @param array $old_instance  Old instance.
+	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
-	public function sanitize( $new_instance, $args = array() ) {
-		unset( $args );
+	public function sanitize( $new_instance, $old_instance ) {
+		unset( $old_instance, $setting );
 		return $new_instance;
 	}
 
