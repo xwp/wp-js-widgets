@@ -154,14 +154,17 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
-		if ( preg_match( '#</?\w+.*?>#', $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
-		}
-		if ( trim( $value ) !== $value ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
-		}
-		if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
+
+		if ( $this->should_validate_strictly( $request ) ) {
+			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
+			}
+			if ( trim( $value ) !== $value ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
+			}
+			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
+			}
 		}
 		return true;
 	}
@@ -179,8 +182,11 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
-		if ( ! current_user_can( 'unfiltered_html' ) && wp_kses_post( $value ) !== $value ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal markup', 'js-widgets' ), $param ) );
+
+		if ( $this->should_validate_strictly( $request ) ) {
+			if ( ! current_user_can( 'unfiltered_html' ) && wp_kses_post( $value ) !== $value ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal markup', 'js-widgets' ), $param ) );
+			}
 		}
 		return true;
 	}

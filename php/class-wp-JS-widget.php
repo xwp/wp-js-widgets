@@ -149,12 +149,36 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Return whether strict draconian validation should be performed.
+	 *
+	 * When true, the instance data will go through additional validation checks
+	 * before being sent through sanitize which will scrub the data lossily.
+	 *
+	 * This is experimental and is only intended to apply in REST API requests,
+	 * not in normal widget updates as performed through the Customizer.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return bool
+	 */
+	public function should_validate_strictly( $request ) {
+		$query_params = $request->get_query_params();
+		return isset( $query_params['strict'] ) && (int) $query_params['strict'];
+	}
+
+	/**
 	 * Sanitize instance data.
 	 *
 	 * This function should check that `$new_instance` is set correctly. The newly-calculated
 	 * value of `$instance` should be returned. If anything other than an `array` is returned,
-	 * the instance won't be saved/updated. By default this method sanitizes the data via the
-	 * JSON schema returned by `WP_Customize_Widget::get_instance_schema()`.
+	 * the instance won't be saved/updated.
+	 *
+	 * Note that the Customizer setting will sanitize and validate the data according to the
+	 * defined instance schema, so this sanitize function may very well no-op.
+	 *
+	 * @todo There is no guarantee that the calling environment would have applied the schema validation.
+	 *
+	 * @see WP_JS_Widget::get_instance_schema()
+	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
 	 * @param array $args {
@@ -162,16 +186,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 *     @type array                $old_instance  Old instance.
 	 *     @type WP_Customize_Setting $setting       Setting.
-	 *     @type bool                 $strict        Validate.
+	 *     @type bool                 $strict        Validate. @todo Remove.
 	 * }
 	 *
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` on failure if `$strict`, and `null` otherwise.
 	 */
 	public function sanitize( $new_instance, $args = array() ) {
 		unset( $args );
-
-		// @todo This should look at the instance schema and validate based on that.
-
 		return $new_instance;
 	}
 
@@ -181,7 +202,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * This method is now deprecated in favor of `WP_Customize_Widget::render()`,
 	 * as `render` is a more accurate name than `widget` for what this method does.
 	 *
-	 * @todo The output of this function could be used in a REST API response as the rendered property of the entire widget.
+	 * @todo The else condition in this method needs to be eliminated.
 	 *
 	 * @inheritdoc
 	 *
@@ -229,10 +250,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	abstract public function render( $args, $instance );
 
 	/**
-	 * Render JS Template.
-	 *
-	 * @todo The JS template needs to be agnostic.
-	 * @todo Should this even be here? Should it be in a Customizer control instead.
+	 * Render JS template.
 	 */
 	public function form_template() {}
 
