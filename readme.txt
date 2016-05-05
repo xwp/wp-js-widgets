@@ -7,9 +7,11 @@ Stable tag:        trunk
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
-The next generation of widgets in Core (Widgets 3.0), embracing JS for UI and powering the Widgets REST API.
+The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
 
 == Description ==
+
+Also could be known as Widget Customizer 2.0, Widgets 3.0, or Widgets Next Generation.
 
 This plugin implements:
 

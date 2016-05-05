@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: JS Widgets
- * Description: The next generation of widgets in Core (Widgets 3.0), embracing JS for UI and powering the Widgets REST API.
+ * Description: The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
  * Plugin URI: https://github.com/xwp/wp-js-widgets/
  * Version: 0.1.0
  * Author: XWP
