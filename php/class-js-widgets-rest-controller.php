@@ -159,7 +159,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				'methods' => WP_REST_Server::READABLE,
 				'callback' => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args' => array(),
+				'args' => $this->get_collection_params(),
 			),
 			array(
 				'methods' => WP_REST_Server::CREATABLE,
@@ -177,8 +177,6 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args' => array(
-
-					// @todo define widget_id_base as a arg?
 					'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
@@ -196,6 +194,21 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+	}
+
+	/**
+	 * Get the query params for collections.
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$params = parent::get_collection_params();
+
+		// @todo Support these params.
+		unset( $params['page'] );
+		unset( $params['per_page'] );
+		unset( $params['search'] );
+		return $params;
 	}
 
 	/**
