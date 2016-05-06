@@ -50,25 +50,54 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 		$schema = array(
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'string',
-				'context' => array( 'edit' ),
-				'required' => true,
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_title_field' ),
+				'type' => 'object',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'required' => true,
+						'default' => '',
+						'arg_options' => array(
+							'validate_callback' => array( $this, 'validate_title_field' ),
+						),
+					),
+					'rendered' => array(
+						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'view', 'edit', 'embed' ),
+						'readonly' => true,
+					),
 				),
 			),
-			'text' => array(
-				'description' => __( 'The content for the object.', 'js-widgets' ),
-				'type' => 'string',
-				'context' => array( 'edit' ),
-				'required' => true,
-				'arg_options' => array(
-					'validate_callback' => array( $this, 'validate_text_field' ),
+			'content' => array(
+				'description' => __( 'The content for the widget.', 'js-widgets' ),
+				'type' => 'object',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'required' => true,
+						'default' => '',
+						'arg_options' => array(
+							'validate_callback' => array( $this, 'validate_content_field' ),
+						),
+					),
+					'rendered' => array(
+						'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit', 'embed' ),
+						'readonly'    => true,
+					),
 				),
 			),
-			'filter' => array(
+			'auto_paragraph' => array(
 				'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
 				'type' => 'boolean',
+				'default' => false,
 				'context' => array( 'edit' ),
 				'arg_options' => array(
 					'validate_callback' => 'rest_validate_request_arg',
@@ -79,66 +108,68 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
-	 * Get rest fields for registering additional rendered dynamic fields.
+	 * Render a widget instance for a REST API response.
+	 *
+	 * Map the instance data to the REST resource fields and add rendered fields.
+	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
 	 *
 	 * @inheritdoc
-	 * @return array
+	 *
+	 * @param array           $instance Raw database instance.
+	 * @param WP_REST_Request $request  REST request.
+	 * @return array Widget item.
 	 */
-	public function get_rendered_rest_fields() {
-		return array(
-			'title_rendered' => array(
-				'get_callback' => array( $this, 'get_rendered_title' ),
-				'schema' => array(
-					'description' => __( 'The rendered title for the object.', 'js-widgets' ),
-					'type' => 'string',
-				),
-			),
-			'text_rendered' => array(
-				'get_callback' => array( $this, 'get_rendered_text' ),
-				'schema' => array(
-					'description' => __( 'The rendered text for the object.', 'js-widgets' ),
-					'type' => 'string',
-				),
-			),
+	public function prepare_item_for_response( $instance, $request ) {
+
+		$schema = $this->get_instance_schema();
+		$default_instance = array(
+			'title' => $schema['text']['raw']['default'],
+			'text' => $schema['content']['raw']['default'],
+			'filter' => $schema['auto_paragraph']['default'],
 		);
-	}
-
-	/**
-	 * Get rendered title.
-	 *
-	 * @see WP_JS_Widget_Text::get_rendered_rest_fields()
-	 * @see WP_Widget_Text::widget()
-	 *
-	 * @param array $instance Instance data.
-	 * @return string
-	 */
-	public function get_rendered_title( $instance ) {
-		$title_rendered = isset( $instance['title'] ) ? $instance['title'] : '';
+		$instance = array_merge( $default_instance, $instance );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
-		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
-		return $title_rendered;
-	}
-
-	/**
-	 * Get rendered text.
-	 *
-	 * @see WP_Widget_Text::widget()
-	 * @see WP_JS_Widget_Text::get_rendered_rest_fields()
-	 *
-	 * @param array $instance Instance data.
-	 * @return string
-	 */
-	public function get_rendered_text( $instance ) {
-		$text_rendered = isset( $instance['text'] ) ? $instance['text'] : '';
+		$title_rendered = apply_filters( 'widget_title', $instance['title'], $instance, $this->id_base );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
-		$text_rendered = apply_filters( 'widget_text', $text_rendered, $instance, $this->proxied_widget );
-
+		$content_rendered = apply_filters( 'widget_text', $instance['text'], $instance, $this->proxied_widget );
 		if ( ! empty( $instance['filter'] ) ) {
-			$text_rendered = wpautop( $text_rendered );
+			$content_rendered = wpautop( $content_rendered );
 		}
-		return $text_rendered;
+
+		$item = array(
+			'title' => array(
+				'raw' => $instance['title'],
+				'rendered' => $title_rendered,
+			),
+			'content' => array(
+				'raw' => $instance['text'],
+				'rendered' => $content_rendered,
+			),
+			'auto_paragraph' => ! empty( $instance['filter'] ),
+		);
+
+		return $item;
+	}
+
+	/**
+	 * Map the REST resource fields back to the internal instance data.
+	 *
+	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
+	 * The return value will be passed through the sanitize method.
+	 *
+	 * @inheritdoc
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_Error|array Error or array data.
+	 */
+	public function prepare_item_for_database( $request ) {
+		return array(
+			'title' => $request['title']['raw'],
+			'text' => $request['content']['raw'],
+			'filter' => $request['auto_paragraph'],
+		);
 	}
 
 	/**
@@ -170,14 +201,14 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
-	 * Validate a text request argument based on details registered to the route.
+	 * Validate a content request argument based on details registered to the route.
 	 *
 	 * @param  mixed           $value   Value.
 	 * @param  WP_REST_Request $request Request.
 	 * @param  string          $param   Param.
 	 * @return WP_Error|boolean
 	 */
-	public function validate_text_field( $value, $request, $param ) {
+	public function validate_content_field( $value, $request, $param ) {
 		$valid = rest_validate_request_arg( $value, $request, $param );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;

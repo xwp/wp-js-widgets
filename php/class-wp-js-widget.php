@@ -55,25 +55,44 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 */
 	abstract public function get_instance_schema();
 
+	/**
+	 * Render a widget instance for a REST API response.
+	 *
+	 * This only needs to be overridden by a subclass if the schema and the
+	 * underlying instance data have different structures, or if additional
+	 * dynamic (readonly) fields should be included in the response.
+	 *
+	 * @see WP_JS_Widget::render()
+	 *
+	 * @param array           $instance Raw (legacy) instance.
+	 * @param WP_REST_Request $request  REST request.
+	 * @return array Widget item.
+	 */
+	public function prepare_item_for_response( $instance, $request ) {
+		unset( $request );
+		return $instance;
+	}
 
 	/**
-	 * Get rest fields for registering additional rendered dynamic fields.
+	 * Prepare a single widget instance from create or update.
 	 *
-	 * All of the fields returned here will be forced to have `readonly` defined
-	 * in their schemas and will have any `update_callback` args unset. The
-	 * context will default to view, edit, embed; this means the rendered fields
-	 * will be viewable for unauthenticated requests.
+	 * This only needs to be overridden by a subclass if the schema and the
+	 * underlying instance data have different structures. Note that the
+	 * return value will be sent through sanitize method before it is saved.
 	 *
-	 * @see register_rest_field()
+	 * @see WP_JS_Widget::sanitize()
 	 *
-	 * @return array
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_Error|array Error or array data.
 	 */
-	public function get_rendered_rest_fields() {
-		return array();
+	public function prepare_item_for_database( $request ) {
+		return $request->get_params();
 	}
 
 	/**
 	 * Prepare links for the response.
+	 *
+	 * @todo Is this right?
 	 *
 	 * Subclasses should override this method to provide links as appropriate.
 	 *
@@ -175,9 +194,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * the instance won't be saved/updated.
 	 *
 	 * Note that the Customizer setting will sanitize and validate the data according to the
-	 * defined instance schema, so this sanitize function may very well no-op as it
-	 * would be redundant. This is why the `WP_JS_Widget::update()` method is
-	 * final, deprecated, and returns false.
+	 * defined instance schema (as will incoming REST API requests), so this sanitize
+	 * function may very well no-op as it would be redundant. This is why the
+	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
 	 * @see WP_JS_Widget::get_instance_schema()
 	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()

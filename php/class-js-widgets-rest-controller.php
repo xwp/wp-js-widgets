@@ -137,21 +137,6 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * Register routes.
 	 */
 	public function register_routes() {
-
-		$object_type = $this->get_object_type();
-		foreach ( $this->widget->get_rendered_rest_fields() as $field_id => $args ) {
-			unset( $args['update_callback'] );
-			if ( ! isset( $args['schema'] ) ) {
-				$args['schema'] = array();
-			}
-			$args['schema']['readonly'] = true;
-			unset( $args['schema']['required'] );
-			if ( ! isset( $args['schema']['context'] ) ) {
-				$args['schema']['context'] = array( 'embed', 'view', 'edit' );
-			}
-			register_rest_field( $object_type, $field_id, $args );
-		}
-
 		$route = '/widgets/' . $this->rest_base;
 
 		register_rest_route( $this->namespace, $route, array(
@@ -289,6 +274,8 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function get_item_permissions_check( $request ) {
+
+		// @todo Check if the widget is registered to a sidebar. If not, and if the context is not edit and user can't manage widgets, return forbidden.
 		return $this->get_items_permissions_check( $request );
 	}
 
@@ -381,7 +368,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		}
 
 		// Note that $new_instance has gone through the validate and sanitize callbacks defined on the instance schema.
-		$new_instance = $request->get_params();
+		$new_instance = $this->widget->prepare_item_for_database( $request );
 		$instance = $this->widget->sanitize( $new_instance, $old_instance );
 
 		if ( is_wp_error( $instance ) ) {
@@ -412,6 +399,8 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$instances = array();
 		foreach ( $this->widget->get_settings() as $widget_number => $instance ) {
+
+			// @todo Skip if the instance is not assigned to any sidebars and the context is not edit and the user lacks permission.
 			$data = $this->prepare_item_for_response( $instance, $request, $widget_number );
 			$instances[] = $this->prepare_response_for_collection( $data );
 		}
@@ -444,7 +433,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				'id' => $widget_id,
 				'type' => $this->get_object_type(),
 			),
-			$instance
+			$this->widget->prepare_item_for_response( $instance, $request )
 		);
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
