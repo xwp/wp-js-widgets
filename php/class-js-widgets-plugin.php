@@ -128,7 +128,11 @@ class JS_Widgets_Plugin {
 		require_once __DIR__ . '/class-js-widgets-rest-controller.php';
 
 		foreach ( $this->get_registered_js_widgets() as $widget ) {
-			$rest_controller = new JS_Widgets_REST_Controller( $this, $widget );
+			$rest_controller_class = $widget->rest_controller;
+			if ( ! class_exists( $rest_controller_class ) ) {
+				continue;
+			}
+			$rest_controller = new $rest_controller_class( $this, $widget );
 			$this->rest_controllers[ $widget->id_base ] = $rest_controller;
 			$rest_controller->register_routes();
 		}
@@ -275,7 +279,7 @@ class JS_Widgets_Plugin {
 	 * @access public
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
-	 * @return array Instances of `WP_JS_Widget`.
+	 * @return WP_JS_Widget[] Instances of `WP_JS_Widget`.
 	 */
 	public function get_registered_js_widgets() {
 		global $wp_widget_factory;

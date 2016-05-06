@@ -13,6 +13,13 @@
 abstract class WP_JS_Widget extends WP_Widget {
 
 	/**
+	 * REST controller that should be used for this widget.
+	 *
+	 * @var string
+	 */
+	public $rest_controller = 'JS_Widgets_REST_Controller';
+
+	/**
 	 * Widget constructor.
 	 *
 	 * @param string $id_base         Optional Base ID for the widget, lowercase and unique. If left empty,
