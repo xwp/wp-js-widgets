@@ -51,7 +51,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
 				'type' => 'string',
-				'context' => array( 'embed', 'view', 'edit' ),
+				'context' => array( 'edit' ),
 				'required' => true,
 				'arg_options' => array(
 					'validate_callback' => array( $this, 'validate_title_field' ),
@@ -60,7 +60,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 			'text' => array(
 				'description' => __( 'The content for the object.', 'js-widgets' ),
 				'type' => 'string',
-				'context' => array( 'embed', 'view', 'edit' ),
+				'context' => array( 'edit' ),
 				'required' => true,
 				'arg_options' => array(
 					'validate_callback' => array( $this, 'validate_text_field' ),
@@ -69,7 +69,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 			'filter' => array(
 				'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
 				'type' => 'boolean',
-				'context' => array( 'embed', 'view', 'edit' ),
+				'context' => array( 'edit' ),
 				'arg_options' => array(
 					'validate_callback' => 'rest_validate_request_arg',
 				),

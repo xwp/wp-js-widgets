@@ -278,33 +278,33 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @return bool
 	 */
-	public function current_user_can() {
+	public function current_user_can_manage_widgets() {
 		return current_user_can( 'edit_theme_options' ) || current_user_can( 'manage_widgets' );
 	}
 
 	/**
 	 * Check if a given request has access to get a specific item.
 	 *
-	 * @todo Allow public access to view and edit context.
-	 *
 	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return bool
 	 */
 	public function get_item_permissions_check( $request ) {
-		unset( $request );
-		return $this->current_user_can();
+		return $this->get_items_permissions_check( $request );
 	}
 
 	/**
 	 * Check if a given request has access to get items.
 	 *
-	 * @todo Allow public access to view and edit context.
-	 *
 	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->get_item_permissions_check( $request );
+
+		if ( 'edit' === $request['context'] && ! $this->current_user_can_manage_widgets() ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit widgets.', 'js-widgets' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -315,7 +315,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 		unset( $request );
-		return $this->current_user_can();
+		return $this->current_user_can_manage_widgets();
 	}
 
 	/**
@@ -326,7 +326,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function update_item_permissions_check( $request ) {
 		unset( $request );
-		return $this->current_user_can();
+		return $this->current_user_can_manage_widgets();
 	}
 
 	/**
@@ -337,7 +337,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item_permissions_check( $request ) {
 		unset( $request );
-		return $this->current_user_can();
+		return $this->current_user_can_manage_widgets();
 	}
 
 	/**
@@ -394,6 +394,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		$instances[ $request['widget_number'] ] = $instance;
 		$this->widget->save_settings( $instances );
 
+		$request->set_param( 'context', 'edit' );
 		$data = $this->prepare_item_for_response( $instance, $request, $request['widget_number'] );
 		$response = rest_ensure_response( $data );
 		return $response;

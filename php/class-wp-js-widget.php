@@ -61,8 +61,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * All of the fields returned here will be forced to have `readonly` defined
 	 * in their schemas and will have any `update_callback` args unset. The
-	 * context will default to embed,view,edit, and it should be displayed by
-	 * default without edit capabilities.
+	 * context will default to view, edit, embed; this means the rendered fields
+	 * will be viewable for unauthenticated requests.
 	 *
 	 * @see register_rest_field()
 	 *
