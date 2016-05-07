@@ -134,6 +134,16 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Get base URL for API.
+	 *
+	 * @return string
+	 */
+	public function get_base_url() {
+		$base = sprintf( '/%s/widgets/%s', $this->namespace, $this->rest_base );
+		return $base;
+	}
+
+	/**
 	 * Register routes.
 	 */
 	public function register_routes() {
@@ -457,8 +467,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $response, $request ) {
-		$base = sprintf( '/%s/widgets/%s', $this->namespace, $this->rest_base );
-
+		$base = $this->get_base_url();
 		$links = array_merge(
 			$this->widget->get_rest_response_links( $response, $request, $this ),
 			array(
