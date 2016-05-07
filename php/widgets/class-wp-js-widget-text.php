@@ -295,7 +295,6 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 */
 	public function get_form_args() {
 		return array(
-			'default_instance' => $this->get_default_instance(),
 			'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
 			'l10n' => array(
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),

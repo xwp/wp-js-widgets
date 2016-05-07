@@ -102,9 +102,13 @@ wp.customize.Widgets.Form = (function( api ) {
 		 *
 		 * @return {object}
 		 */
-		value: function() {
+		getValue: function() {
 			var form = this;
-			return _.extend( {}, form.setting() || {} );
+			return _.extend(
+				{},
+				form.config.default_instance,
+				form.setting() || {}
+			);
 		},
 
 		/**
@@ -116,7 +120,7 @@ wp.customize.Widgets.Form = (function( api ) {
 		 */
 		setState: function( props ) {
 			var form = this, value;
-			value = _.extend( {}, form.value(), props || {} );
+			value = _.extend( form.getValue(), props || {} );
 			form.setting.set( value );
 		},
 

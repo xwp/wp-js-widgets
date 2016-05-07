@@ -105,20 +105,6 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 	}
 
 	/**
-	 * Get default instance from schema.
-	 *
-	 * @return array
-	 */
-	public function get_default_instance() {
-		$schema = $this->get_item_schema();
-		return array(
-			'title' => $schema['title']['properties']['raw']['default'],
-			'number' => $schema['number']['default'],
-			'show_date' => $schema['show_date']['default'],
-		);
-	}
-
-	/**
 	 * Render a widget instance for a REST API response.
 	 *
 	 * Map the instance data to the REST resource fields and add rendered fields.
@@ -159,24 +145,6 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		);
 
 		return $item;
-	}
-
-	/**
-	 * Map the REST resource fields back to the internal instance data.
-	 *
-	 * The return value will be passed through the sanitize method.
-	 *
-	 * @inheritdoc
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|array Error or array data.
-	 */
-	public function prepare_item_for_database( $request ) {
-		return array(
-			'title' => $request['title']['raw'],
-			'number' => $request['number'],
-			'show_date' => $request['show_date'],
-		);
 	}
 
 	/**
@@ -271,7 +239,6 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		$item_schema = $this->get_item_schema();
 		return array(
 			'title_placeholder' => $item_schema['title']['properties']['rendered']['default'],
-			'default_instance' => $this->get_default_instance(),
 			'minimum_number' => $item_schema['number']['minimum'],
 			'l10n' => array(
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),

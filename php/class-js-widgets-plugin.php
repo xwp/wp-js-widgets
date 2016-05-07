@@ -164,7 +164,12 @@ class JS_Widgets_Plugin {
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
 				$customize_widget_id_bases[ $widget->id_base ] = true;
-				$form_configs[ $widget->id_base ] = $widget->get_form_args();
+				$form_configs[ $widget->id_base ] = array_merge(
+					$widget->get_form_args(),
+					array(
+						$widget->get_default_instance()
+					)
+				);
 			}
 		}
 
