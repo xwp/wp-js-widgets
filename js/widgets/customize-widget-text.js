@@ -65,14 +65,18 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		 * Render and update the form.
 		 */
 		render: function() {
-			var form = this, value = form.setting();
+			var form = this, value;
+			value = _.extend( {},
+				form.config.default_instance,
+				form.setting()
+			);
 			if ( ! form.inputs.title.is( document.activeElement ) ) {
-				form.inputs.title.val( value.title || '' );
+				form.inputs.title.val( value.title );
 			}
 			if ( ! form.inputs.text.is( document.activeElement ) ) {
-				form.inputs.text.val( value.text || '' );
+				form.inputs.text.val( value.text );
 			}
-			form.inputs.filter.prop( 'checked', value.filter || false );
+			form.inputs.filter.prop( 'checked', value.filter );
 		},
 
 		/**

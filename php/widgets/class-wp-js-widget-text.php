@@ -115,8 +115,8 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	public function get_default_instance() {
 		$schema = $this->get_item_schema();
 		return array(
-			'title' => $schema['title']['raw']['default'],
-			'text' => $schema['content']['raw']['default'],
+			'title' => $schema['title']['properties']['raw']['default'],
+			'text' => $schema['content']['properties']['raw']['default'],
 			'filter' => $schema['auto_paragraph']['default'],
 		);
 	}
@@ -295,6 +295,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 */
 	public function get_form_args() {
 		return array(
+			'default_instance' => $this->get_default_instance(),
 			'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
 			'l10n' => array(
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),

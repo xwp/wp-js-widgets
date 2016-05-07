@@ -64,14 +64,18 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 		 * Render and update the form.
 		 */
 		render: function() {
-			var form = this, value = form.setting();
+			var form = this, value;
+			value = _.extend( {},
+				form.config.default_instance,
+				form.setting()
+			);
 			if ( ! form.inputs.title.is( document.activeElement ) ) {
-				form.inputs.title.val( value.title || '' );
+				form.inputs.title.val( value.title );
 			}
 			if ( ! form.inputs.number.is( document.activeElement ) ) {
-				form.inputs.number.val( value.number || form.config.default_instance.number );
+				form.inputs.number.val( value.number );
 			}
-			form.inputs.show_date.prop( 'checked', value.show_date || false );
+			form.inputs.show_date.prop( 'checked', value.show_date );
 		},
 
 		/**
