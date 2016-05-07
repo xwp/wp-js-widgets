@@ -52,7 +52,7 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 			form.inputs.title.on( 'input change', function() {
 				form.setState( { title: $( this ).val() } );
 			} );
-			form.inputs.number.on( 'number change', function() {
+			form.inputs.number.on( 'input change', function() {
 				form.setState( { number: parseInt( $( this ).val(), 10 ) } );
 			} );
 			form.inputs.show_date.on( 'click', function() {
