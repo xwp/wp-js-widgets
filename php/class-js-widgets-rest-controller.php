@@ -102,11 +102,11 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		$reserved_field_ids = array( 'id', 'type', '_links', '_embedded' );
 
-		foreach ( $this->widget->get_instance_schema() as $field_id => $field_schema ) {
+		foreach ( $this->widget->get_item_schema() as $field_id => $field_schema ) {
 
 			// Prevent clobbering reserved fields.
 			if ( in_array( $field_id, $reserved_field_ids, true ) ) {
-				_doing_it_wrong( get_class( $this->widget ) . '::get_instance_schema', sprintf( __( 'The field "%s" is reserved.', 'js-widgets' ), esc_html( $field_id ) ), '' ); // WPCS: xss ok.
+				_doing_it_wrong( get_class( $this->widget ) . '::get_item_schema', sprintf( __( 'The field "%s" is reserved.', 'js-widgets' ), esc_html( $field_id ) ), '' ); // WPCS: xss ok.
 				continue;
 			}
 

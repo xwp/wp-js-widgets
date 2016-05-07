@@ -54,13 +54,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Get instance schema.
+	 * Get schema for the widget instance REST resource item.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
 	 *
 	 * @return array
 	 */
-	abstract public function get_instance_schema();
+	abstract public function get_item_schema();
 
 	/**
 	 * Render a widget instance for a REST API response.
@@ -205,7 +205,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * function may very well no-op as it would be redundant. This is why the
 	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
-	 * @see WP_JS_Widget::get_instance_schema()
+	 * @see WP_JS_Widget::get_item_schema()
 	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.

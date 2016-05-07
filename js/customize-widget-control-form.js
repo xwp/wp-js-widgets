@@ -1,4 +1,8 @@
 /* global wp, console */
+/* eslint-disable strict */
+/* eslint consistent-this: [ "error", "form" ] */
+/* eslint-disable complexity */
+
 wp.customize.Widgets.Form = (function( api ) {
 	'use strict';
 
@@ -36,7 +40,7 @@ wp.customize.Widgets.Form = (function( api ) {
 
 			previousValidate = form.setting.validate;
 			form.setting.validate = function validate( value ) {
-				var setting = this, newValue, oldValue;
+				var setting = this, newValue, oldValue; // eslint-disable-line consistent-this
 				newValue = _.extend( {}, value );
 				oldValue = _.extend( {}, setting() );
 
@@ -126,4 +130,4 @@ wp.customize.Widgets.Form = (function( api ) {
 
 	return Form;
 
-}( wp.customize ) );
+} )( wp.customize );

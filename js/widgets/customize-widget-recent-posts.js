@@ -3,17 +3,17 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
+wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 	'use strict';
 
-	var TextWidgetForm;
+	var RecentPostsWidgetForm;
 
 	/**
 	 * Text Widget Form.
 	 *
 	 * @constructor
 	 */
-	TextWidgetForm = api.Widgets.Form.extend({
+	RecentPostsWidgetForm = api.Widgets.Form.extend({
 
 		/**
 		 * Initialize.
@@ -35,15 +35,14 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		 * Embed the form from the template and set up event handlers.
 		 */
 		embed: function() {
-			var form = this, data;
-			form.template = wp.template( 'customize-widget-text' );
+			var form = this;
+			form.template = wp.template( 'customize-widget-recent-posts' );
 
-			data = {};
-			form.container.html( form.template( data ) );
+			form.container.html( form.template( form.config ) );
 			form.inputs = {
 				title: form.container.find( ':input[name=title]:first' ),
-				text: form.container.find( ':input[name=text]:first' ),
-				filter: form.container.find( ':input[name=filter]:first' )
+				number: form.container.find( ':input[name=number]:first' ),
+				show_date: form.container.find( ':input[name=show_date]:first' )
 			};
 
 			form.container.on( 'change', ':input', function() {
@@ -53,11 +52,11 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 			form.inputs.title.on( 'input change', function() {
 				form.setState( { title: $( this ).val() } );
 			} );
-			form.inputs.text.on( 'input change', function() {
-				form.setState( { text: $( this ).val() } );
+			form.inputs.number.on( 'number change', function() {
+				form.setState( { number: parseInt( $( this ).val(), 10 ) } );
 			} );
-			form.inputs.filter.on( 'click', function() {
-				form.setState( { filter: $( this ).prop( 'checked' ) } );
+			form.inputs.show_date.on( 'click', function() {
+				form.setState( { show_date: $( this ).prop( 'checked' ) } );
 			} );
 		},
 
@@ -69,10 +68,10 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 			if ( ! form.inputs.title.is( document.activeElement ) ) {
 				form.inputs.title.val( value.title || '' );
 			}
-			if ( ! form.inputs.text.is( document.activeElement ) ) {
-				form.inputs.text.val( value.text || '' );
+			if ( ! form.inputs.number.is( document.activeElement ) ) {
+				form.inputs.number.val( value.number || form.config.default_instance.number );
 			}
-			form.inputs.filter.prop( 'checked', value.filter || false );
+			form.inputs.show_date.prop( 'checked', value.show_date || false );
 		},
 
 		/**
@@ -87,18 +86,10 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 			if ( ! newInstance.title ) {
 				newInstance.title = '';
 			}
-			if ( ! newInstance.text ) {
-				newInstance.text = '';
-			}
 
 			// Warn about markup in title.
 			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
 				form.setValidationMessage( form.config.l10n.title_tags_invalid );
-			}
-
-			// Warn about unfiltered HTML.
-			if ( ! form.config.can_unfiltered_html && /<\/?(script|iframe)[^>]*>/i.test( newInstance.text ) ) {
-				form.setValidationMessage( form.config.l10n.text_unfiltered_html_invalid );
 			}
 
 			/*
@@ -106,15 +97,17 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
 			 */
 			newInstance.title = $.trim( newInstance.title );
-			newInstance.text = $.trim( newInstance.text );
 
+			if ( ! newInstance.number || newInstance.number < form.config.minimum_number ) {
+				newInstance.number = form.config.minimum_number;
+			}
 			return newInstance;
 		}
 	});
 
 	if ( 'undefined' !== typeof module ) {
-		module.exports = TextWidgetForm;
+		module.exports = RecentPostsWidgetForm;
 	}
-	return TextWidgetForm;
+	return RecentPostsWidgetForm;
 
 })( wp.customize, jQuery );
