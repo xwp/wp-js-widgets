@@ -54,13 +54,48 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Get instance schema.
+	 * Get schema for the widget instance REST resource item.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
 	 *
 	 * @return array
 	 */
-	abstract public function get_instance_schema();
+	abstract public function get_item_schema();
+
+	/**
+	 * Get default instance data.
+	 *
+	 * Note that this should be the _internal_ instance data, not the default
+	 * data as would be returned in a response for a REST item query. So if the
+	 * internal instance data varies from the external REST resource fields,
+	 * this method will need to be overridden. If there are object fields that
+	 * have a raw sub-field, then the raw default will be used as the default
+	 * for the entire field.
+	 *
+	 * @return array
+	 */
+	public function get_default_instance() {
+		$schema = $this->get_item_schema();
+		$default_instance = array();
+		foreach ( $schema as $field_id => $options ) {
+
+			// Skip rendered values.
+			if ( ! empty( $options['readonly'] ) ) {
+				continue;
+			}
+
+			$value = null;
+			if ( 'object' === $options['type'] ) {
+				if ( isset( $options['properties']['raw']['default'] ) ) {
+					$value = $options['properties']['raw']['default'];
+				}
+			} elseif ( isset( $options['default'] ) ) {
+				$value = $options['default'];
+			}
+			$default_instance[ $field_id ] = $value;
+		}
+		return $default_instance;
+	}
 
 	/**
 	 * Render a widget instance for a REST API response.
@@ -86,6 +121,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * This only needs to be overridden by a subclass if the schema and the
 	 * underlying instance data have different structures. Note that the
 	 * return value will be sent through sanitize method before it is saved.
+	 * Note also that if a schema field is an object with a raw sub-property,
+	 * and the incoming request also has a field with a raw value, then this
+	 * will be flattened for sending to the DB.
 	 *
 	 * @see WP_JS_Widget::sanitize()
 	 *
@@ -93,7 +131,18 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return WP_Error|array Error or array data.
 	 */
 	public function prepare_item_for_database( $request ) {
-		return $request->get_params();
+		$schema = $this->get_item_schema();
+		$instance = array();
+		foreach ( $request->get_params() as $key => $value ) {
+			if ( ! isset( $schema[ $key ] ) || ! empty( $schema[ $key ]['readonly'] ) ) {
+				continue;
+			}
+			if ( isset( $value['raw'] ) && isset( $schema[ $key ]['properties']['raw'] ) ) {
+				$value = $value['raw'];
+			}
+			$instance[ $key ] = $value;
+		}
+		return $instance;
 	}
 
 	/**
@@ -205,7 +254,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * function may very well no-op as it would be redundant. This is why the
 	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
-	 * @see WP_JS_Widget::get_instance_schema()
+	 * @see WP_JS_Widget::get_item_schema()
 	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
@@ -279,6 +328,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * Get data to pass to the JS form.
 	 *
 	 * This can include information such as whether the user can do `unfiltered_html`.
+	 * The `default_instance` will be amended to this when exported to JS.
+	 *
+	 * @todo Rename this to get_form_config?
 	 *
 	 * @return array
 	 */

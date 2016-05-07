@@ -115,6 +115,11 @@ class JS_Widgets_Plugin {
 		$src = $plugin_dir_url . 'js/widgets/customize-widget-text' . $suffix;
 		$deps = array( 'customize-js-widgets' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		$handle = 'customize-widget-recent-posts';
+		$src = $plugin_dir_url . 'js/widgets/customize-widget-recent-posts' . $suffix;
+		$deps = array( 'customize-js-widgets' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 
 	/**
@@ -159,7 +164,12 @@ class JS_Widgets_Plugin {
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
 				$customize_widget_id_bases[ $widget->id_base ] = true;
-				$form_configs[ $widget->id_base ] = $widget->get_form_args();
+				$form_configs[ $widget->id_base ] = array_merge(
+					$widget->get_form_args(),
+					array(
+						$widget->get_default_instance()
+					)
+				);
 			}
 		}
 
@@ -212,6 +222,7 @@ class JS_Widgets_Plugin {
 
 		$proxy_core_widgets = array(
 			'text' => 'WP_JS_Widget_Text',
+			'recent-posts' => 'WP_JS_Widget_Recent_Posts',
 		);
 
 		foreach ( $proxy_core_widgets as $id_base => $proxy_core_widget_class ) {
@@ -221,7 +232,6 @@ class JS_Widgets_Plugin {
 				$wp_widget_factory->widgets[ $key ] = new $proxy_core_widget_class( $instance );
 			}
 		}
-
 	}
 
 	/**
@@ -340,7 +350,7 @@ class JS_Widgets_Plugin {
 	 * @return array|WP_Error Sanitized array on success, and WP_Error on validation failure.
 	 */
 	public function sanitize_and_validate_via_instance_schema( $instance, $widget ) {
-		$instance_schema = $widget->get_instance_schema();
+		$instance_schema = $widget->get_item_schema();
 		if ( empty( $instance_schema ) ) {
 			return $instance;
 		}
@@ -349,7 +359,7 @@ class JS_Widgets_Plugin {
 		$attributes = array(
 			'args' => array(),
 		);
-		foreach ( $widget->get_instance_schema() as $field_id => $field_schema ) {
+		foreach ( $widget->get_item_schema() as $field_id => $field_schema ) {
 			if ( isset( $field_schema['arg_options'] ) ) {
 				$field_schema = array_merge( $field_schema, $field_schema['arg_options'] );
 				unset( $field_schema['arg_options'] );

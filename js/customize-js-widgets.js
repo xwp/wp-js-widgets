@@ -1,7 +1,10 @@
 /* global wp, module */
 /* exported CustomizeJSWidgets */
+/* eslint-disable strict */
+/* eslint-disable complexity */
+/* eslint consistent-this: [ "error", "control" ] */
 
-var CustomizeJSWidgets = (function( api, $ ) {
+var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-vars
 	'use strict';
 
 	var component, originalInitialize;
@@ -32,7 +35,7 @@ var CustomizeJSWidgets = (function( api, $ ) {
 	component.extendWidgetControl = function extendWidgetControl() {
 		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
 			var control = this;
-			control.isCustomizeControl = ( options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ] );
+			control.isCustomizeControl = options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ];
 			if ( control.isCustomizeControl ) {
 				_.extend( control, component.WidgetControl.prototype );
 				return component.WidgetControl.prototype.initialize.call( control, id, options );

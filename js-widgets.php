@@ -8,6 +8,10 @@
  * Author URI: https://make.xwp.co/
  * License: GPLv2+
  *
+ * @package JSWidgets
+ */
+
+/*
  * Copyright (c) 2016 XWP (https://xwp.co/)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,13 +27,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- *
- * @package JSWidgets
  */
 
 require_once __DIR__ . '/php/class-js-widgets-plugin.php';
 require_once __DIR__ . '/php/class-wp-js-widget.php';
 require_once __DIR__ . '/php/widgets/class-wp-js-widget-text.php';
+require_once __DIR__ . '/php/widgets/class-wp-js-widget-recent-posts.php';
 
 global $js_widgets_plugin;
 $js_widgets_plugin = new JS_Widgets_Plugin();

@@ -1,16 +1,16 @@
 <?php
 /**
- * Class WP_JS_Widget_Text.
+ * Class WP_JS_Widget_Recent_Posts.
  *
  * @package JSWidgets
  */
 
 /**
- * Class WP_JS_Widget_Text
+ * Class WP_JS_Widget_Recent_Posts
  *
  * @package JSWidgets
  */
-class WP_JS_Widget_Text extends WP_JS_Widget {
+class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 
 	/**
 	 * Proxied widget.
@@ -38,7 +38,7 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 * Enqueue scripts needed for the control.s
 	 */
 	public function enqueue_control_scripts() {
-		wp_enqueue_script( 'customize-widget-text' );
+		wp_enqueue_script( 'customize-widget-recent-posts' );
 	}
 
 	/**
@@ -66,59 +66,42 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
 						'type' => 'string',
 						'context' => array( 'view', 'edit', 'embed' ),
-						'default' => '',
+						'default' => __( 'Recent Posts', 'js-widgets' ),
 						'readonly' => true,
 					),
 				),
 			),
-			'content' => array(
-				'description' => __( 'The content for the widget.', 'js-widgets' ),
-				'type' => 'object',
+			'number' => array(
+				'description' => __( 'The number of posts to display.', 'js-widgets' ),
+				'type' => 'integer',
 				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'required' => true,
-						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_content_field' ),
-						),
-					),
-					'rendered' => array(
-						'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit', 'embed' ),
-						'readonly'    => true,
-					),
-				),
-			),
-			'auto_paragraph' => array(
-				'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'edit' ),
+				'default' => 5,
+				'minimum' => 1,
 				'arg_options' => array(
 					'validate_callback' => 'rest_validate_request_arg',
 				),
 			),
+			'show_date' => array(
+				'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
+				'type' => 'boolean',
+				'default' => false,
+				'context' => array( 'view', 'edit', 'embed' ),
+				'arg_options' => array(
+					'validate_callback' => 'rest_validate_request_arg',
+				),
+			),
+			'posts' => array(
+				'description' => __( 'The IDs for the recent posts.', 'js-widgets' ),
+				'type' => 'array',
+				'items' => array(
+					'type' => 'integer',
+				),
+				'context' => array( 'view', 'edit', 'embed' ),
+				'readonly' => true,
+				'default' => array(),
+			),
 		);
 		return $schema;
-	}
-
-	/**
-	 * Get default instance from schema.
-	 *
-	 * @return array
-	 */
-	public function get_default_instance() {
-		$schema = $this->get_item_schema();
-		return array(
-			'title' => $schema['title']['properties']['raw']['default'],
-			'text' => $schema['content']['properties']['raw']['default'],
-			'filter' => $schema['auto_paragraph']['default'],
-		);
 	}
 
 	/**
@@ -137,48 +120,31 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
 
-		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['rendered']['default'];
+		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['properties']['rendered']['default'];
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
 		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
 
-		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
-		$content_rendered = apply_filters( 'widget_text', $instance['text'], $instance, $this->proxied_widget );
-		if ( ! empty( $instance['filter'] ) ) {
-			$content_rendered = wpautop( $content_rendered );
-		}
+		$number = max( intval( $instance['number'] ), $schema['number']['minimum'] );
+
+		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-recent-posts.php */
+		$query = new WP_Query( apply_filters( 'widget_posts_args', array(
+			'posts_per_page' => $number,
+			'no_found_rows' => true,
+			'post_status' => 'publish',
+			'ignore_sticky_posts' => true,
+		) ) );
 
 		$item = array(
 			'title' => array(
 				'raw' => $instance['title'],
 				'rendered' => $title_rendered,
 			),
-			'content' => array(
-				'raw' => $instance['text'],
-				'rendered' => $content_rendered,
-			),
-			'auto_paragraph' => ! empty( $instance['filter'] ),
+			'number' => $number,
+			'show_date' => boolval( $instance['number'] ),
+			'posts' => wp_list_pluck( $query->posts, 'ID' ),
 		);
 
 		return $item;
-	}
-
-	/**
-	 * Map the REST resource fields back to the internal instance data.
-	 *
-	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
-	 * The return value will be passed through the sanitize method.
-	 *
-	 * @inheritdoc
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|array Error or array data.
-	 */
-	public function prepare_item_for_database( $request ) {
-		return array(
-			'title' => $request['title']['raw'],
-			'text' => $request['content']['raw'],
-			'filter' => $request['auto_paragraph'],
-		);
 	}
 
 	/**
@@ -210,28 +176,6 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
-	 * Validate a content request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_content_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( ! current_user_can( 'unfiltered_html' ) && wp_kses_post( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal markup', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Sanitize instance data.
 	 *
 	 * @inheritdoc
@@ -256,19 +200,19 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 			<p>
 				<label>
 					<?php esc_html_e( 'Title:', 'js-widgets' ) ?>
-					<input class="widefat" type="text" name="title">
+					<input class="widefat" type="text" name="title" placeholder="{{ data.title_placeholder }}">
 				</label>
 			</p>
 			<p>
 				<label>
-					<?php esc_html_e( 'Content:', 'js-widgets' ) ?>
-					<textarea class="widefat" rows="16" cols="20" name="text"></textarea>
+					<?php esc_html_e( 'Number:', 'js-widgets' ) ?>
+					<input class="widefat" type="number" min="{{ data.minimum_number }}" name="number">
 				</label>
 			</p>
 			<p>
 				<label>
-					<input type="checkbox" name="filter">
-					<?php esc_html_e( 'Automatically add paragraphs', 'js-widgets' ); ?>
+					<input type="checkbox" name="show_date">
+					<?php esc_html_e( 'Show date', 'js-widgets' ); ?>
 				</label>
 			</p>
 		</script>
@@ -289,16 +233,15 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	/**
 	 * Get configuration data for the form.
 	 *
-	 * This can include information such as whether the user can do `unfiltered_html`.
-	 *
 	 * @return array
 	 */
 	public function get_form_args() {
+		$item_schema = $this->get_item_schema();
 		return array(
-			'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
+			'title_placeholder' => $item_schema['title']['properties']['rendered']['default'],
+			'minimum_number' => $item_schema['number']['minimum'],
 			'l10n' => array(
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
 			),
 		);
 	}
