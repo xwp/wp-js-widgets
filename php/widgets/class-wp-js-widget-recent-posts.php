@@ -134,13 +134,15 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
 
-		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['rendered']['default'];
+		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['properties']['rendered']['default'];
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
 		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
 
+		$number = max( intval( $instance['number'] ), $schema['number']['minimum'] );
+
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-recent-posts.php */
 		$query = new WP_Query( apply_filters( 'widget_posts_args', array(
-			'posts_per_page' => $instance['number'],
+			'posts_per_page' => $number,
 			'no_found_rows' => true,
 			'post_status' => 'publish',
 			'ignore_sticky_posts' => true,
@@ -151,7 +153,7 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 				'raw' => $instance['title'],
 				'rendered' => $title_rendered,
 			),
-			'number' => intval( $instance['number'] ),
+			'number' => $number,
 			'show_date' => boolval( $instance['number'] ),
 			'posts' => wp_list_pluck( $query->posts, 'ID' ),
 		);
