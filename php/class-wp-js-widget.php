@@ -152,13 +152,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * Subclasses should override this method to provide links as appropriate.
 	 *
-	 * @param int             $widget_number Widget number.
-	 * @param array           $instance Instance data.
-	 * @param WP_REST_Request $request  Request.
+	 * @param WP_REST_Response           $response      Response.
+	 * @param WP_REST_Request            $request       Request.
+	 * @param JS_Widgets_REST_Controller $controller    Controller.
 	 * @return array Links for the given post.
 	 */
-	public function get_rest_response_links( $widget_number, $instance, $request ) {
-		unset( $widget_number, $instance, $request );
+	public function get_rest_response_links( $response, $request, $controller ) {
+		unset( $response, $request, $controller );
 		return array();
 	}
 

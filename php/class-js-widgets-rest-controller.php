@@ -442,7 +442,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
-		$response->add_links( $this->prepare_links( $widget_number, $instance, $request ) );
+		if ( $response instanceof WP_REST_Response ) {
+			$response->add_links( $this->prepare_links( $response, $request ) );
+		}
 
 		return $response;
 	}
@@ -450,19 +452,18 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare links for the request.
 	 *
-	 * @param int             $widget_number Widget number.
-	 * @param array           $instance Instance data.
-	 * @param WP_REST_Request $request  Request.
+	 * @param WP_REST_Response $response Response.
+	 * @param WP_REST_Request  $request  Request.
 	 * @return array Links for the given post.
 	 */
-	protected function prepare_links( $widget_number, $instance, $request ) {
+	protected function prepare_links( $response, $request ) {
 		$base = sprintf( '/%s/widgets/%s', $this->namespace, $this->rest_base );
 
 		$links = array_merge(
-			$this->widget->get_rest_response_links( $widget_number, $instance, $request ),
+			$this->widget->get_rest_response_links( $response, $request, $this ),
 			array(
 				'self' => array(
-					'href'   => rest_url( trailingslashit( $base ) . $widget_number ),
+					'href'   => rest_url( trailingslashit( $base ) . $response->data['id'] ),
 				),
 				'collection' => array(
 					'href'   => rest_url( $base ),

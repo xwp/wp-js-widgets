@@ -132,6 +132,8 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 			'no_found_rows' => true,
 			'post_status' => 'publish',
 			'ignore_sticky_posts' => true,
+			'update_post_meta_cache' => false,
+			'update_term_meta_cache' => false,
 		) ) );
 
 		$item = array(
@@ -145,6 +147,40 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		);
 
 		return $item;
+	}
+
+	/**
+	 * Prepare links for the response.
+	 *
+	 * @param WP_REST_Response           $response   Response.
+	 * @param WP_REST_Request            $request    Request.
+	 * @param JS_Widgets_REST_Controller $controller Controller.
+	 * @return array Links for the given post.
+	 */
+	public function get_rest_response_links( $response, $request, $controller ) {
+		$links = array();
+
+		$links['wp:post'] = array();
+		foreach ( $response->data['posts'] as $post_id ) {
+			$post = get_post( $post_id );
+			if ( empty( $post ) ) {
+				continue;
+			}
+			$obj = get_post_type_object( $post->post_type );
+			if ( empty( $obj ) ) {
+				continue;
+			}
+
+			$rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+			$base = sprintf( '/wp/v2/%s', $rest_base );
+
+			$links['wp:post'][] = array(
+				'href'       => rest_url( trailingslashit( $base ) . $post_id ),
+				'embeddable' => true,
+				'post_type'  => $post->post_type,
+			);
+		}
+		return $links;
 	}
 
 	/**
