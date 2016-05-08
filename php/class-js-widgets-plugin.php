@@ -101,6 +101,16 @@ class JS_Widgets_Plugin {
 		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
+		$handle = 'react';
+		$src = $plugin_dir_url . 'bower_components/react/react' . $suffix;
+		$deps = array();
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
+		$handle = 'react-dom';
+		$src = $plugin_dir_url . 'bower_components/react/react-dom' . $suffix;
+		$deps = array( 'react' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		$handle = 'customize-widget-control-form';
 		$src = $plugin_dir_url . 'js/customize-widget-control-form' . $suffix;
 		$deps = array( 'customize-base' );
@@ -116,9 +126,14 @@ class JS_Widgets_Plugin {
 		$deps = array( 'customize-js-widgets' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
+		$handle = 'recent-posts-react-components';
+		$src = $plugin_dir_url . 'js/widgets/recent-posts-react-components.compiled' . $suffix;
+		$deps = array( 'react', 'react-dom' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
+
 		$handle = 'customize-widget-recent-posts';
 		$src = $plugin_dir_url . 'js/widgets/customize-widget-recent-posts' . $suffix;
-		$deps = array( 'customize-js-widgets' );
+		$deps = array( 'customize-js-widgets', 'recent-posts-react-components' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 

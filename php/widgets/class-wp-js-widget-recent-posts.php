@@ -41,6 +41,8 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		wp_enqueue_script( 'customize-widget-recent-posts' );
 	}
 
+	// @todo Enqueue frontend widget script.
+
 	/**
 	 * Get instance schema properties.
 	 *
@@ -223,36 +225,6 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 	public function sanitize( $new_instance, $old_instance ) {
 		$instance = $this->proxied_widget->update( $new_instance, $old_instance );
 		return $instance;
-	}
-
-	/**
-	 * Render JS Template.
-	 *
-	 * This template is intended to be agnostic to the JS template technology used.
-	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<p>
-				<label>
-					<?php esc_html_e( 'Title:', 'js-widgets' ) ?>
-					<input class="widefat" type="text" name="title" placeholder="{{ data.title_placeholder }}">
-				</label>
-			</p>
-			<p>
-				<label>
-					<?php esc_html_e( 'Number:', 'js-widgets' ) ?>
-					<input class="widefat" type="number" min="{{ data.minimum_number }}" name="number">
-				</label>
-			</p>
-			<p>
-				<label>
-					<input type="checkbox" name="show_date">
-					<?php esc_html_e( 'Show date', 'js-widgets' ); ?>
-				</label>
-			</p>
-		</script>
-		<?php
 	}
 
 	/**
