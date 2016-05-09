@@ -38,6 +38,6 @@
     "react-dom": "global:ReactDOM"
   },
   "scripts": {
-    "postinstall": "$(npm bin)/bower install -F"
+    "postinstall": "if [ ! -e bower_components ]; then $(npm bin)/bower install; fi"
   }
 }
