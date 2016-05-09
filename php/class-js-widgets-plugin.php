@@ -20,6 +20,13 @@ class JS_Widgets_Plugin {
 	public $version;
 
 	/**
+	 * REST API Namespace.
+	 *
+	 * @var string
+	 */
+	public $rest_api_namespace = 'js-widgets/v1';
+
+	/**
 	 * Instances of JS_Widgets_REST_Controller for each widget type.
 	 *
 	 * @var array
