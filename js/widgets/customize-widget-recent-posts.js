@@ -1,4 +1,4 @@
-/* global wp, module */
+/* global wp, module, React, ReactDOM, RecentPostsWidgetFormReactComponent */
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable strict */
 /* eslint-disable complexity */
@@ -27,6 +27,11 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 
 			api.Widgets.Form.prototype.initialize.call( form, properties );
 
+			// @todo This is unnecessary.
+			RecentPostsWidgetFormReactComponent.getInitialState = function() {
+				return form.config.default_instance;
+			};
+
 			form.embed();
 			form.render();
 		},
@@ -36,42 +41,27 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 		 */
 		embed: function() {
 			var form = this;
-			form.template = wp.template( 'customize-widget-recent-posts' );
+			form.reactElement = React.createElement( RecentPostsWidgetFormReactComponent, {
+				labelTitle: form.config.l10n.label_title,
+				placeholderTitle: form.config.l10n.placeholder_title,
+				labelNumber: form.config.l10n.label_number,
+				labelShowDate: form.config.l10n.label_show_date,
+				minimumNumber: form.config.minimum_number,
+				changeCallback: function( props ) {
 
-			form.container.html( form.template( form.config ) );
-			form.inputs = {
-				title: form.container.find( ':input[name=title]:first' ),
-				number: form.container.find( ':input[name=number]:first' ),
-				show_date: form.container.find( ':input[name=show_date]:first' )
-			};
-
-			form.container.on( 'change', ':input', function() {
-				form.render();
+					// @todo Revisit with Flux/Redux.
+					form.setState( props );
+				}
 			} );
-
-			form.inputs.title.on( 'input change', function() {
-				form.setState( { title: $( this ).val() } );
-			} );
-			form.inputs.number.on( 'input change', function() {
-				form.setState( { number: parseInt( $( this ).val(), 10 ) } );
-			} );
-			form.inputs.show_date.on( 'click', function() {
-				form.setState( { show_date: $( this ).prop( 'checked' ) } );
-			} );
+			form.reactComponent = ReactDOM.render( form.reactElement, form.container[0] );
 		},
 
 		/**
 		 * Render and update the form.
 		 */
 		render: function() {
-			var form = this, value = form.getValue();
-			if ( ! form.inputs.title.is( document.activeElement ) ) {
-				form.inputs.title.val( value.title );
-			}
-			if ( ! form.inputs.number.is( document.activeElement ) ) {
-				form.inputs.number.val( value.number );
-			}
-			form.inputs.show_date.prop( 'checked', value.show_date );
+			var form = this;
+			form.reactComponent.setState( form.getValue() );
 		},
 
 		/**
@@ -91,12 +81,6 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
 				form.setValidationMessage( form.config.l10n.title_tags_invalid );
 			}
-
-			/*
-			 * Trim per sanitize_text_field().
-			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
-			 */
-			newInstance.title = $.trim( newInstance.title );
 
 			if ( ! newInstance.number || newInstance.number < form.config.minimum_number ) {
 				newInstance.number = form.config.minimum_number;

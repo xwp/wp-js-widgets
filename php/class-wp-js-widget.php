@@ -54,6 +54,27 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Register scripts.
+	 *
+	 * @param WP_Scripts $wp_scripts Scripts.
+	 */
+	public function register_scripts( $wp_scripts ){
+		unset( $wp_scripts );
+	}
+
+	/**
+	 * Enqueue scripts needed for the controls.
+	 *
+	 * A.K.A. enqueue_form_scripts, enqueue_backend_scripts.
+	 */
+	public function enqueue_control_scripts() {}
+
+	/**
+	 * Enqueue scripts needed for the frontend.
+	 */
+	public function enqueue_frontend_scripts() {}
+
+	/**
 	 * Get schema for the widget instance REST resource item.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
@@ -161,11 +182,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 		unset( $response, $request, $controller );
 		return array();
 	}
-
-	/**
-	 * Enqueue scripts needed for the control.s
-	 */
-	public function enqueue_control_scripts() {}
 
 	/**
 	 * Render the form.
