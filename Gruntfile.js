@@ -10,25 +10,38 @@ module.exports = function( grunt ) {
 		browserify: {
 
 			// http://stackoverflow.com/questions/34372877/how-to-bundle-multiple-javascript-libraries-with-browserify
-
-			dist: {
+			options: {
+				browserifyOptions: {
+					debug: true
+				},
+				transform: [
+					[ 'babelify' ],
+					[ 'browserify-shim' ]
+				],
+				external: [
+					'react',
+					'react-dom'
+				],
+				banner: '/* THIS FILE IS GENERATED FROM BROWSERIFY. DO NOT EDIT DIRECTLY. */'
+			},
+			recent_posts_form: {
 				options: {
 					browserifyOptions: {
-						debug: true,
-						standalone: 'RecentPostsReactComponents'
-					},
-					transform: [
-						[ 'babelify' ],
-						[ 'browserify-shim' ]
-					],
-					external: [
-						'react',
-						'react-dom'
-					],
-					banner: '/* THIS FILE IS GENERATED FROM BROWSERIFY. DO NOT EDIT DIRECTLY. */'
+						standalone: 'RecentPostsWidgetFormReactComponent'
+					}
 				},
 				files: {
-					'./js/widgets/recent-posts-react-components.compiled.js': './js/widgets/recent-posts-react-components.jsx'
+					'./js/widgets/recent-posts-widget-form-react-component.browserified.js': './js/widgets/recent-posts-widget-form-react-component.jsx'
+				}
+			},
+			recent_posts_widget: {
+				options: {
+					browserifyOptions: {
+						standalone: 'RecentPostsWidgetFrontendReactComponent'
+					}
+				},
+				files: {
+					'./js/widgets/recent-posts-widget-frontend-react-component.browserified.js': './js/widgets/recent-posts-widget-frontend-react-component.jsx'
 				}
 			}
 		},

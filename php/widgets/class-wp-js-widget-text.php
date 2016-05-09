@@ -13,6 +13,13 @@
 class WP_JS_Widget_Text extends WP_JS_Widget {
 
 	/**
+	 * Version of widget.
+	 *
+	 * @var string
+	 */
+	public $version = '0.1';
+
+	/**
 	 * Proxied widget.
 	 *
 	 * @var WP_Widget
@@ -32,6 +39,21 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 		}
 		$this->proxied_widget = $proxied_widget;
 		parent::__construct( $proxied_widget->id_base, $proxied_widget->name, $proxied_widget->widget_options, $proxied_widget->control_options );
+	}
+
+	/**
+	 * Register scripts.
+	 *
+	 * @param WP_Scripts $wp_scripts Scripts.
+	 */
+	public function register_scripts( $wp_scripts ) {
+		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
+		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
+
+		$handle = 'customize-widget-text';
+		$src = $plugin_dir_url . 'js/widgets/customize-widget-text' . $suffix;
+		$deps = array( 'customize-js-widgets' );
+		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 
 	/**

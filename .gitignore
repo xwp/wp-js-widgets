@@ -14,3 +14,4 @@ composer.lock
 *.min.js
 *.min.css
 *.compiled.js
+*.browserified.js
