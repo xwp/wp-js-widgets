@@ -154,6 +154,7 @@
 		"sort-vars": [0],
 		"strict": [2, "function"],
 		"use-isnan": [2],
+		"valid-jsdoc": [2],
 		"valid-typeof": [2],
 		"vars-on-top": [0],
 		"wrap-iife": [2, "inside"],
