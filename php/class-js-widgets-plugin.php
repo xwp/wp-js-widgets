@@ -75,18 +75,18 @@ class JS_Widgets_Plugin {
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
-		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
-		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
 
+		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
 
-		add_filter( 'template_redirect', array( $this, 'serve_rest_sidebars_widgets_response' ) );
-
+		// @todo Add link in wp_head for this endpoint.
+		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'init', array( $this, 'add_sidebars_widgets_endpoint' ) );
+		add_filter( 'template_redirect', array( $this, 'serve_rest_sidebars_widgets_response' ) );
 	}
 
 	/**
