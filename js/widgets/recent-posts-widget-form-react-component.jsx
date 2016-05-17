@@ -16,7 +16,7 @@ var Form = React.createClass({
 	/**
 	 * Default props.
 	 *
-	 * @returns {{labelTitle: string, placeholderTitle: string, labelNumber: string, labelShowDate: boolean, minimumNumber: number}}
+	 * @returns {object} Default.
 	 */
 	getDefaultProps: function() {
 		return {
@@ -33,7 +33,8 @@ var Form = React.createClass({
 	 *
 	 * @todo revisit with Flex/Redux
 	 *
-	 * @param {object} e
+	 * @param {object} e Event.
+	 * @returns {void}
 	 */
 	handleTitleChange: function( e ) {
 		this.props.changeCallback( { title: e.target.value } );
@@ -44,7 +45,8 @@ var Form = React.createClass({
 	 *
 	 * @todo revisit with Flex/Redux
 	 *
-	 * @param {object} e
+	 * @param {object} e Event.
+	 * @returns {void}
 	 */
 	handleNumberChange: function( e ) {
 		this.props.changeCallback( { number: e.target.value } );
@@ -55,7 +57,8 @@ var Form = React.createClass({
 	 *
 	 * @todo revisit with Flex/Redux
 	 *
-	 * @param {object} e
+	 * @param {object} e Event.
+	 * @returns {void}
 	 */
 	handleShowDateChange: function( e ) {
 		this.props.changeCallback( { show_date: e.target.checked } );
@@ -64,7 +67,7 @@ var Form = React.createClass({
 	/**
 	 * Get initial state.
 	 *
-	 * @returns {{title: string, number: number, show_date: boolean}}
+	 * @returns {object} Initial state.
 	 */
 	getInitialState: function() {
 		return {
@@ -79,7 +82,7 @@ var Form = React.createClass({
 	 *
 	 * @todo Break this up into three nested components: TitleInput, NumberInput, ShowDateInput. Or rather just TextInput and CheckboxInput.
 	 *
-	 * @returns {XML}
+	 * @returns {XML} Element.
 	 */
 	render: function() {
 		return (
