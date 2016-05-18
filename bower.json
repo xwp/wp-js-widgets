@@ -9,6 +9,7 @@
     "tests"
   ],
   "dependencies": {
-    "react": "~15.0.2"
+    "react": "~15.0.2",
+    "redux": "https://npmcdn.com/redux/dist/redux.js"
   }
 }

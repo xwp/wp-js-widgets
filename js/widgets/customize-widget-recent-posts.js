@@ -1,9 +1,9 @@
-/* global wp, module, React, ReactDOM, RecentPostsWidgetFormReactComponent */
+/* global wp, module, React, ReactDOM, Redux, RecentPostsWidgetFormReactComponent */
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
+wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	'use strict';
 
 	var RecentPostsWidgetForm;
@@ -18,28 +18,44 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 		/**
 		 * Initialize.
 		 *
-		 * @param {object}                             properties
-		 * @param {wp.customize.Widgets.WidgetControl} properties.control
-		 * @param {object}                             properties.config
+		 * @param {object}                             properties         Properties.
+		 * @param {wp.customize.Widgets.WidgetControl} properties.control Customize control.
+		 * @param {object}                             properties.config  Form config.
+		 * @return {void}
 		 */
 		initialize: function( properties ) {
 			var form = this;
 
 			api.Widgets.Form.prototype.initialize.call( form, properties );
 
-			// @todo This is unnecessary.
-			RecentPostsWidgetFormReactComponent.getInitialState = function() {
-				return form.config.default_instance;
-			};
+			form.store = Redux.createStore( form.reducer, form.getValue() );
 
-			form.embed();
+			// Sync changes to the Customizer setting into the store.
+			form.control.setting.bind( function( instance ) {
+				form.store.dispatch( {
+					type: 'UPDATE',
+					props: instance
+				} );
+			} );
+
+			// Sync changes to the store into the Customizer setting.
+			form.store.subscribe( function() {
+				form.control.setting.set( form.store.getState() );
+			} );
+
+			form.store.subscribe( function() {
+				form.render();
+			} );
+
 			form.render();
 		},
 
 		/**
-		 * Embed the form from the template and set up event handlers.
+		 * Render and update the form.
+		 *
+		 * @returns {void}
 		 */
-		embed: function() {
+		render: function() {
 			var form = this;
 			form.reactElement = React.createElement( RecentPostsWidgetFormReactComponent, {
 				labelTitle: form.config.l10n.label_title,
@@ -47,31 +63,39 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 				labelNumber: form.config.l10n.label_number,
 				labelShowDate: form.config.l10n.label_show_date,
 				minimumNumber: form.config.minimum_number,
-				changeCallback: function( props ) {
-
-					// @todo Revisit with Flux/Redux.
-					form.setState( props );
-				}
+				store: form.store
 			} );
 			form.reactComponent = ReactDOM.render( form.reactElement, form.container[0] );
 		},
 
 		/**
-		 * Render and update the form.
+		 * Redux reducer.
+		 *
+		 * See sanitize method for where the business logic for the form is handled.
+		 *
+		 * @param {object} oldState     Old state.
+		 * @param {object} action       Action object.
+		 * @param {string} action.type  Action type.
+		 * @param {mixed}  action.props Value.
+		 * @returns {object} New state.
 		 */
-		render: function() {
-			var form = this;
-			form.reactComponent.setState( form.getValue() );
+		reducer: function( oldState, action ) {
+			var amendedState = {};
+			if ( 'UPDATE' === action.type ) {
+				_.extend( amendedState, action.props );
+			}
+			return _.extend( {}, oldState || {}, amendedState );
 		},
 
 		/**
 		 * Sanitize the instance data.
 		 *
-		 * @param {object} newInstance Unsanitized instance.
+		 * @param {object} oldInstance Unsanitized instance.
 		 * @returns {object} Sanitized instance.
 		 */
-		sanitize: function( newInstance ) {
-			var form = this;
+		sanitize: function( oldInstance ) {
+			var form = this, newInstance;
+			newInstance = _.extend( {}, oldInstance );
 
 			if ( ! newInstance.title ) {
 				newInstance.title = '';

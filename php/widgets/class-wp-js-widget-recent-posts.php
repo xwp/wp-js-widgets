@@ -62,7 +62,7 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 
 		$handle = 'customize-widget-recent-posts';
 		$src = $plugin_dir_url . 'js/widgets/customize-widget-recent-posts' . $suffix;
-		$deps = array( 'customize-js-widgets', 'recent-posts-widget-form-react-component' );
+		$deps = array( 'customize-js-widgets', 'redux', 'recent-posts-widget-form-react-component' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 

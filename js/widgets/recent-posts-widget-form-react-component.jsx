@@ -10,7 +10,7 @@ var Form = React.createClass({
 		labelNumber: React.PropTypes.string,
 		labelShowDate: React.PropTypes.string,
 		minimumNumber: React.PropTypes.number,
-		changeCallback: React.PropTypes.func // @todo revisit with Flex/Redux
+		store: React.PropTypes.object
 	},
 
 	/**
@@ -29,79 +29,51 @@ var Form = React.createClass({
 	},
 
 	/**
-	 * Handle title change.
-	 *
-	 * @todo revisit with Flex/Redux
+	 * Handle field change.
 	 *
 	 * @param {object} e Event.
 	 * @returns {void}
 	 */
-	handleTitleChange: function( e ) {
-		this.props.changeCallback( { title: e.target.value } );
+	onChange: function( e ) {
+		var value, props = {};
+		if ( 'checkbox' === e.target.type ) {
+			value = e.target.checked;
+		} else {
+			value = e.target.value;
+		}
+		props[ e.target.name ] = value;
+		this.props.store.dispatch( {
+			'type': 'UPDATE',
+			'props': props
+		} );
 	},
 
 	/**
-	 * Handle number change.
+	 * Render.
 	 *
-	 * @todo revisit with Flex/Redux
-	 *
-	 * @param {object} e Event.
-	 * @returns {void}
-	 */
-	handleNumberChange: function( e ) {
-		this.props.changeCallback( { number: e.target.value } );
-	},
-
-	/**
-	 * Handle show date change.
-	 *
-	 * @todo revisit with Flex/Redux
-	 *
-	 * @param {object} e Event.
-	 * @returns {void}
-	 */
-	handleShowDateChange: function( e ) {
-		this.props.changeCallback( { show_date: e.target.checked } );
-	},
-
-	/**
-	 * Get initial state.
-	 *
-	 * @returns {object} Initial state.
-	 */
-	getInitialState: function() {
-		return {
-			title: '',
-			number: 5,
-			show_date: false
-		};
-	},
-
-	/**
-	 * Render
-	 *
-	 * @todo Break this up into three nested components: TitleInput, NumberInput, ShowDateInput. Or rather just TextInput and CheckboxInput.
+	 * @todo Break this up into a container component and three nested components: TitleInput, NumberInput, ShowDateInput. Or rather just TextInput and CheckboxInput.
 	 *
 	 * @returns {XML} Element.
 	 */
 	render: function() {
+		var state = this.props.store.getState();
 		return (
 			<fieldset>
 				<p>
 					<label>
 						{this.props.labelTitle}
-						<input class="widefat" type="text" name="title" value={this.state.title} placeholder={this.props.placeholderTitle} onChange={this.handleTitleChange} />
+						<input class="widefat" type="text" name="title" value={state.title} placeholder={this.props.placeholderTitle} onChange={this.onChange} />
 					</label>
 				</p>
 				<p>
 					<label>
 						{this.props.labelNumber}
-						<input class="widefat" type="number" value={this.state.number} min={this.props.minimumNumber} name="number" onChange={this.handleNumberChange} />
+						<input class="widefat" type="number" value={state.number} min={this.props.minimumNumber} name="number" onChange={this.onChange} />
 					</label>
 				</p>
 				<p>
 					<label>
-						<input type="checkbox" name="show_date" checked={this.state.show_date} onChange={this.handleShowDateChange} />
+						<input type="checkbox" name="show_date" checked={state.show_date} onChange={this.onChange} />
 						{this.props.labelShowDate}
 					</label>
 				</p>
