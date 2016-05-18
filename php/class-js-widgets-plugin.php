@@ -197,7 +197,7 @@ class JS_Widgets_Plugin {
 				$form_configs[ $widget->id_base ] = array_merge(
 					$widget->get_form_args(),
 					array(
-						'default_instance' => $widget->get_default_instance()
+						'default_instance' => $widget->get_default_instance(),
 					)
 				);
 			}
