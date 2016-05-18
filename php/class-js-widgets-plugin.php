@@ -127,6 +127,13 @@ class JS_Widgets_Plugin {
 			$wp_scripts->add( $handle, $src, $deps, $this->version );
 		}
 
+		$handle = 'redux';
+		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
+			$src = $plugin_dir_url . 'bower_components/redux/index.js';
+			$deps = array();
+			$wp_scripts->add( $handle, $src, $deps, $this->version );
+		}
+
 		$handle = 'customize-widget-control-form';
 		$src = $plugin_dir_url . 'js/customize-widget-control-form' . $suffix;
 		$deps = array( 'customize-base' );
