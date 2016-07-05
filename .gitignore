@@ -3,6 +3,7 @@
 # Grunt
 /build/
 /node_modules/
+/bower_components/
 npm-debug.log
 
 # Composer
@@ -12,3 +13,5 @@ composer.lock
 # Compiled files
 *.min.js
 *.min.css
+*.compiled.js
+*.browserified.js

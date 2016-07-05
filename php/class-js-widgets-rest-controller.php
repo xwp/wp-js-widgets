@@ -13,13 +13,6 @@
 class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 	/**
-	 * The namespace of this controller's route.
-	 *
-	 * @var string
-	 */
-	protected $namespace = 'js-widgets/v1';
-
-	/**
 	 * Plugin.
 	 *
 	 * @var JS_Widgets_Plugin
@@ -41,6 +34,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( JS_Widgets_Plugin $plugin, WP_JS_Widget $widget ) {
 		$this->plugin = $plugin;
+		$this->namespace = $plugin->rest_api_namespace;
 		$this->widget = $widget;
 		$this->rest_base = $widget->id_base;
 	}

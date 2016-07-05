@@ -1,9 +1,9 @@
-/* global wp, module */
+/* global wp, module, React, ReactDOM, Redux, RecentPostsWidgetFormReactComponent */
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
+wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	'use strict';
 
 	var RecentPostsWidgetForm;
@@ -18,70 +18,84 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 		/**
 		 * Initialize.
 		 *
-		 * @param {object}                             properties
-		 * @param {wp.customize.Widgets.WidgetControl} properties.control
-		 * @param {object}                             properties.config
+		 * @param {object}                             properties         Properties.
+		 * @param {wp.customize.Widgets.WidgetControl} properties.control Customize control.
+		 * @param {object}                             properties.config  Form config.
+		 * @return {void}
 		 */
 		initialize: function( properties ) {
 			var form = this;
 
 			api.Widgets.Form.prototype.initialize.call( form, properties );
 
-			form.embed();
+			form.store = Redux.createStore( form.reducer, form.getValue() );
+
+			// Sync changes to the Customizer setting into the store.
+			form.control.setting.bind( function( instance ) {
+				form.store.dispatch( {
+					type: 'UPDATE',
+					props: instance
+				} );
+			} );
+
+			// Sync changes to the store into the Customizer setting.
+			form.store.subscribe( function() {
+				form.control.setting.set( form.store.getState() );
+			} );
+
+			form.store.subscribe( function() {
+				form.render();
+			} );
+
 			form.render();
 		},
 
 		/**
-		 * Embed the form from the template and set up event handlers.
+		 * Render and update the form.
+		 *
+		 * @returns {void}
 		 */
-		embed: function() {
+		render: function() {
 			var form = this;
-			form.template = wp.template( 'customize-widget-recent-posts' );
-
-			form.container.html( form.template( form.config ) );
-			form.inputs = {
-				title: form.container.find( ':input[name=title]:first' ),
-				number: form.container.find( ':input[name=number]:first' ),
-				show_date: form.container.find( ':input[name=show_date]:first' )
-			};
-
-			form.container.on( 'change', ':input', function() {
-				form.render();
+			form.reactElement = React.createElement( RecentPostsWidgetFormReactComponent, {
+				labelTitle: form.config.l10n.label_title,
+				placeholderTitle: form.config.l10n.placeholder_title,
+				labelNumber: form.config.l10n.label_number,
+				labelShowDate: form.config.l10n.label_show_date,
+				minimumNumber: form.config.minimum_number,
+				store: form.store
 			} );
-
-			form.inputs.title.on( 'input change', function() {
-				form.setState( { title: $( this ).val() } );
-			} );
-			form.inputs.number.on( 'input change', function() {
-				form.setState( { number: parseInt( $( this ).val(), 10 ) } );
-			} );
-			form.inputs.show_date.on( 'click', function() {
-				form.setState( { show_date: $( this ).prop( 'checked' ) } );
-			} );
+			form.reactComponent = ReactDOM.render( form.reactElement, form.container[0] );
 		},
 
 		/**
-		 * Render and update the form.
+		 * Redux reducer.
+		 *
+		 * See sanitize method for where the business logic for the form is handled.
+		 *
+		 * @param {object} oldState     Old state.
+		 * @param {object} action       Action object.
+		 * @param {string} action.type  Action type.
+		 * @param {mixed}  action.props Value.
+		 * @returns {object} New state.
 		 */
-		render: function() {
-			var form = this, value = form.getValue();
-			if ( ! form.inputs.title.is( document.activeElement ) ) {
-				form.inputs.title.val( value.title );
+		reducer: function( oldState, action ) {
+			var amendedState = {};
+			if ( 'UPDATE' === action.type ) {
+				_.extend( amendedState, action.props );
 			}
-			if ( ! form.inputs.number.is( document.activeElement ) ) {
-				form.inputs.number.val( value.number );
-			}
-			form.inputs.show_date.prop( 'checked', value.show_date );
+			return _.extend( {}, oldState || {}, amendedState );
 		},
 
 		/**
 		 * Sanitize the instance data.
 		 *
-		 * @param {object} newInstance Unsanitized instance.
+		 * @param {object} oldInstance Unsanitized instance.
 		 * @returns {object} Sanitized instance.
 		 */
-		sanitize: function( newInstance ) {
-			var form = this;
+		sanitize: function( oldInstance ) {
+			var form = this, newInstance;
+			newInstance = _.extend( {}, oldInstance );
 
 			if ( ! newInstance.title ) {
 				newInstance.title = '';
@@ -91,12 +105,6 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api, $ ) {
 			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
 				form.setValidationMessage( form.config.l10n.title_tags_invalid );
 			}
-
-			/*
-			 * Trim per sanitize_text_field().
-			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
-			 */
-			newInstance.title = $.trim( newInstance.title );
 
 			if ( ! newInstance.number || newInstance.number < form.config.minimum_number ) {
 				newInstance.number = form.config.minimum_number;

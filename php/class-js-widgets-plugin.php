@@ -20,6 +20,13 @@ class JS_Widgets_Plugin {
 	public $version;
 
 	/**
+	 * REST API Namespace.
+	 *
+	 * @var string
+	 */
+	public $rest_api_namespace = 'js-widgets/v1';
+
+	/**
 	 * Instances of JS_Widgets_REST_Controller for each widget type.
 	 *
 	 * @var array
@@ -74,7 +81,8 @@ class JS_Widgets_Plugin {
 		}
 
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
-		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ) );
+		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
@@ -101,13 +109,38 @@ class JS_Widgets_Plugin {
 	/**
 	 * Register scripts.
 	 *
+	 * Note this will skip registering react and react-dom if they are already registered.
+	 *
 	 * @access public
+	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
 	 * @param WP_Scripts $wp_scripts Scripts.
 	 */
 	public function register_scripts( WP_Scripts $wp_scripts ) {
+		global $wp_widget_factory;
 		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
+
+		$handle = 'react';
+		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
+			$src = $plugin_dir_url . 'bower_components/react/react' . $suffix;
+			$deps = array();
+			$wp_scripts->add( $handle, $src, $deps, $this->version );
+		}
+
+		$handle = 'react-dom';
+		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
+			$src = $plugin_dir_url . 'bower_components/react/react-dom' . $suffix;
+			$deps = array( 'react' );
+			$wp_scripts->add( $handle, $src, $deps, $this->version );
+		}
+
+		$handle = 'redux';
+		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
+			$src = $plugin_dir_url . 'bower_components/redux/index.js';
+			$deps = array();
+			$wp_scripts->add( $handle, $src, $deps, $this->version );
+		}
 
 		$handle = 'customize-widget-control-form';
 		$src = $plugin_dir_url . 'js/customize-widget-control-form' . $suffix;
@@ -119,15 +152,12 @@ class JS_Widgets_Plugin {
 		$deps = array( 'customize-widgets', 'customize-widget-control-form' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
-		$handle = 'customize-widget-text';
-		$src = $plugin_dir_url . 'js/widgets/customize-widget-text' . $suffix;
-		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
-
-		$handle = 'customize-widget-recent-posts';
-		$src = $plugin_dir_url . 'js/widgets/customize-widget-recent-posts' . $suffix;
-		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		// Register scripts for widgets.
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->register_scripts( $wp_scripts );
+			}
+		}
 	}
 
 	/**
@@ -175,7 +205,7 @@ class JS_Widgets_Plugin {
 				$form_configs[ $widget->id_base ] = array_merge(
 					$widget->get_form_args(),
 					array(
-						$widget->get_default_instance()
+						'default_instance' => $widget->get_default_instance(),
 					)
 				);
 			}
@@ -193,6 +223,21 @@ class JS_Widgets_Plugin {
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
 				$widget->enqueue_control_scripts();
+			}
+		}
+	}
+
+	/**
+	 * Enqueue scripts on the frontend.
+	 *
+	 * @access public
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function enqueue_frontend_scripts() {
+		global $wp_widget_factory;
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->enqueue_frontend_scripts();
 			}
 		}
 	}

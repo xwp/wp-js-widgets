@@ -2,11 +2,55 @@
 /* jshint node:true */
 
 module.exports = function( grunt ) {
-	'use strict';
 
 	grunt.initConfig( {
 
 		pkg: grunt.file.readJSON( 'package.json' ),
+
+		browserify: {
+
+			// http://stackoverflow.com/questions/34372877/how-to-bundle-multiple-javascript-libraries-with-browserify
+			options: {
+				browserifyOptions: {
+					debug: true
+				},
+				transform: [
+					[ 'babelify' ],
+					[ 'browserify-shim' ]
+				],
+				external: [
+					'react',
+					'react-dom'
+				],
+				banner: '/* THIS FILE IS GENERATED FROM BROWSERIFY. DO NOT EDIT DIRECTLY. */'
+			},
+			recent_posts_form: {
+				options: {
+					browserifyOptions: {
+						standalone: 'RecentPostsWidgetFormReactComponent'
+					}
+				},
+				files: {
+					'./js/widgets/recent-posts-widget-form-react-component.browserified.js': './js/widgets/recent-posts-widget-form-react-component.jsx'
+				}
+			},
+			recent_posts_widget: {
+				options: {
+					browserifyOptions: {
+						standalone: 'RecentPostsWidgetFrontendReactComponent'
+					}
+				},
+				files: {
+					'./js/widgets/recent-posts-widget-frontend-react-component.browserified.js': './js/widgets/recent-posts-widget-frontend-react-component.jsx'
+				}
+			}
+		},
+		watch: {
+			browserify: {
+				files: [ './js/**/*.jsx' ],
+				tasks: [ 'browserify' ]
+			}
+		},
 
 		// JavaScript linting with JSHint.
 		jshint: {
@@ -122,12 +166,12 @@ module.exports = function( grunt ) {
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-shell' );
 	grunt.loadNpmTasks( 'grunt-wp-deploy' );
+	grunt.loadNpmTasks( 'grunt-browserify' );
+	grunt.loadNpmTasks( 'grunt-contrib-watch' );
 
 	// Register tasks
 	grunt.registerTask( 'default', [
-		'jshint',
-		'uglify',
-		'cssmin'
+		'build'
 	] );
 
 	grunt.registerTask( 'readme', [
@@ -148,7 +192,10 @@ module.exports = function( grunt ) {
 	] );
 
 	grunt.registerTask( 'build', [
-		'default',
+		'jshint',
+		'browserify',
+		'uglify',
+		'cssmin',
 		'readme',
 		'copy'
 	] );
