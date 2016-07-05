@@ -5,8 +5,8 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
-**Requires at least:** 4.5  
-**Tested up to:** 4.6-alpha  
+**Requires at least:** 4.6-beta1  
+**Tested up to:** 4.6-beta1  
 **Stable tag:** trunk (master)  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 

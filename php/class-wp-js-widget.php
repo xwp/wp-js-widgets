@@ -283,6 +283,22 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Validate instance data.
+	 *
+	 * @param array|false|WP_Error $value Value. May be `false` if filtered as such by `widget_update_callback`, or the `sanitize` method also could return a `WP_Error`.
+	 * @return true|WP_Error
+	 */
+	public function validate( $value ) {
+		if ( is_wp_error( $value ) ) {
+			return $value;
+		}
+		if ( ! is_array( $value ) ) {
+			return new WP_Error( 'invalid_value', __( 'Invalid value.', 'js-widgets' ) );
+		}
+		return true;
+	}
+
+	/**
 	 * Echoes the widget content.
 	 *
 	 * This method is now deprecated in favor of `WP_Customize_Widget::render()`,

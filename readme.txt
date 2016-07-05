@@ -1,8 +1,8 @@
 === JS Widgets ===
 Contributors:      xwp, westonruter
 Tags:              customizer, widgets, rest-api
-Requires at least: 4.5
-Tested up to:      4.6-alpha
+Requires at least: 4.6-beta1
+Tested up to:      4.6-beta1
 Stable tag:        trunk
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
