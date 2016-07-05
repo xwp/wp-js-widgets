@@ -476,7 +476,7 @@ class JS_Widgets_Plugin {
 	 *
 	 * @param array                $new_instance Widget instance to sanitize.
 	 * @param WP_Customize_Setting $setting      Setting for this widget instance.
-	 * @return array|false Sanitized widget instance.
+	 * @return array|\WP_Error|null Sanitized widget instance or WP_Error/null if invalid.
 	 */
 	public function sanitize_widget_instance( $new_instance, WP_Customize_Setting $setting ) {
 		if ( isset( $this->original_customize_sanitize_callbacks[ $setting->id ] ) ) {
@@ -518,7 +518,6 @@ class JS_Widgets_Plugin {
 			$instance = apply_filters( 'widget_update_callback', $instance, $new_instance, $old_instance, $widget );
 		}
 
-		// @todo Remove the strict check once it is determined that Core supports returning WP_Error instances from sanitize callbacks?
 		if ( ! is_array( $instance ) && ! is_wp_error( $instance ) ) {
 			$instance = null;
 		}
@@ -570,15 +569,15 @@ class JS_Widgets_Plugin {
 
 			$schema_validity = $this->validate_via_instance_schema( $new_instance, $widget );
 			if ( is_wp_error( $schema_validity ) ) {
-				foreach ( $schema_validity->errors as $code => $message ) {
-					$validity->add( $code, $message, $schema_validity->get_error_data( $code ) );
+				foreach ( $schema_validity->errors as $code => $messages ) {
+					$validity->add( $code, join( ' ', $messages ), $schema_validity->get_error_data( $code ) );
 				}
 			}
 
 			$method_validity = $widget->validate( $new_instance );
 			if ( is_wp_error( $method_validity ) ) {
-				foreach ( $method_validity->errors as $code => $message ) {
-					$validity->add( $code, $message, $method_validity->get_error_data( $code ) );
+				foreach ( $method_validity->errors as $code => $messages ) {
+					$validity->add( $code, join( ' ', $messages ), $method_validity->get_error_data( $code ) );
 				}
 			}
 		}
