@@ -107,7 +107,9 @@ module.exports = function( grunt ) {
 					'css/*',
 					'js/*',
 					'php/*',
-					'readme.txt'
+					'readme.txt',
+					'bower_components/react/**',
+					'bower_components/redux/**'
 				],
 				dest: 'build',
 				expand: true,
