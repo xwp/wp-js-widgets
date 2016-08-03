@@ -105,8 +105,8 @@ module.exports = function( grunt ) {
 				src: [
 					'*.php',
 					'css/*',
-					'js/*',
-					'php/*',
+					'js/**',
+					'php/**',
 					'readme.txt',
 					'bower_components/react/react-dom.js',
 					'bower_components/react/react.js',
