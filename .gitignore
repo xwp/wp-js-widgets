@@ -3,7 +3,6 @@
 # Grunt
 /build/
 /node_modules/
-/bower_components/
 npm-debug.log
 
 # Composer
@@ -15,3 +14,12 @@ composer.lock
 *.min.css
 *.compiled.js
 *.browserified.js
+
+/bower_components/react/*
+!/bower_components/react/react-dom.js
+!/bower_components/react/react-dom.min.js
+/bower_components/react/*
+!/bower_components/react/react.js
+!/bower_components/react/react.min.js
+/bower_components/redux/*
+!/bower_components/redux/index.js

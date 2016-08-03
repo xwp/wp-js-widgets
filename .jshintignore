@@ -2,3 +2,4 @@
 **/node_modules/**
 **/vendor/**
 **/*.jsx
+/bower_components/**
