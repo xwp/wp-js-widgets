@@ -83,16 +83,18 @@ class JS_Widgets_Plugin {
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
-		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
-		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
 
+		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
 
-		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
+		// @todo Add link in wp_head for this endpoint.
+		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
+		add_action( 'init', array( $this, 'add_sidebars_widgets_endpoint' ) );
+		add_filter( 'template_redirect', array( $this, 'serve_rest_sidebars_widgets_response' ) );
 	}
 
 	/**
@@ -179,6 +181,13 @@ class JS_Widgets_Plugin {
 			$this->rest_controllers[ $widget->id_base ] = $rest_controller;
 			$rest_controller->register_routes();
 		}
+
+		register_rest_route( $this->rest_api_namespace, '/sidebars', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => array( $this, 'get_sidebars_widgets_items' ),
+			),
+		) );
 	}
 
 	/**
@@ -642,5 +651,69 @@ class JS_Widgets_Plugin {
 		if ( $widget instanceof WP_JS_Widget ) {
 			ob_end_clean();
 		}
+	}
+
+	const SIDEBARS_WIDGETS_REQUEST_QUERY_VAR = 'rest_api_sidebars_widgets_request';
+
+	/**
+	 * Add wp-json-sidebars-widgets endpoint.
+	 */
+	public function add_sidebars_widgets_endpoint() {
+		add_rewrite_endpoint( 'wp-json-sidebars-widgets', EP_ALL, self::SIDEBARS_WIDGETS_REQUEST_QUERY_VAR );
+	}
+
+	/**
+	 * Serve sidebars widgets response.
+	 *
+	 * @see rest_api_loaded()
+	 */
+	public function serve_rest_sidebars_widgets_response() {
+		global $wp;
+
+		if ( ! isset( $wp->query_vars[ self::SIDEBARS_WIDGETS_REQUEST_QUERY_VAR ] ) ) {
+			return;
+		}
+
+		define( 'REST_REQUEST', true );
+		$rest_route = '/' . $this->rest_api_namespace . '/sidebars';
+		$server = rest_get_server();
+		$server->serve_request( $rest_route );
+		die();
+	}
+
+	/**
+	 * Get sidebars widgets items.
+	 */
+	public function get_sidebars_widgets_items() {
+		global $wp_registered_sidebars;
+
+		$rest_server = rest_get_server();
+		$sidebar_items = array();
+		$sidebars_widgets = wp_get_sidebars_widgets();
+		foreach ( $wp_registered_sidebars as $sidebar_id => $sidebar_item ) {
+			$widget_items = array();
+
+			$widget_ids = array();
+			if ( ! empty( $sidebars_widgets[ $sidebar_id ] ) ) {
+				$widget_ids = $sidebars_widgets[ $sidebar_id ];
+			}
+
+			foreach ( $widget_ids as $widget_id ) {
+				if ( ! preg_match( '/^(?P<id_base>.+)-(?P<widget_number>\d+)/', $widget_id, $matches ) ) {
+					continue;
+				}
+				$request = new WP_REST_Request( 'GET', sprintf( '/%s/widgets/%s/%d', $this->rest_api_namespace, $matches['id_base'], $matches['widget_number'] ) );
+				$request->set_param( 'context', isset( $_GET['context'] ) && 'edit' === $_GET['context'] ? 'edit' : 'view' );
+				$response = rest_get_server()->dispatch( $request );
+				$data = $rest_server->response_to_data( $response, isset( $_GET['_embed'] ) );
+
+				// @todo Also render the widget?
+				$widget_items[] = $data;
+			}
+
+			$sidebar_item['widgets'] = $widget_items;
+			$sidebar_items[] = $sidebar_item;
+		}
+		return $sidebar_items;
 	}
 }
