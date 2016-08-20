@@ -13,7 +13,7 @@ composer.lock
 *.min.js
 *.min.css
 *.compiled.js
-*.browserified.js
+*-browserified.js
 
 /bower_components/react/*
 !/bower_components/react/react-dom.js

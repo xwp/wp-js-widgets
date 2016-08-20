@@ -51,12 +51,12 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
 
 		$handle = 'recent-posts-widget-form-react-component';
-		$src = $plugin_dir_url . 'js/widgets/recent-posts-widget-form-react-component.browserified' . $suffix;
+		$src = $plugin_dir_url . 'js/widgets/recent-posts-widget-form-react-component-browserified' . $suffix;
 		$deps = array( 'react', 'react-dom' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
 		$handle = 'recent-posts-widget-frontend-react-component';
-		$src = $plugin_dir_url . 'js/widgets/recent-posts-widget-frontend-react-component.browserified' . $suffix;
+		$src = $plugin_dir_url . 'js/widgets/recent-posts-widget-frontend-react-component-browserified' . $suffix;
 		$deps = array( 'react', 'react-dom' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 

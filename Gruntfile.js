@@ -31,7 +31,7 @@ module.exports = function( grunt ) {
 					}
 				},
 				files: {
-					'./js/widgets/recent-posts-widget-form-react-component.browserified.js': './js/widgets/recent-posts-widget-form-react-component.jsx'
+					'./js/widgets/recent-posts-widget-form-react-component-browserified.js': './js/widgets/recent-posts-widget-form-react-component.jsx'
 				}
 			},
 			recent_posts_widget: {
@@ -41,7 +41,7 @@ module.exports = function( grunt ) {
 					}
 				},
 				files: {
-					'./js/widgets/recent-posts-widget-frontend-react-component.browserified.js': './js/widgets/recent-posts-widget-frontend-react-component.jsx'
+					'./js/widgets/recent-posts-widget-frontend-react-component-browserified.js': './js/widgets/recent-posts-widget-frontend-react-component.jsx'
 				}
 			}
 		},
@@ -75,6 +75,7 @@ module.exports = function( grunt ) {
 					cwd: 'js/',
 					src: [
 						'*.js',
+						'widgets/*.js',
 						'!*.min.js'
 					],
 					dest: 'js/',
@@ -109,7 +110,9 @@ module.exports = function( grunt ) {
 					'php/**',
 					'readme.txt',
 					'bower_components/react/react-dom.js',
+					'bower_components/react/react-dom.min.js',
 					'bower_components/react/react.js',
+					'bower_components/react/react.min.js',
 					'bower_components/redux/index.js'
 				],
 				dest: 'build',
