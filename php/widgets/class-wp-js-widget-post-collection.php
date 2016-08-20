@@ -69,7 +69,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 
 		$handle = 'customize-widget-post-collection';
 		$src = $plugin_dir_url . 'js/widgets/customize-widget-post-collection' . $suffix;
-		$deps = array( 'customize-js-widgets', 'customize-object-selector-component' );
+		$deps = array( 'customize-js-widgets' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 	}
 
@@ -97,7 +97,15 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * Enqueue scripts needed for the controls.
 	 */
 	public function enqueue_control_scripts() {
-		wp_enqueue_script( 'customize-widget-post-collection' );
+
+		// Gracefully handle the customize-object-selector plugin not being active.
+		$handle = 'customize-widget-post-collection';
+		$external_dep_handle = 'customize-object-selector-component';
+		if ( wp_scripts()->query( $external_dep_handle ) ) {
+			wp_scripts()->query( $handle )->deps[] = $external_dep_handle;
+		}
+		wp_enqueue_script( $handle );
+
 		wp_enqueue_style( 'customize-widget-post-collection' );
 	}
 
@@ -399,8 +407,19 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	public function form_template() {
 		?>
 		<script id="tmpl-customize-widget-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php if ( ! class_exists( '\CustomizeObjectSelector\Plugin' ) ) : ?>
-				<p><em><?php esc_html_e( 'This widget depends on the Customize Object Selector plugin.', 'js-widgets' ) ?></em></p>
+			<?php if ( ! wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
+				<p><em>
+					<?php
+					echo wp_kses_post( sprintf(
+						__( 'This widget depends on the %s plugin. Please install and activate.', 'js-widgets' ),
+						sprintf(
+							'<a target="_blank" href="%1$s">%2$s</a>',
+							'https://github.com/xwp/wp-customize-object-selector',
+							__( 'Customize Object Selector', 'js-widgets' )
+						)
+					) );
+					?>
+				</em></p>
 			<?php else : ?>
 				<p>
 					<label for="{{ data.element_id_base }}_title"><?php esc_html_e( 'Title:', 'js-widgets' ) ?></label>

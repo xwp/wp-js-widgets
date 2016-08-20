@@ -39,10 +39,15 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		 */
 		embed: function() {
 			var form = this, elementIdBase = 'el' + String( Math.random() ), initialInstanceData;
+
 			form.template = wp.template( 'customize-widget-post-collection' );
 			form.container.html( form.template( {
 				element_id_base: elementIdBase
 			} ) );
+
+			if ( ! api.ObjectSelectorComponent ) {
+				return;
+			}
 
 			form.propertyValues = {
 				posts: form.createSyncedPropertyValue( form.setting, 'posts' )
