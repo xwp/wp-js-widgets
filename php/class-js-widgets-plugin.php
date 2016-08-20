@@ -253,7 +253,7 @@ class JS_Widgets_Plugin {
 	function enqueue_frontend_scripts() {
 		global $wp_widget_factory;
 		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
+			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
 		}
