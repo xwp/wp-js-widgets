@@ -1,0 +1,6 @@
+
+.widget-post-collection .customize-object-selector-container .select2-selection--multiple .select2-selection__rendered .select2-selection__choice {
+	display: block;
+	float: none;
+	cursor: move;
+}

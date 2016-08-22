@@ -1,0 +1,11 @@
+
+.widget-post-collection-list .title,
+.widget-post-collection-list .author {
+	margin: 0;
+}
+.widget-post-collection-list .date {
+	display: block;
+}
+.widget-post-collection-list li {
+	margin-bottom: 0.5em;
+}

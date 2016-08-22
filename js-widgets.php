@@ -33,6 +33,7 @@ require_once __DIR__ . '/php/class-js-widgets-plugin.php';
 require_once __DIR__ . '/php/class-wp-js-widget.php';
 require_once __DIR__ . '/php/widgets/class-wp-js-widget-text.php';
 require_once __DIR__ . '/php/widgets/class-wp-js-widget-recent-posts.php';
+require_once __DIR__ . '/php/widgets/class-wp-js-widget-post-collection.php';
 
 global $js_widgets_plugin;
 $js_widgets_plugin = new JS_Widgets_Plugin();

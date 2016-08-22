@@ -82,6 +82,7 @@ class JS_Widgets_Plugin {
 
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
+		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
@@ -156,6 +157,22 @@ class JS_Widgets_Plugin {
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
 				$widget->register_scripts( $wp_scripts );
+			}
+		}
+	}
+
+	/**
+	 * Register styles.
+	 *
+	 * @param WP_Styles $wp_styles Styles.
+	 */
+	public function register_styles( WP_Styles $wp_styles ) {
+		global $wp_widget_factory;
+
+		// Register scripts for widgets.
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->register_styles( $wp_styles );
 			}
 		}
 	}
@@ -236,7 +253,7 @@ class JS_Widgets_Plugin {
 	function enqueue_frontend_scripts() {
 		global $wp_widget_factory;
 		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
+			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
 		}
@@ -264,6 +281,8 @@ class JS_Widgets_Plugin {
 	 */
 	public function upgrade_core_widgets() {
 		global $wp_widget_factory;
+
+		register_widget( 'WP_JS_Widget_Post_Collection' );
 
 		$registered_widgets = array();
 		foreach ( $wp_widget_factory->widgets as $key => $widget ) {

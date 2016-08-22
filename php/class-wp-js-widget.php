@@ -58,8 +58,17 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * @param WP_Scripts $wp_scripts Scripts.
 	 */
-	public function register_scripts( $wp_scripts ){
+	public function register_scripts( $wp_scripts ) {
 		unset( $wp_scripts );
+	}
+
+	/**
+	 * Register styles.
+	 *
+	 * @param WP_Styles $wp_styles Styles.
+	 */
+	public function register_styles( $wp_styles ) {
+		unset( $wp_styles );
 	}
 
 	/**
