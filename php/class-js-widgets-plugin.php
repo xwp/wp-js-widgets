@@ -209,7 +209,7 @@ class JS_Widgets_Plugin {
 		global $wp_customize, $wp_widget_factory;
 
 		// Abort if the widgets component has been disabled.
-		if ( empty( $wp_customize->widgets ) ) {
+		if ( empty( $wp_customize->widgets ) || ! current_user_can( 'edit_theme_options' ) ) {
 			return;
 		}
 
