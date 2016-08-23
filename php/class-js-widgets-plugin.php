@@ -58,6 +58,13 @@ class JS_Widgets_Plugin {
 	protected $original_customize_validate_callbacks = array();
 
 	/**
+	 * Widget setting values prior to previewing.
+	 *
+	 * @var array
+	 */
+	protected $original_setting_values = array();
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -88,6 +95,7 @@ class JS_Widgets_Plugin {
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
+		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
 
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
@@ -484,6 +492,58 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
+	 * Capture the original widget instances before preview is applied to pass the old instance data.
+	 *
+	 * This must run immediately before `WP_Customize_Widgets::register_settings()`
+	 * at `widgets_init` priority 95.  This is needed because the original widget
+	 * instance may not be available when needed due to the preview filters already
+	 * having been applied. The original values are used in the `JS_Widgets_Plugin::sanitize_widget_instance()`
+	 * method to pass into the `WP_JS_Widget::sanitize()` method.
+	 *
+	 * @todo Evaluate whether it even makes sense for JS Widgets to even need to be aware of their $old_instance data.
+	 *
+	 * @see WP_Customize_Widgets::register_settings()
+	 * @see JS_Widgets_Plugin::sanitize_widget_instance()
+	 */
+	public function capture_original_instances() {
+		global $wp_customize;
+
+		// Abort if the widgets component has been disabled.
+		if ( empty( $wp_customize->widgets ) ) {
+			return;
+		}
+
+		foreach ( array_keys( $wp_customize->unsanitized_post_values() ) as $setting_id ) {
+			$parsed_setting_id = $wp_customize->widgets->parse_widget_setting_id( $setting_id );
+			if ( ! $parsed_setting_id ) {
+				continue;
+			}
+
+			/** This filter is documented in wp-includes/class-wp-customize-manager.php */
+			$setting_args = apply_filters( 'customize_dynamic_setting_args', false, $setting_id );
+
+			if ( false === $setting_args ) {
+				continue;
+			}
+
+			/** This filter is documented in wp-includes/class-wp-customize-manager.php */
+			$setting_class = apply_filters( 'customize_dynamic_setting_class', 'WP_Customize_Setting', $setting_id, $setting_args );
+
+			/**
+			 * Temporary setting.
+			 *
+			 * Note that the setting is *not* added to $wp_customize so that it
+			 * will be successfully picked up among the newly-added settings
+			 * in WP_Customize_Widgets::register_settings().
+			 *
+			 * @var WP_Customize_Setting $setting
+			 */
+			$setting = new $setting_class( $wp_customize, $setting_id, $setting_args );
+			$this->original_setting_values[ $setting_id ] = $setting->value();
+		}
+	}
+
+	/**
 	 * Sanitizes a widget instance.
 	 *
 	 * Calls the standard `WP_Customize_Widgets::sanitize_widget_instance()` if
@@ -513,7 +573,16 @@ class JS_Widgets_Plugin {
 			return call_user_func( $original_sanitize_callback, $new_instance, $setting );
 		}
 
-		$old_instance = $setting->value();
+		/*
+		 * Note that it is too late to grab the $old_instance via $setting->value()
+		 * because the preview filters may have already been applied.
+		 * See JS_Widgets_Plugin::capture_original_instances().
+		 */
+		if ( isset( $this->original_setting_values[ $setting->id ] ) ) {
+			$old_instance = $this->original_setting_values[ $setting->id ];
+		} else {
+			$old_instance = array();
+		}
 		$instance = $this->sanitize_via_instance_schema( $new_instance, $widget );
 
 		if ( is_array( $instance ) ) {
