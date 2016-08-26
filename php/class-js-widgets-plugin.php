@@ -515,7 +515,7 @@ class JS_Widgets_Plugin {
 
 		foreach ( array_keys( $wp_customize->unsanitized_post_values() ) as $setting_id ) {
 			$parsed_setting_id = $wp_customize->widgets->parse_widget_setting_id( $setting_id );
-			if ( ! $parsed_setting_id ) {
+			if ( is_wp_error( $parsed_setting_id ) ) {
 				continue;
 			}
 
