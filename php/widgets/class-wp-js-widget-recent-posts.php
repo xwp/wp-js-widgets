@@ -22,7 +22,7 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 	/**
 	 * Proxied widget.
 	 *
-	 * @var WP_Widget
+	 * @var WP_Widget_Recent_Posts
 	 */
 	public $proxied_widget;
 
@@ -253,6 +253,9 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
+		$default_instance = $this->get_default_instance();
+		$new_instance = array_merge( $default_instance, $new_instance );
+		$old_instance = array_merge( $default_instance, $old_instance );
 		$instance = $this->proxied_widget->update( $new_instance, $old_instance );
 		return $instance;
 	}
@@ -265,7 +268,7 @@ class WP_JS_Widget_Recent_Posts extends WP_JS_Widget {
 	 * @return void
 	 */
 	public function render( $args, $instance ) {
-		 $this->proxied_widget->widget( $args, $instance );
+		$this->proxied_widget->widget( $args, $instance );
 	}
 
 	/**
