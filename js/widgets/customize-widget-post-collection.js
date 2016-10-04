@@ -60,7 +60,8 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 				post_query_vars: form.config.post_query_args,
 				select2_options: _.extend(
 					{
-						multiple: true
+						multiple: true,
+						width: '100%'
 					},
 					form.config.select2_options
 				),
