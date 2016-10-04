@@ -1,8 +1,8 @@
 === JS Widgets ===
 Contributors:      xwp, westonruter
 Tags:              customizer, widgets, rest-api
-Requires at least: 4.6-beta1
-Tested up to:      4.6-beta1
+Requires at least: 4.5
+Tested up to:      4.7-alpha
 Stable tag:        trunk
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
@@ -38,3 +38,17 @@ Limitations/Caveats:
 
 * Widgets that extend `WP_JS_Widget` will not be editable from widgets admin page. A link to edit the widget in the Customizer will be displayed instead.
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` proxy class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
+
+== Changelog ==
+
+= 0.1.1 - 2016-10-03 =
+
+* Add 100% width to object-selector.
+* Fix typo in sanitizing Post Collection input.
+* Fix PHP issue when attempting to assign an undefined array index to another undefined array index.
+* Fix styling of post collection widget select2 component.
+* Fix accounting for parse_widget_setting_id returning WP_Error not false.
+
+= 0.1.0 =
+
+Initial release.
