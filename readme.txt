@@ -3,7 +3,7 @@ Contributors:      xwp, westonruter
 Tags:              customizer, widgets, rest-api
 Requires at least: 4.5
 Tested up to:      4.7-alpha
-Stable tag:        trunk
+Stable tag:        0.1.1
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,6 +49,6 @@ Limitations/Caveats:
 * Fix styling of post collection widget select2 component.
 * Fix accounting for parse_widget_setting_id returning WP_Error not false.
 
-= 0.1.0 =
+= 0.1.0 - 2016-08-24 =
 
 Initial release.

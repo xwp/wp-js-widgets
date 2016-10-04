@@ -7,7 +7,7 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
 **Requires at least:** 4.5  
 **Tested up to:** 4.7-alpha  
-**Stable tag:** trunk (master)  
+**Stable tag:** 0.1.1  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-js-widgets.svg?branch=master)](https://travis-ci.org/xwp/wp-js-widgets) [![Coverage Status](https://coveralls.io/repos/xwp/wp-js-widgets/badge.svg?branch=master)](https://coveralls.io/github/xwp/wp-js-widgets) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) [![devDependency Status](https://david-dm.org/xwp/wp-js-widgets/dev-status.svg)](https://david-dm.org/xwp/wp-js-widgets#info=devDependencies) 
