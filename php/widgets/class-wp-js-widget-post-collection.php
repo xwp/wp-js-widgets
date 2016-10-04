@@ -300,7 +300,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		$instance['title'] = sanitize_text_field( $instance['title'] );
 		$instance['posts'] = array_filter( wp_parse_id_list( $instance['posts'] ) );
 		foreach ( array( 'show_date', 'show_featured_image', 'show_author' ) as $field ) {
-			$instance['show_date'] = boolval( $instance['show_date'] );
+			$instance[ $field ] = boolval( $instance[ $field ] );
 		}
 		return $instance;
 	}
@@ -426,7 +426,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 					<input id="{{ data.element_id_base }}_title" class="widefat" type="text" name="title">
 				</p>
 				<p>
-					<label for="{{ data.element_id_base }}_title"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
+					<label for="{{ data.element_id_base }}_posts"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
 					<span class="customize-object-selector-container"></span>
 				</p>
 				<p>
