@@ -558,10 +558,18 @@ class JS_Widgets_Plugin {
 	 * @return array|\WP_Error|null Sanitized widget instance or WP_Error/null if invalid.
 	 */
 	public function sanitize_widget_instance( $new_instance, WP_Customize_Setting $setting ) {
+		$original_sanitize_callback = array( $setting->manager->widgets, 'sanitize_widget_instance' );
+		$is_encoded_setting_value = (
+			! empty( $new_instance['is_widget_customizer_js_value'] ) &&
+			! empty( $new_instance['encoded_serialized_instance'] ) &&
+			! empty( $new_instance['instance_hash_key'] )
+		);
+		if ( $is_encoded_setting_value ) {
+			return call_user_func( $original_sanitize_callback, $new_instance, $setting );
+		}
+
 		if ( isset( $this->original_customize_sanitize_callbacks[ $setting->id ] ) ) {
 			$original_sanitize_callback = $this->original_customize_sanitize_callbacks[ $setting->id ];
-		} else {
-			$original_sanitize_callback = array( $setting->manager->widgets, 'sanitize_widget_instance' );
 		}
 
 		$parsed_setting_id = $setting->manager->widgets->parse_widget_setting_id( $setting->id );
