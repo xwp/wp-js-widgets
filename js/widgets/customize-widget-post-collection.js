@@ -74,7 +74,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 			form.elements = {};
 			form.container.find( ':input[name]' ).each( function() {
 				var input = $( this ), name = input.prop( 'name' ), propertyValue, propertyElement;
-				if ( _.isUndefined( form.config.default_instance[ name ] ) ) {
+				if ( _.isUndefined( initialInstanceData[ name ] ) ) {
 					return;
 				}
 				propertyValue = form.createSyncedPropertyValue( form.setting, name );
