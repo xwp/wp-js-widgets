@@ -70,7 +70,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 				select2_selection_template: form.postsItemTemplate
 			});
 
-			initialInstanceData = form.setting.get();
+			initialInstanceData = form.getValue();
 			form.elements = {};
 			form.container.find( ':input[name]' ).each( function() {
 				var input = $( this ), name = input.prop( 'name' ), propertyValue, propertyElement;
