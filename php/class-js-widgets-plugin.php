@@ -189,20 +189,16 @@ class JS_Widgets_Plugin {
 	 * Initialize REST API.
 	 */
 	public function rest_api_init() {
-		if ( ! class_exists( 'WP_REST_Controller' ) ) {
-			return;
-		}
-
 		require_once __DIR__ . '/class-js-widgets-rest-controller.php';
 
 		foreach ( $this->get_registered_js_widgets() as $widget ) {
-			$rest_controller_class = $widget->rest_controller;
+			$rest_controller_class = $widget->rest_controller_class;
 			if ( ! class_exists( $rest_controller_class ) ) {
 				continue;
 			}
-			$rest_controller = new $rest_controller_class( $this, $widget );
-			$this->rest_controllers[ $widget->id_base ] = $rest_controller;
-			$rest_controller->register_routes();
+			$widget->rest_controller = new $rest_controller_class( $this, $widget );
+			$this->rest_controllers[ $widget->id_base ] = $widget->rest_controller;
+			$widget->rest_controller->register_routes();
 		}
 	}
 

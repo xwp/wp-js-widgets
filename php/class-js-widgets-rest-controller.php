@@ -40,6 +40,24 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Get namespace.
+	 *
+	 * @return string
+	 */
+	public function get_namespace() {
+		return $this->namespace;
+	}
+
+	/**
+	 * Get REST Base.
+	 *
+	 * @return string
+	 */
+	public function get_rest_base() {
+		return $this->rest_base;
+	}
+
+	/**
 	 * Get the object type for the REST resource.
 	 *
 	 * @return string
@@ -54,7 +72,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * This is not great and shouldn't be long for this world.
 	 *
 	 * @param int $widget_number Widget number (or widget_instance post ID).
-	 * @return array Widget object ID.
+	 * @return string Widget object ID.
 	 */
 	protected function get_object_id( $widget_number ) {
 		if ( post_type_exists( 'widget_instance' ) ) {
@@ -408,7 +426,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			$data = $this->prepare_item_for_response( $instance, $request, $widget_number );
 			$instances[] = $this->prepare_response_for_collection( $data );
 		}
-		return $instances;
+		return new WP_REST_Response( $instances );
 	}
 
 	/**
@@ -417,7 +435,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @param array           $instance      Instance data.
 	 * @param WP_REST_Request $request       Request object.
 	 * @param int             $widget_number Request object.
-	 * @return WP_REST_Response $data
+	 * @return WP_REST_Response|WP_Error Data or error.
 	 */
 	public function prepare_item_for_response( $instance, $request, $widget_number = null ) {
 		if ( empty( $widget_number ) ) {
