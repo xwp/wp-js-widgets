@@ -39,19 +39,10 @@ wp.customize.Widgets.Form = (function( api ) {
 				throw new Error( 'No container' );
 			}
 
-			/*
-			 * When a new widget is added to a sidebar via the wp.customize.Widgets.SidebarControl#addWidget(),
-			 * it will supply an empty object as the initial value. The following ensures that the actual
-			 * default instance value is used as the initial setting instead.
-			 */
-			if ( form.setting._dirty && _.isEmpty( form.setting.get() ) ) {
-				form.setting.set( _.clone( form.config.default_instance ) );
-			}
-
 			previousValidate = form.setting.validate;
 			form.setting.validate = function validate( value ) {
 				var setting = this, newValue, oldValue; // eslint-disable-line consistent-this
-				newValue = _.extend( {}, value );
+				newValue = _.extend( {}, form.config.default_instance, value );
 				oldValue = _.extend( {}, setting() );
 
 				newValue = previousValidate.call( setting, newValue );
