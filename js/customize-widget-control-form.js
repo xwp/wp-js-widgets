@@ -24,7 +24,8 @@ wp.customize.Widgets.Form = (function( api ) {
 				{
 					control: null,
 					config: {
-						l10n: {}
+						l10n: {},
+						default_instance: {}
 					}
 				},
 				properties
@@ -36,6 +37,15 @@ wp.customize.Widgets.Form = (function( api ) {
 			form.container = args.container;
 			if ( ! form.container ) {
 				throw new Error( 'No container' );
+			}
+
+			/*
+			 * When a new widget is added to a sidebar via the wp.customize.Widgets.SidebarControl#addWidget(),
+			 * it will supply an empty object as the initial value. The following ensures that the actual
+			 * default instance value is used as the initial setting instead.
+			 */
+			if ( form.setting._dirty && _.isEmpty( form.setting.get() ) ) {
+				form.setting.set( _.clone( form.config.default_instance ) );
 			}
 
 			previousValidate = form.setting.validate;
