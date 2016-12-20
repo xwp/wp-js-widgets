@@ -24,7 +24,8 @@ wp.customize.Widgets.Form = (function( api ) {
 				{
 					control: null,
 					config: {
-						l10n: {}
+						l10n: {},
+						default_instance: {}
 					}
 				},
 				properties
@@ -41,7 +42,7 @@ wp.customize.Widgets.Form = (function( api ) {
 			previousValidate = form.setting.validate;
 			form.setting.validate = function validate( value ) {
 				var setting = this, newValue, oldValue; // eslint-disable-line consistent-this
-				newValue = _.extend( {}, value );
+				newValue = _.extend( {}, form.config.default_instance, value );
 				oldValue = _.extend( {}, setting() );
 
 				newValue = previousValidate.call( setting, newValue );
