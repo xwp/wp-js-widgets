@@ -69,17 +69,16 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Get a widget object (resource) ID.
 	 *
-	 * This is not great and shouldn't be long for this world.
+	 * This simple re-uses a widget number as a widget ID, which will only be unique
+	 * among the widgets of a given type. Eventually this ID should map to the post ID
+	 * for a given widget_instance post type so that it is truly unique across all
+	 * widget types in a site.
 	 *
 	 * @param int $widget_number Widget number (or widget_instance post ID).
-	 * @return string Widget object ID.
+	 * @return int Widget object ID.
 	 */
 	protected function get_object_id( $widget_number ) {
-		if ( post_type_exists( 'widget_instance' ) ) {
-			$widget_id = intval( $widget_number );
-		} else {
-			$widget_id = $this->widget->id_base . '-' . $widget_number;
-		}
+		$widget_id = $widget_number;
 		return $widget_id;
 	}
 
