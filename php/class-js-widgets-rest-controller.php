@@ -74,11 +74,11 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * for a given widget_instance post type so that it is truly unique across all
 	 * widget types in a site.
 	 *
-	 * @param int $widget_number Widget number (or widget_instance post ID).
+	 * @param int $widget_number Widget number.
 	 * @return int Widget object ID.
 	 */
 	protected function get_object_id( $widget_number ) {
-		$widget_id = $widget_number;
+		$widget_id = intval( $widget_number );
 		return $widget_id;
 	}
 
@@ -88,17 +88,14 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		$has_widget_posts = post_type_exists( 'widget_instance' );
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => $this->get_object_type(),
 			'type'       => 'object',
 			'properties' => array(
-				// @todo change to widget_id containing id_base-widget_number, with an id field only available if Widget Posts are enabled?
 				'id' => array(
-					'description' => $has_widget_posts ? __( 'ID for widget_instance post', 'js-widgets' ) : __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
-					'type'        => $has_widget_posts ? 'integer' : 'string',
+					'description' => __( 'Widget ID. This will only be unique among widgets of a given type until widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
+					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
