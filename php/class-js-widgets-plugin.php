@@ -87,6 +87,8 @@ class JS_Widgets_Plugin {
 			return;
 		}
 
+		require_once __DIR__ . '/class-wp-js-widget.php';
+
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
@@ -286,8 +288,6 @@ class JS_Widgets_Plugin {
 	public function upgrade_core_widgets() {
 		global $wp_widget_factory;
 
-		register_widget( 'WP_JS_Widget_Post_Collection' );
-
 		$registered_widgets = array();
 		foreach ( $wp_widget_factory->widgets as $key => $widget ) {
 			$registered_widgets[ $widget->id_base ] = array(
@@ -296,6 +296,8 @@ class JS_Widgets_Plugin {
 			);
 		}
 
+		require_once __DIR__ . '/widgets/class-wp-js-widget-text.php';
+		require_once __DIR__ . '/widgets/class-wp-js-widget-recent-posts.php';
 		$proxy_core_widgets = array(
 			'text' => 'WP_JS_Widget_Text',
 			'recent-posts' => 'WP_JS_Widget_Recent_Posts',

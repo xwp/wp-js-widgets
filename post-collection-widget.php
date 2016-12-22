@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: JS Widgets
- * Description: The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
+ * Plugin Name: JS Widgets: Post Collection Widget
+ * Description: A widget allowing for featuring a curated list of posts.
  * Plugin URI: https://github.com/xwp/wp-js-widgets/
  * Version: 0.2.0
  * Author: Weston Ruter, XWP
@@ -29,8 +29,9 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-require_once dirname( __FILE__ ) . '/php/class-js-widgets-plugin.php';
 
-global $js_widgets_plugin;
-$js_widgets_plugin = new JS_Widgets_Plugin();
-add_action( 'plugins_loaded', array( $js_widgets_plugin, 'init' ) );
+require_once dirname( __FILE__ ) . '/post-collection-widget/class-plugin.php';
+
+global $post_collection_js_widgets_plugin;
+$post_collection_js_widgets_plugin = new Post_Collection_JS_Widgets_Plugin();
+add_action( 'plugins_loaded', array( $post_collection_js_widgets_plugin, 'init' ), 11 );

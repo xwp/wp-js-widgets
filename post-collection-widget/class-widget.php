@@ -15,9 +15,9 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	/**
 	 * Version of widget.
 	 *
-	 * @var string
+	 * @var Post_Collection_JS_Widgets_Plugin
 	 */
-	public $version = '0.1';
+	public $plugin;
 
 	/**
 	 * ID Base.
@@ -50,8 +50,12 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 
 	/**
 	 * Widget constructor.
+	 *
+	 * @param Post_Collection_JS_Widgets_Plugin $plugin Plugin instance.
 	 */
-	public function __construct() {
+	public function __construct( Post_Collection_JS_Widgets_Plugin $plugin ) {
+		$this->plugin = $plugin;
+
 		if ( ! isset( $this->name ) ) {
 			$this->name = __( 'Post Collection', 'js-widgets' );
 		}
@@ -65,12 +69,12 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 */
 	public function register_scripts( $wp_scripts ) {
 		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
-		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
+		$plugin_dir_url = plugin_dir_url( __FILE__ );
 
 		$handle = 'customize-widget-post-collection';
-		$src = $plugin_dir_url . 'js/widgets/customize-widget-post-collection' . $suffix;
+		$src = $plugin_dir_url . 'control' . $suffix;
 		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
 	/**
@@ -80,17 +84,17 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 */
 	public function register_styles( $wp_styles ) {
 		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.css';
-		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
+		$plugin_dir_url = plugin_dir_url( __FILE__ );
 
 		$handle = 'customize-widget-post-collection';
-		$src = $plugin_dir_url . 'css/customize-widget-post-collection' . $suffix;
+		$src = $plugin_dir_url . 'control' . $suffix;
 		$deps = array( 'select2', 'customize-object-selector' );
-		$wp_styles->add( $handle, $src, $deps, $this->version );
+		$wp_styles->add( $handle, $src, $deps, $this->plugin->version );
 
 		$handle = 'frontend-widget-post-collection';
-		$src = $plugin_dir_url . 'css/frontend-widget-post-collection' . $suffix;
+		$src = $plugin_dir_url . 'view' . $suffix;
 		$deps = array();
-		$wp_styles->add( $handle, $src, $deps, $this->version );
+		$wp_styles->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
 	/**
