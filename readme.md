@@ -5,9 +5,9 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
-**Requires at least:** 4.5  
-**Tested up to:** 4.7-alpha  
-**Stable tag:** 0.1.1  
+**Requires at least:** 4.5.0  
+**Tested up to:** 4.7.0  
+**Stable tag:** 0.2.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-js-widgets.svg?branch=master)](https://travis-ci.org/xwp/wp-js-widgets) [![Coverage Status](https://coveralls.io/repos/xwp/wp-js-widgets/badge.svg?branch=master)](https://coveralls.io/github/xwp/wp-js-widgets) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) [![devDependency Status](https://david-dm.org/xwp/wp-js-widgets/dev-status.svg)](https://david-dm.org/xwp/wp-js-widgets#info=devDependencies) 
@@ -44,7 +44,18 @@ Limitations/Caveats:
 
 ## Changelog ##
 
-### 0.1.1 - 2016-10-03 ###
+### 0.2.0 - 2016-12-??
+
+* Ensure old encoded instance data setting value format is supported (such as in starter content).
+* Move Post Collection widget into separate embedded plugin so that it is not active by default.
+* Inject rest_controller object dependency on `WP_JS_Widget` upon `rest_api_init`.
+* Ensure that default instance values populate forms for newly-added widgets.
+* Remove React/Redux for implementing the Recent Posts widget.
+* Reorganize core proxied widgets and introduce `WP_JS_Proxy_Widget` class.
+* Eliminate uglification and CSS minification.
+* Use widget number as integer ID for widgets of a given type.
+
+= 0.1.1 - 2016-10-03 ###
 * Add 100% width to object-selector.
 * Fix typo in sanitizing Post Collection input.
 * Fix PHP issue when attempting to assign an undefined array index to another undefined array index.

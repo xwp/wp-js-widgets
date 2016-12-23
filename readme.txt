@@ -1,9 +1,9 @@
 === JS Widgets ===
 Contributors:      xwp, westonruter
 Tags:              customizer, widgets, rest-api
-Requires at least: 4.5
-Tested up to:      4.7-alpha
-Stable tag:        0.1.1
+Requires at least: 4.5.0
+Tested up to:      4.7.0
+Stable tag:        0.2.0
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,6 +40,17 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` proxy class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 == Changelog ==
+
+= 0.2.0 - 2016-12-??
+
+* Ensure old encoded instance data setting value format is supported (such as in starter content).
+* Move Post Collection widget into separate embedded plugin so that it is not active by default.
+* Inject rest_controller object dependency on `WP_JS_Widget` upon `rest_api_init`.
+* Ensure that default instance values populate forms for newly-added widgets.
+* Remove React/Redux for implementing the Recent Posts widget.
+* Reorganize core proxied widgets and introduce `WP_JS_Proxy_Widget` class.
+* Eliminate uglification and CSS minification.
+* Use widget number as integer ID for widgets of a given type.
 
 = 0.1.1 - 2016-10-03 =
 
