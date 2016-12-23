@@ -36,7 +36,7 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		 */
 		embed: function() {
 			var form = this, data;
-			form.template = wp.template( 'customize-widget-text' );
+			form.template = wp.template( 'customize-widget-form-text' );
 
 			data = {};
 			form.container.html( form.template( data ) );

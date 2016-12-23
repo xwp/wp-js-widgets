@@ -2,13 +2,13 @@
 /**
  * Class WP_Customize_Widget_Control.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class WP_Customize_Widget_Control
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class WP_Customize_JS_Widget_Control extends WP_Widget_Form_Customize_Control {
 

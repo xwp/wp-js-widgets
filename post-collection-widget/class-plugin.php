@@ -1,14 +1,14 @@
 <?php
 /**
- * Class JS_Widgets_Plugin.
+ * Class Post_Collection_JS_Widgets_Plugin.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
- * Class JS_Widgets_Plugin
+ * Class Post_Collection_JS_Widgets_Plugin
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class Post_Collection_JS_Widgets_Plugin {
 

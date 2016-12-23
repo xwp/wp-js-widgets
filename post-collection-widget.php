@@ -8,7 +8,7 @@
  * Author URI: https://make.xwp.co/
  * License: GPLv2+
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /*

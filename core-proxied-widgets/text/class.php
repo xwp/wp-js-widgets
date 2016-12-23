@@ -2,44 +2,15 @@
 /**
  * Class WP_JS_Widget_Text.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class WP_JS_Widget_Text
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
-class WP_JS_Widget_Text extends WP_JS_Widget {
-
-	/**
-	 * Version of widget.
-	 *
-	 * @var string
-	 */
-	public $version = '0.1';
-
-	/**
-	 * Proxied widget.
-	 *
-	 * @var WP_Widget_Text
-	 */
-	public $proxied_widget;
-
-	/**
-	 * Widget constructor.
-	 *
-	 * @throws Exception If the `$proxied_widget` is not the expected class.
-	 *
-	 * @param WP_Widget $proxied_widget Proxied widget.
-	 */
-	public function __construct( WP_Widget $proxied_widget ) {
-		if ( $proxied_widget instanceof WP_JS_Widget ) {
-			throw new Exception( 'Do not proxy WP_Customize_Widget instances.' );
-		}
-		$this->proxied_widget = $proxied_widget;
-		parent::__construct( $proxied_widget->id_base, $proxied_widget->name, $proxied_widget->widget_options, $proxied_widget->control_options );
-	}
+class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 
 	/**
 	 * Register scripts.
@@ -47,20 +18,18 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	 * @param WP_Scripts $wp_scripts Scripts.
 	 */
 	public function register_scripts( $wp_scripts ) {
-		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
-		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
-
-		$handle = 'customize-widget-text';
-		$src = $plugin_dir_url . 'js/widgets/customize-widget-text' . $suffix;
+		$plugin_dir_url = plugin_dir_url( __FILE__ );
+		$handle = 'customize-widget-form-text';
+		$src = $plugin_dir_url . 'form.js';
 		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
 	/**
 	 * Enqueue scripts needed for the control.s
 	 */
 	public function enqueue_control_scripts() {
-		wp_enqueue_script( 'customize-widget-text' );
+		wp_enqueue_script( 'customize-widget-form-text' );
 	}
 
 	/**
@@ -204,34 +173,6 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
-	 * Validate a title request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_title_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
-			}
-			if ( trim( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
-			}
-			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Validate a content request argument based on details registered to the route.
 	 *
 	 * @param  mixed           $value   Value.
@@ -254,61 +195,33 @@ class WP_JS_Widget_Text extends WP_JS_Widget {
 	}
 
 	/**
-	 * Sanitize instance data.
-	 *
-	 * @inheritdoc
-	 *
-	 * @param array $new_instance  New instance.
-	 * @param array $old_instance  Old instance.
-	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
-	 */
-	public function sanitize( $new_instance, $old_instance ) {
-		$default_instance = $this->get_default_instance();
-		$new_instance = array_merge( $default_instance, $new_instance );
-		$old_instance = array_merge( $default_instance, $old_instance );
-		$instance = $this->proxied_widget->update( $new_instance, $old_instance );
-		return $instance;
-	}
-
-	/**
 	 * Render JS Template.
 	 *
 	 * This template is intended to be agnostic to the JS template technology used.
 	 */
 	public function form_template() {
 		?>
-		<script id="tmpl-customize-widget-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<p>
 				<label>
-					<?php esc_html_e( 'Title:', 'js-widgets' ) ?>
+					<?php esc_html_e( 'Title:', 'default' ) ?>
 					<input class="widefat" type="text" name="title">
 				</label>
 			</p>
 			<p>
 				<label>
-					<?php esc_html_e( 'Content:', 'js-widgets' ) ?>
+					<?php esc_html_e( 'Content:', 'default' ) ?>
 					<textarea class="widefat" rows="16" cols="20" name="text"></textarea>
 				</label>
 			</p>
 			<p>
 				<label>
 					<input type="checkbox" name="filter">
-					<?php esc_html_e( 'Automatically add paragraphs', 'js-widgets' ); ?>
+					<?php esc_html_e( 'Automatically add paragraphs', 'default' ); ?>
 				</label>
 			</p>
 		</script>
 		<?php
-	}
-
-	/**
-	 * Render widget.
-	 *
-	 * @param array $args     Widget args.
-	 * @param array $instance Widget instance.
-	 * @return void
-	 */
-	public function render( $args, $instance ) {
-		$this->proxied_widget->widget( $args, $instance );
 	}
 
 	/**

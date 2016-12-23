@@ -2,13 +2,13 @@
 /**
  * Class JS_Widgets_REST_Controller.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class JS_Widgets_REST_Controller
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
