@@ -2,22 +2,22 @@
 /**
  * Class WP_JS_Widget_Recent_Posts.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class WP_JS_Widget_Recent_Posts
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 
 	/**
 	 * Version of widget.
 	 *
-	 * @var string
+	 * @var Post_Collection_JS_Widgets_Plugin
 	 */
-	public $version = '0.1';
+	public $plugin;
 
 	/**
 	 * ID Base.
@@ -50,8 +50,12 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 
 	/**
 	 * Widget constructor.
+	 *
+	 * @param Post_Collection_JS_Widgets_Plugin $plugin Plugin instance.
 	 */
-	public function __construct() {
+	public function __construct( Post_Collection_JS_Widgets_Plugin $plugin ) {
+		$this->plugin = $plugin;
+
 		if ( ! isset( $this->name ) ) {
 			$this->name = __( 'Post Collection', 'js-widgets' );
 		}
@@ -64,13 +68,11 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @param WP_Scripts $wp_scripts Scripts.
 	 */
 	public function register_scripts( $wp_scripts ) {
-		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
-		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
-
-		$handle = 'customize-widget-post-collection';
-		$src = $plugin_dir_url . 'js/widgets/customize-widget-post-collection' . $suffix;
+		$plugin_dir_url = plugin_dir_url( __FILE__ );
+		$handle = 'customize-widget-form-post-collection';
+		$src = $plugin_dir_url . 'form.js';
 		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
 	/**
@@ -79,18 +81,17 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @param WP_Styles $wp_styles Styles.
 	 */
 	public function register_styles( $wp_styles ) {
-		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.css';
-		$plugin_dir_url = plugin_dir_url( dirname( dirname( __FILE__ ) ) );
+		$plugin_dir_url = plugin_dir_url( __FILE__ );
 
-		$handle = 'customize-widget-post-collection';
-		$src = $plugin_dir_url . 'css/customize-widget-post-collection' . $suffix;
+		$handle = 'customize-widget-form-post-collection';
+		$src = $plugin_dir_url . 'form.css';
 		$deps = array( 'select2', 'customize-object-selector' );
-		$wp_styles->add( $handle, $src, $deps, $this->version );
+		$wp_styles->add( $handle, $src, $deps, $this->plugin->version );
 
 		$handle = 'frontend-widget-post-collection';
-		$src = $plugin_dir_url . 'css/frontend-widget-post-collection' . $suffix;
+		$src = $plugin_dir_url . 'view.css';
 		$deps = array();
-		$wp_styles->add( $handle, $src, $deps, $this->version );
+		$wp_styles->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
 	/**
@@ -99,14 +100,14 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	public function enqueue_control_scripts() {
 
 		// Gracefully handle the customize-object-selector plugin not being active.
-		$handle = 'customize-widget-post-collection';
+		$handle = 'customize-widget-form-post-collection';
 		$external_dep_handle = 'customize-object-selector-component';
 		if ( wp_scripts()->query( $external_dep_handle ) ) {
 			wp_scripts()->query( $handle )->deps[] = $external_dep_handle;
 		}
 		wp_enqueue_script( $handle );
 
-		wp_enqueue_style( 'customize-widget-post-collection' );
+		wp_enqueue_style( 'customize-widget-form-post-collection' );
 	}
 
 	/**

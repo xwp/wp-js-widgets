@@ -1,14 +1,14 @@
 <?php
 /**
- * Class WP_Customize_Widget.
+ * Class WP_JS_Widget.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
- * Class WP_Customize_Widget.
+ * Class WP_JS_Widget.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 abstract class WP_JS_Widget extends WP_Widget {
 

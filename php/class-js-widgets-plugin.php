@@ -2,13 +2,13 @@
 /**
  * Class JS_Widgets_Plugin.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class JS_Widgets_Plugin
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class JS_Widgets_Plugin {
 
@@ -77,8 +77,6 @@ class JS_Widgets_Plugin {
 	/**
 	 * Add hooks.
 	 *
-	 * @todo Add a WP_Customize_Compat_Proxy_Widget which can wrap all recognized core widgets with WP_Customize_Widget implementations.
-	 *
 	 * @access public
 	 */
 	public function init() {
@@ -86,6 +84,8 @@ class JS_Widgets_Plugin {
 			add_action( 'admin_notices', array( $this, 'print_admin_notice_missing_wp_api_dependency' ) );
 			return;
 		}
+
+		require_once __DIR__ . '/class-wp-js-widget.php';
 
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
@@ -127,37 +127,15 @@ class JS_Widgets_Plugin {
 	 */
 	public function register_scripts( WP_Scripts $wp_scripts ) {
 		global $wp_widget_factory;
-		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		$handle = 'react';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/react/react' . $suffix;
-			$deps = array();
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
-
-		$handle = 'react-dom';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/react/react-dom' . $suffix;
-			$deps = array( 'react' );
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
-
-		$handle = 'redux';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/redux/index.js';
-			$deps = array();
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
-
 		$handle = 'customize-widget-control-form';
-		$src = $plugin_dir_url . 'js/customize-widget-control-form' . $suffix;
+		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
 		$deps = array( 'customize-base' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
 		$handle = 'customize-js-widgets';
-		$src = $plugin_dir_url . 'js/customize-js-widgets' . $suffix;
+		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
 		$deps = array( 'customize-widgets', 'customize-widget-control-form' );
 		$wp_scripts->add( $handle, $src, $deps, $this->version );
 
@@ -286,7 +264,8 @@ class JS_Widgets_Plugin {
 	public function upgrade_core_widgets() {
 		global $wp_widget_factory;
 
-		register_widget( 'WP_JS_Widget_Post_Collection' );
+		require_once dirname( __FILE__ ) . '/class-wp-js-widget.php';
+		require_once dirname( __FILE__ ) . '/class-wp-proxy-js-widget.php';
 
 		$registered_widgets = array();
 		foreach ( $wp_widget_factory->widgets as $key => $widget ) {
@@ -296,17 +275,15 @@ class JS_Widgets_Plugin {
 			);
 		}
 
-		$proxy_core_widgets = array(
-			'text' => 'WP_JS_Widget_Text',
-			'recent-posts' => 'WP_JS_Widget_Recent_Posts',
-		);
-
-		foreach ( $proxy_core_widgets as $id_base => $proxy_core_widget_class ) {
-			if ( isset( $registered_widgets[ $id_base ] ) ) {
-				$key = $registered_widgets[ $id_base ]['key'];
-				$instance = $registered_widgets[ $id_base ]['instance'];
-				$wp_widget_factory->widgets[ $key ] = new $proxy_core_widget_class( $instance );
+		foreach ( glob( dirname( dirname( __FILE__ ) ) . '/core-proxied-widgets/*', GLOB_ONLYDIR ) as $dir ) {
+			$id_base = basename( $dir );
+			if ( ! isset( $registered_widgets[ $id_base ] ) ) {
+				continue;
 			}
+			require_once $dir . '/class.php';
+			$class_name = 'WP_JS_Widget_' . str_replace( '-', '_', $id_base );
+			$widget = new $class_name( $this, $registered_widgets[ $id_base ]['instance'] );
+			$wp_widget_factory->widgets[ $registered_widgets[ $id_base ]['key'] ] = $widget;
 		}
 	}
 
