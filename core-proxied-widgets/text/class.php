@@ -25,85 +25,51 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
-			'title' => array(
-				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'object',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_title_field' ),
+		$schema = array_merge(
+			parent::get_item_schema(),
+			array(
+				'text' => array(
+					'description' => __( 'The content for the widget.', 'js-widgets' ),
+					'type' => 'object',
+					'context' => array( 'view', 'edit', 'embed' ),
+					'properties' => array(
+						'raw' => array(
+							'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
+							'type' => 'string',
+							'context' => array( 'edit' ),
+							'required' => true,
+							'default' => '',
+							'arg_options' => array(
+								'validate_callback' => array( $this, 'validate_content_field' ),
+							),
+						),
+						'rendered' => array(
+							'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit', 'embed' ),
+							'readonly'    => true,
 						),
 					),
-					'rendered' => array(
-						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'view', 'edit', 'embed' ),
-						'default' => '',
-						'readonly' => true,
+				),
+				'filter' => array(
+					'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
+					'type' => 'boolean',
+					'default' => false,
+					'context' => array( 'edit' ),
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
 					),
 				),
-			),
-			'content' => array(
-				'description' => __( 'The content for the widget.', 'js-widgets' ),
-				'type' => 'object',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Content for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'required' => true,
-						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_content_field' ),
-						),
-					),
-					'rendered' => array(
-						'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit', 'embed' ),
-						'readonly'    => true,
-					),
-				),
-			),
-			'auto_paragraph' => array(
-				'description' => __( 'Whether paragraphs will be added for double line breaks (wpautop).', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'edit' ),
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
-				),
-			),
+			)
 		);
+		$schema['title']['properties']['raw']['default'] = '';
 		return $schema;
-	}
-
-	/**
-	 * Get default instance from schema.
-	 *
-	 * @return array
-	 */
-	public function get_default_instance() {
-		$schema = $this->get_item_schema();
-		return array(
-			'title' => $schema['title']['properties']['raw']['default'],
-			'text' => $schema['content']['properties']['raw']['default'],
-			'filter' => $schema['auto_paragraph']['default'],
-		);
 	}
 
 	/**
 	 * Render a widget instance for a REST API response.
 	 *
 	 * Map the instance data to the REST resource fields and add rendered fields.
-	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
 	 *
 	 * @inheritdoc
 	 *
@@ -123,34 +89,15 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 		$item = array_merge(
 			parent::prepare_item_for_response( $instance, $request ),
 			array(
-				'content' => array(
+				'text' => array(
 					'raw' => $instance['text'],
 					'rendered' => $content_rendered,
 				),
-				'auto_paragraph' => ! empty( $instance['filter'] ),
+				'filter' => ! empty( $instance['filter'] ),
 			)
 		);
 
 		return $item;
-	}
-
-	/**
-	 * Map the REST resource fields back to the internal instance data.
-	 *
-	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
-	 * The return value will be passed through the sanitize method.
-	 *
-	 * @inheritdoc
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|array Error or array data.
-	 */
-	public function prepare_item_for_database( $request ) {
-		return array(
-			'title' => $request['title']['raw'],
-			'text' => $request['content']['raw'],
-			'filter' => $request['auto_paragraph'],
-		);
 	}
 
 	/**
@@ -213,12 +160,15 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 	 * @return array
 	 */
 	public function get_form_args() {
-		return array(
-			'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
-			'l10n' => array(
-				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
-			),
+		return array_merge(
+			parent::get_form_args(),
+			array(
+				'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
+				'l10n' => array(
+					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+					'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
+				),
+			)
 		);
 	}
 }

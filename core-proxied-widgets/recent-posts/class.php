@@ -25,59 +25,39 @@ class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
-			'title' => array(
-				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'object',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_title_field' ),
-						),
-					),
-					'rendered' => array(
-						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'view', 'edit', 'embed' ),
-						'default' => __( 'Recent Posts', 'js-widgets' ),
-						'readonly' => true,
-					),
-				),
-			),
-			'number' => array(
-				'description' => __( 'The number of posts to display.', 'js-widgets' ),
-				'type' => 'integer',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'default' => 5,
-				'minimum' => 1,
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
-				),
-			),
-			'show_date' => array(
-				'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'view', 'edit', 'embed' ),
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
-				),
-			),
-			'posts' => array(
-				'description' => __( 'The IDs for the recent posts.', 'js-widgets' ),
-				'type' => 'array',
-				'items' => array(
+		$schema = array_merge(
+			parent::get_item_schema(),
+			array(
+				'number' => array(
+					'description' => __( 'The number of posts to display.', 'js-widgets' ),
 					'type' => 'integer',
+					'context' => array( 'view', 'edit', 'embed' ),
+					'default' => 5,
+					'minimum' => 1,
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
+					),
 				),
-				'context' => array( 'view', 'edit', 'embed' ),
-				'readonly' => true,
-				'default' => array(),
-			),
+				'show_date' => array(
+					'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
+					'type' => 'boolean',
+					'default' => false,
+					'context' => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
+					),
+				),
+				'posts' => array(
+					'description' => __( 'The IDs for the recent posts.', 'js-widgets' ),
+					'type' => 'array',
+					'items' => array(
+						'type' => 'integer',
+					),
+					'context' => array( 'view', 'edit', 'embed' ),
+					'readonly' => true,
+					'default' => array(),
+				),
+			)
 		);
 		return $schema;
 	}
@@ -163,16 +143,19 @@ class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
 	 */
 	public function get_form_args() {
 		$item_schema = $this->get_item_schema();
-		return array_merge( parent::get_form_args(), array(
-			'minimum_number' => $item_schema['number']['minimum'],
-			'l10n' => array(
-				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-				'label_title' => __( 'Title:', 'js-widgets' ),
-				'placeholder_title' => $item_schema['title']['properties']['rendered']['default'],
-				'label_number' => __( 'Number:', 'js-widgets' ),
-				'label_show_date' => __( 'Show date', 'js-widgets' ),
-			),
-		) );
+		return array_merge(
+			parent::get_form_args(),
+			array(
+				'minimum_number' => $item_schema['number']['minimum'],
+				'l10n' => array(
+					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+					'label_title' => __( 'Title:', 'js-widgets' ),
+					'placeholder_title' => $item_schema['title']['properties']['raw']['default'],
+					'label_number' => __( 'Number:', 'js-widgets' ),
+					'label_show_date' => __( 'Show date', 'js-widgets' ),
+				),
+			)
+		);
 	}
 
 	/**

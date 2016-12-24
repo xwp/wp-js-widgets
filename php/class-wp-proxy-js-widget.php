@@ -47,6 +47,39 @@ abstract class WP_Proxy_JS_Widget extends WP_JS_Widget {
 	}
 
 	/**
+	 * Get instance schema properties.
+	 *
+	 * @return array Schema.
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'title' => array(
+				'description' => __( 'The title for the widget.', 'js-widgets' ),
+				'type' => 'object',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'default' => $this->name,
+						'arg_options' => array(
+							'validate_callback' => array( $this, 'validate_title_field' ),
+						),
+					),
+					'rendered' => array(
+						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'view', 'edit', 'embed' ),
+						'readonly' => true,
+					),
+				),
+			),
+		);
+		return $schema;
+	}
+
+	/**
 	 * Register scripts.
 	 *
 	 * @param WP_Scripts $wp_scripts Scripts.
