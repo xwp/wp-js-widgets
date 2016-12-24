@@ -81,6 +81,12 @@ wp.customize.Widgets.CoreForm = (function( api, $ ) {
 				form.setValidationMessage( form.config.l10n.title_tags_invalid );
 			}
 
+			/*
+			 * Trim per sanitize_text_field().
+			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
+			 */
+			newInstance.title = $.trim( newInstance.title );
+
 			return newInstance;
 		}
 	});
