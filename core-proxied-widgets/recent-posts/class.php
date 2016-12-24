@@ -13,24 +13,11 @@
 class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
 
 	/**
-	 * Register scripts.
+	 * Proxied widget.
 	 *
-	 * @param WP_Scripts $wp_scripts Scripts.
+	 * @var WP_Widget_Recent_Posts
 	 */
-	public function register_scripts( $wp_scripts ) {
-		$plugin_dir_url = plugin_dir_url( __FILE__ );
-		$handle = 'customize-widget-form-recent-posts';
-		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
-	}
-
-	/**
-	 * Enqueue scripts needed for the control.s
-	 */
-	public function enqueue_control_scripts() {
-		wp_enqueue_script( 'customize-widget-form-recent-posts' );
-	}
+	public $proxied_widget;
 
 	/**
 	 * Get instance schema properties.
@@ -111,10 +98,6 @@ class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
 		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
 
-		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['properties']['rendered']['default'];
-		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
-		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
-
 		$number = max( intval( $instance['number'] ), $schema['number']['minimum'] );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-recent-posts.php */
@@ -127,14 +110,13 @@ class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
 			'update_term_meta_cache' => false,
 		) ) );
 
-		$item = array(
-			'title' => array(
-				'raw' => $instance['title'],
-				'rendered' => $title_rendered,
-			),
-			'number' => $number,
-			'show_date' => boolval( $instance['number'] ),
-			'posts' => wp_list_pluck( $query->posts, 'ID' ),
+		$item = array_merge(
+			parent::prepare_item_for_response( $instance, $request ),
+			array(
+				'number' => $number,
+				'show_date' => boolval( $instance['show_date'] ),
+				'posts' => wp_list_pluck( $query->posts, 'ID' ),
+			)
 		);
 
 		return $item;

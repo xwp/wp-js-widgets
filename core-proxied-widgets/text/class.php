@@ -13,24 +13,11 @@
 class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 
 	/**
-	 * Register scripts.
+	 * Proxied widget.
 	 *
-	 * @param WP_Scripts $wp_scripts Scripts.
+	 * @var WP_Widget_Text
 	 */
-	public function register_scripts( $wp_scripts ) {
-		$plugin_dir_url = plugin_dir_url( __FILE__ );
-		$handle = 'customize-widget-form-text';
-		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
-		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
-	}
-
-	/**
-	 * Enqueue scripts needed for the control.s
-	 */
-	public function enqueue_control_scripts() {
-		wp_enqueue_script( 'customize-widget-form-text' );
-	}
+	public $proxied_widget;
 
 	/**
 	 * Get instance schema properties.
@@ -125,12 +112,7 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
-		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
-
-		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['rendered']['default'];
-		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
-		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
 		$content_rendered = apply_filters( 'widget_text', $instance['text'], $instance, $this->proxied_widget );
@@ -138,16 +120,15 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 			$content_rendered = wpautop( $content_rendered );
 		}
 
-		$item = array(
-			'title' => array(
-				'raw' => $instance['title'],
-				'rendered' => $title_rendered,
-			),
-			'content' => array(
-				'raw' => $instance['text'],
-				'rendered' => $content_rendered,
-			),
-			'auto_paragraph' => ! empty( $instance['filter'] ),
+		$item = array_merge(
+			parent::prepare_item_for_response( $instance, $request ),
+			array(
+				'content' => array(
+					'raw' => $instance['text'],
+					'rendered' => $content_rendered,
+				),
+				'auto_paragraph' => ! empty( $instance['filter'] ),
+			)
 		);
 
 		return $item;
