@@ -149,10 +149,6 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 				'minimum_number' => $item_schema['number']['minimum'],
 				'l10n' => array(
 					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-					'label_title' => __( 'Title:', 'js-widgets' ),
-					'placeholder_title' => $item_schema['title']['properties']['raw']['default'],
-					'label_number' => __( 'Number:', 'js-widgets' ),
-					'label_show_date' => __( 'Show date', 'js-widgets' ),
 				),
 			)
 		);
@@ -164,11 +160,12 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	 * This template is intended to be agnostic to the JS template technology used.
 	 */
 	public function form_template() {
+		$item_schema = $this->get_item_schema();
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<p>
 				<label for="{{ data.element_id_base }}_title"><?php esc_html_e( 'Title:', 'default' ) ?></label>
-				<input id="{{ data.element_id_base }}_title" class="widefat" type="text" name="title">
+				<input id="{{ data.element_id_base }}_title" class="widefat" type="text" name="title" placeholder="<?php echo esc_attr( $item_schema['title']['properties']['raw']['default'] ); ?>">
 			</p>
 			<p>
 				<label for="{{ data.element_id_base }}_number"><?php esc_html_e( 'Number of posts to show:', 'default' ) ?></label>
