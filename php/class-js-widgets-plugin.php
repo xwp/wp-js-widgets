@@ -265,7 +265,7 @@ class JS_Widgets_Plugin {
 		global $wp_widget_factory;
 
 		require_once dirname( __FILE__ ) . '/class-wp-js-widget.php';
-		require_once dirname( __FILE__ ) . '/class-wp-proxy-js-widget.php';
+		require_once dirname( __FILE__ ) . '/class-wp-adapter-js-widget.php';
 
 		$registered_widgets = array();
 		foreach ( $wp_widget_factory->widgets as $key => $widget ) {
@@ -275,7 +275,7 @@ class JS_Widgets_Plugin {
 			);
 		}
 
-		foreach ( glob( dirname( dirname( __FILE__ ) ) . '/core-proxied-widgets/*', GLOB_ONLYDIR ) as $dir ) {
+		foreach ( glob( dirname( dirname( __FILE__ ) ) . '/core-adapter-widgets/*', GLOB_ONLYDIR ) as $dir ) {
 			$id_base = basename( $dir );
 			if ( ! isset( $registered_widgets[ $id_base ] ) ) {
 				continue;

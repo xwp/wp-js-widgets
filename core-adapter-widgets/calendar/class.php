@@ -10,14 +10,14 @@
  *
  * @package WP_JS_Widget_Calendar
  */
-class WP_JS_Widget_Calendar extends WP_Proxy_JS_Widget {
+class WP_JS_Widget_Calendar extends WP_Adapter_JS_Widget {
 
 	/**
-	 * Proxied widget.
+	 * Adapted widget.
 	 *
 	 * @var WP_Widget_Calendar
 	 */
-	public $proxied_widget;
+	public $adapted_widget;
 
 	/**
 	 * Get instance schema properties.

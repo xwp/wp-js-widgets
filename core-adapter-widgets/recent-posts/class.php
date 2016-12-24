@@ -10,14 +10,14 @@
  *
  * @package JS_Widgets
  */
-class WP_JS_Widget_Recent_Posts extends WP_Proxy_JS_Widget {
+class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 
 	/**
-	 * Proxied widget.
+	 * Adapted widget.
 	 *
 	 * @var WP_Widget_Recent_Posts
 	 */
-	public $proxied_widget;
+	public $adapted_widget;
 
 	/**
 	 * Get instance schema properties.

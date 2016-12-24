@@ -39,7 +39,8 @@ wp.customize.Widgets.formConstructor.calendar = (function( api, $ ) {
 		embed: function() {
 			var form = this, elementIdBase = 'el' + String( Math.random() ), initialInstanceData;
 
-			form.template = wp.template( 'customize-widget-form-calendar' );
+			// @todo The id_base should be passed in when initializing the Form itself.
+			form.template = wp.template( 'customize-widget-form-' + form.control.params.widget_id_base );
 			form.container.html( form.template( {
 				element_id_base: elementIdBase
 			} ) );

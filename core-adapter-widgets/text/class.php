@@ -10,14 +10,14 @@
  *
  * @package JS_Widgets
  */
-class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
+class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 
 	/**
-	 * Proxied widget.
+	 * Adapted widget.
 	 *
 	 * @var WP_Widget_Text
 	 */
-	public $proxied_widget;
+	public $adapted_widget;
 
 	/**
 	 * Get instance schema properties.
@@ -81,7 +81,7 @@ class WP_JS_Widget_Text extends WP_Proxy_JS_Widget {
 		$instance = array_merge( $this->get_default_instance(), $instance );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-text.php */
-		$content_rendered = apply_filters( 'widget_text', $instance['text'], $instance, $this->proxied_widget );
+		$content_rendered = apply_filters( 'widget_text', $instance['text'], $instance, $this->adapted_widget );
 		if ( ! empty( $instance['filter'] ) ) {
 			$content_rendered = wpautop( $content_rendered );
 		}

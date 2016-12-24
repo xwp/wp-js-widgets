@@ -27,7 +27,7 @@ module.exports = function( grunt ) {
 					'css/*',
 					'js/*',
 					'php/*',
-					'core-proxied-widgets/**',
+					'core-adapter-widgets/**',
 					'post-collection-widget/**',
 					'readme.txt'
 				],

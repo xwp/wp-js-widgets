@@ -10,7 +10,7 @@
  *
  * @package JS_Widgets
  */
-abstract class WP_Proxy_JS_Widget extends WP_JS_Widget {
+abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 
 	/**
 	 * Plugin.
@@ -24,25 +24,25 @@ abstract class WP_Proxy_JS_Widget extends WP_JS_Widget {
 	 *
 	 * @var WP_Widget
 	 */
-	public $proxied_widget;
+	public $adapted_widget;
 
 	/**
 	 * Widget constructor.
 	 *
-	 * @throws Exception If $proxied_widget is a WP_JS_Widget since it is only intended to proxy core widgets.
+	 * @throws Exception If $adapted_widget is a WP_JS_Widget since it is only intended to wrap core widgets.
 	 * @param JS_Widgets_Plugin $plugin         Plugin.
-	 * @param WP_Widget         $proxied_widget Proxied widget.
+	 * @param WP_Widget         $adapted_widget Adapted/wrapped widget.
 	 */
-	public function __construct( JS_Widgets_Plugin $plugin, WP_Widget $proxied_widget ) {
-		if ( $proxied_widget instanceof WP_JS_Widget ) {
-			throw new Exception( 'Do not proxy WP_Customize_Widget instances.' );
+	public function __construct( JS_Widgets_Plugin $plugin, WP_Widget $adapted_widget ) {
+		if ( $adapted_widget instanceof WP_JS_Widget ) {
+			throw new Exception( 'Do not wrap WP_JS_Widget instances. Only core widgets should be wrapped.' );
 		}
 		$this->plugin = $plugin;
-		$this->proxied_widget = $proxied_widget;
-		$this->id_base = $proxied_widget->id_base;
-		$this->name = $proxied_widget->name;
-		$this->widget_options = $proxied_widget->widget_options;
-		$this->control_options = $proxied_widget->control_options;
+		$this->adapted_widget = $adapted_widget;
+		$this->id_base = $adapted_widget->id_base;
+		$this->name = $adapted_widget->name;
+		$this->widget_options = $adapted_widget->widget_options;
+		$this->control_options = $adapted_widget->control_options;
 		parent::__construct();
 	}
 
@@ -113,29 +113,8 @@ abstract class WP_Proxy_JS_Widget extends WP_JS_Widget {
 		$default_instance = $this->get_default_instance();
 		$new_instance = array_merge( $default_instance, $new_instance );
 		$old_instance = array_merge( $default_instance, $old_instance );
-		$instance = $this->proxied_widget->update( $new_instance, $old_instance );
+		$instance = $this->adapted_widget->update( $new_instance, $old_instance );
 		return $instance;
-	}
-
-	/**
-	 * Get default instance from schema.
-	 *
-	 * @return array
-	 */
-	public function get_default_instance() {
-		$schema = $this->get_item_schema();
-
-		$default_instance = array();
-		foreach ( $schema as $name => $data ) {
-			$default_value = null;
-			if ( isset( $schema['title']['properties']['raw']['default'] ) ) {
-				$default_value = $schema['title']['properties']['raw']['default'];
-			} elseif ( isset( $schema['title']['default'] ) ) {
-				$default_value = $schema['title']['default'];
-			}
-			$default_instance[ $name ] = $default_value;
-		}
-		return $default_instance;
 	}
 
 	/**
@@ -209,6 +188,6 @@ abstract class WP_Proxy_JS_Widget extends WP_JS_Widget {
 	 * @return void
 	 */
 	public function render( $args, $instance ) {
-		$this->proxied_widget->widget( $args, $instance );
+		$this->adapted_widget->widget( $args, $instance );
 	}
 }
