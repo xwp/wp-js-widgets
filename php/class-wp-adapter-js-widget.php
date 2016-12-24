@@ -85,11 +85,16 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	 * @param WP_Scripts $wp_scripts Scripts.
 	 */
 	public function register_scripts( $wp_scripts ) {
+		$this->plugin->script_handles['core-control-form'] = 'customize-widget-core-control-form';
+		$src = plugin_dir_url( dirname( __FILE__ ) ) . 'js/customize-widget-core-control-form.js';
+		$deps = array( $this->plugin->script_handles['control-form'] );
+		$wp_scripts->add( $this->plugin->script_handles['core-control-form'], $src, $deps, $this->plugin->version );
+
 		$reflection_class = new ReflectionClass( get_class( $this ) );
 		$plugin_dir_url = plugin_dir_url( $reflection_class->getFileName() );
 		$handle = "customize-widget-form-{$this->id_base}";
 		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
+		$deps = array( $this->plugin->script_handles['core-control-form'] );
 		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 

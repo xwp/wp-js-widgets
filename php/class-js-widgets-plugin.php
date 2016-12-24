@@ -65,6 +65,13 @@ class JS_Widgets_Plugin {
 	protected $original_setting_values = array();
 
 	/**
+	 * Script handles.
+	 *
+	 * @var array
+	 */
+	public $script_handles = array();
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -129,15 +136,15 @@ class JS_Widgets_Plugin {
 		global $wp_widget_factory;
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		$handle = 'customize-widget-control-form';
+		$this->script_handles['control-form'] = 'customize-widget-control-form';
 		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
 		$deps = array( 'customize-base' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$wp_scripts->add( $this->script_handles['control-form'], $src, $deps, $this->version );
 
-		$handle = 'customize-js-widgets';
+		$this->script_handles['js-widgets'] = 'customize-js-widgets';
 		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
-		$deps = array( 'customize-widgets', 'customize-widget-control-form' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$deps = array( 'customize-widgets', $this->script_handles['control-form'] );
+		$wp_scripts->add( $this->script_handles['js-widgets'], $src, $deps, $this->version );
 
 		// Register scripts for widgets.
 		foreach ( $wp_widget_factory->widgets as $widget ) {
