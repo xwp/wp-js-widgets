@@ -49,33 +49,13 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	/**
 	 * Get instance schema properties.
 	 *
+	 * Subclasses are required to implement this method since it is used for sanitization.
+	 *
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
-			'title' => array(
-				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'object',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'default' => $this->name,
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_title_field' ),
-						),
-					),
-					'rendered' => array(
-						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'view', 'edit', 'embed' ),
-						'readonly' => true,
-					),
-				),
-			),
-		);
+		$schema = parent::get_item_schema();
+		$schema['title']['properties']['raw']['default'] = $this->name;
 		return $schema;
 	}
 
@@ -106,6 +86,124 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	}
 
 	/**
+	 * Get configuration data for the form.
+	 *
+	 * @return array
+	 */
+	public function get_form_args() {
+		return array_merge(
+			parent::get_form_args(),
+			array(
+				'l10n' => array(
+					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Render title form field.
+	 *
+	 * @param array $input_attrs Input attributes.
+	 */
+	protected function render_title_form_field( $input_attrs = array() ) {
+		$this->render_form_field( array_merge(
+			array(
+				'name' => 'title',
+				'label' => __( 'Title:', 'default' ),
+				'type' => 'text',
+			),
+			$input_attrs
+		) );
+	}
+
+	/**
+	 * Render input attributes.
+	 *
+	 * @param array $input_attrs Input attributes.
+	 */
+	protected function render_input_attrs( $input_attrs ) {
+		$input_attrs_str = '';
+		foreach ( $input_attrs as $key => $value ) {
+			$input_attrs_str .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
+		}
+		echo $input_attrs_str; // WPCS: XSS OK.
+	}
+
+	/**
+	 * Render form field.
+	 *
+	 * @param array $args Args.
+	 */
+	protected function render_form_field( $args = array() ) {
+		$defaults = array(
+			'name' => '',
+			'label' => '',
+			'type' => 'text',
+			'choices' => array(),
+			'value' => '',
+			'placeholder' => '',
+		);
+		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
+			$defaults['class'] = 'widefat';
+		}
+		$args = wp_parse_args( $args, $defaults );
+
+		$input_attrs = $args;
+		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
+
+		echo '<p>';
+		echo '<# (function( domId ) { #>';
+		if ( 'checkbox' === $args['type'] ) {
+			?>
+			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<?php
+		} elseif ( 'select' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
+			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+				<?php foreach ( $args['choices'] as $value => $text ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>">
+						<?php echo esc_html( $text ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<?php
+		} elseif ( 'textarea' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<?php
+		} else {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<?php
+		} // End if().
+		echo '<# }( "el" + String( Math.random() ) )); #>';
+		echo '</p>';
+	}
+
+	/**
+	 * Render JS Template.
+	 */
+	public function form_template() {
+		$placeholder = '';
+		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['raw']['default'];
+		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['rendered']['default'];
+		}
+
+		?>
+		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+			<?php $this->render_title_form_field( compact( 'placeholder' ) ); ?>
+		</script>
+		<?php
+	}
+
+	/**
 	 * Sanitize instance data.
 	 *
 	 * @inheritdoc
@@ -123,69 +221,6 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	}
 
 	/**
-	 * Validate a title request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_title_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
-			}
-			if ( trim( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
-			}
-			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Render a widget instance for a REST API response.
-	 *
-	 * This method should be called by subclasses to provide the additional fields.
-	 *
-	 * @inheritdoc
-	 *
-	 * @param array           $instance Raw database instance.
-	 * @param WP_REST_Request $request  REST request.
-	 * @return array Widget item.
-	 */
-	public function prepare_item_for_response( $instance, $request ) {
-		$schema = $this->get_item_schema();
-		$instance = array_merge( $this->get_default_instance(), $instance );
-
-		$title_rendered = '';
-		if ( ! empty( $instance['title'] ) ) {
-			$title_rendered = $instance['title'];
-		} elseif ( isset( $schema['title']['rendered']['default'] ) ) {
-			$title_rendered = $schema['title']['rendered']['default'];
-		}
-
-		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
-		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
-
-		$item = array(
-			'title' => array(
-				'raw' => $instance['title'],
-				'rendered' => $title_rendered,
-			),
-		);
-
-		return $item;
-	}
-
-	/**
 	 * Render widget.
 	 *
 	 * @param array $args     Widget args.
@@ -194,5 +229,32 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	 */
 	public function render( $args, $instance ) {
 		$this->adapted_widget->widget( $args, $instance );
+	}
+
+	/**
+	 * Prepare a widget instance for a REST API response.
+	 *
+	 * @inheritdoc
+	 *
+	 * @param array           $instance Raw database instance.
+	 * @param WP_REST_Request $request  REST request.
+	 * @return array Widget item.
+	 */
+	public function prepare_item_for_response( $instance, $request ) {
+		$item = parent::prepare_item_for_response( $instance, $request );
+		$schema = $this->get_item_schema();
+		foreach ( $schema as $field_id => $field_schema ) {
+			if ( ! isset( $item[ $field_id ] ) ) {
+				continue;
+			}
+
+			// Ensure strict types since core widgets aren't always strict.
+			if ( 'boolean' === $field_schema['type'] ) {
+				$item[ $field_id ] = (bool) $item[ $field_id ];
+			} elseif ( 'integer' === $field_schema['type'] ) {
+				$item[ $field_id ] = (int) $item[ $field_id ];
+			}
+		}
+		return $item;
 	}
 }

@@ -93,13 +93,67 @@ abstract class WP_JS_Widget extends WP_Widget {
 	public function enqueue_frontend_scripts() {}
 
 	/**
-	 * Get schema for the widget instance REST resource item.
+	 * Get instance schema properties.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
 	 *
-	 * @return array
+	 * @return array Schema.
 	 */
-	abstract public function get_item_schema();
+	public function get_item_schema() {
+		$schema = array(
+			'title' => array(
+				'description' => __( 'The title for the widget.', 'js-widgets' ),
+				'type' => 'object',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'default' => '',
+						'arg_options' => array(
+							'validate_callback' => array( $this, 'validate_title_field' ),
+						),
+					),
+					'rendered' => array(
+						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'view', 'edit', 'embed' ),
+						'readonly' => true,
+					),
+				),
+			),
+		);
+		return $schema;
+	}
+
+	/**
+	 * Validate a title request argument based on details registered to the route.
+	 *
+	 * @param  mixed           $value   Value.
+	 * @param  WP_REST_Request $request Request.
+	 * @param  string          $param   Param.
+	 * @return WP_Error|boolean
+	 */
+	public function validate_title_field( $value, $request, $param ) {
+		$valid = rest_validate_request_arg( $value, $request, $param );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		if ( $this->should_validate_strictly( $request ) ) {
+			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
+			}
+			if ( trim( $value ) !== $value ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
+			}
+			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
+			}
+		}
+		return true;
+	}
 
 	/**
 	 * Get default instance data.
@@ -143,15 +197,72 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * underlying instance data have different structures, or if additional
 	 * dynamic (readonly) fields should be included in the response.
 	 *
-	 * @see WP_JS_Widget::render()
+	 * @inheritdoc
 	 *
-	 * @param array           $instance Raw (legacy) instance.
+	 * @param array           $instance Raw database instance without rendered properties.
 	 * @param WP_REST_Request $request  REST request.
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
 		unset( $request );
-		return $instance;
+		$schema = $this->get_item_schema();
+		$instance = array_merge( $this->get_default_instance(), $instance );
+
+		$item = array();
+		if ( isset( $schema['title']['properties']['raw'] ) ) {
+			$title_rendered = '';
+			if ( ! empty( $instance['title'] ) ) {
+				$title_rendered = $instance['title'];
+			} elseif ( isset( $schema['title']['rendered']['default'] ) ) {
+				$title_rendered = $schema['title']['rendered']['default'];
+			} elseif ( isset( $schema['title']['raw']['default'] ) ) {
+				$title_rendered = $schema['title']['raw']['default'];
+			}
+
+			/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
+			$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
+			$title_rendered = html_entity_decode( $title_rendered, ENT_QUOTES, get_bloginfo( 'charset' ) );
+
+			$item['title'] = array(
+				'raw' => $instance['title'],
+				'rendered' => $title_rendered,
+			);
+			unset( $schema['title'] );
+		}
+
+		foreach ( $schema as $field_id => $field_attributes ) {
+			$field_value = null;
+			if ( ! isset( $instance[ $field_id ] ) ) {
+				// @todo Add recursive method to compute default value.
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					foreach ( $field_attributes['properties'] as $prop_id => $prop_attributes ) {
+						$prop_value = null;
+						if ( isset( $item[ $field_id ]['default'] ) ) {
+							$prop_value = $item[ $field_id ]['default'];
+						}
+						$field_value[ $prop_id ] = $prop_value;
+					}
+				} elseif ( isset( $field_attributes['default'] ) ) {
+					$field_value = $field_attributes['default'];
+				}
+			} else {
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					if ( isset( $field_attributes['properties']['raw'] ) ) {
+						$field_value['raw'] = $instance[ $field_id ];
+					}
+					if ( isset( $field_attributes['properties']['rendered'] ) ) {
+						$field_value['rendered'] = null; // A subclass must render the value.
+					}
+				} else {
+					$field_value = $instance[ $field_id ];
+				}
+			}
+			$item[ $field_id ] = $field_value;
+		}
+
+		return $item;
 	}
 
 	/**

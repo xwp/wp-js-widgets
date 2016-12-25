@@ -130,24 +130,21 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	public function form_template() {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<p>
-				<label>
-					<?php esc_html_e( 'Title:', 'default' ) ?>
-					<input class="widefat" type="text" name="title">
-				</label>
-			</p>
-			<p>
-				<label>
-					<?php esc_html_e( 'Content:', 'default' ) ?>
-					<textarea class="widefat" rows="16" cols="20" name="text"></textarea>
-				</label>
-			</p>
-			<p>
-				<label>
-					<input type="checkbox" name="filter">
-					<?php esc_html_e( 'Automatically add paragraphs', 'default' ); ?>
-				</label>
-			</p>
+			<?php
+			$this->render_title_form_field();
+			$this->render_form_field( array(
+				'name' => 'text',
+				'label' => __( 'Content:', 'default' ),
+				'type' => 'textarea',
+				'rows' => 16,
+				'cols' => 20,
+			) );
+			$this->render_form_field( array(
+				'name' => 'filter',
+				'label' => __( 'Automatically add paragraphs', 'default' ),
+				'type' => 'checkbox',
+			) );
+			?>
 		</script>
 		<?php
 	}
@@ -155,20 +152,17 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	/**
 	 * Get configuration data for the form.
 	 *
-	 * This can include information such as whether the user can do `unfiltered_html`.
-	 *
 	 * @return array
 	 */
 	public function get_form_args() {
-		return array_merge(
-			parent::get_form_args(),
+		$args = parent::get_form_args();
+		$args['can_unfiltered_html'] = current_user_can( 'unfiltered_html' );
+		$args['l10n'] = array_merge(
+			$args['l10n'],
 			array(
-				'can_unfiltered_html' => current_user_can( 'unfiltered_html' ),
-				'l10n' => array(
-					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-					'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
-				),
+				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
 			)
 		);
+		return $args;
 	}
 }

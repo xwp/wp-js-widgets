@@ -13,11 +13,14 @@
 class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 
 	/**
-	 * Adapted widget.
+	 * WP_JS_Widget_Recent_Posts constructor.
 	 *
-	 * @var WP_Widget_Recent_Posts
+	 * @param JS_Widgets_Plugin      $plugin         Plugin.
+	 * @param WP_Widget_Recent_Posts $adapted_widget Adapted/wrapped core widget.
 	 */
-	public $adapted_widget;
+	public function __construct( JS_Widgets_Plugin $plugin, WP_Widget_Recent_Posts $adapted_widget ) {
+		parent::__construct( $plugin, $adapted_widget );
+	}
 
 	/**
 	 * Get instance schema properties.
@@ -143,38 +146,43 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	 */
 	public function get_form_args() {
 		$item_schema = $this->get_item_schema();
-		return array_merge(
-			parent::get_form_args(),
+		$args = parent::get_form_args();
+		$args['minimum_number'] = $item_schema['number']['minimum'];
+		$args['l10n'] = array_merge(
+			$args['l10n'],
 			array(
-				'minimum_number' => $item_schema['number']['minimum'],
-				'l10n' => array(
-					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-				),
+				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
 			)
 		);
+		return $args;
 	}
 
 	/**
 	 * Render JS Template.
-	 *
-	 * This template is intended to be agnostic to the JS template technology used.
 	 */
 	public function form_template() {
 		$item_schema = $this->get_item_schema();
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<p>
-				<label for="{{ data.element_id_base }}_title"><?php esc_html_e( 'Title:', 'default' ) ?></label>
-				<input id="{{ data.element_id_base }}_title" class="widefat" type="text" name="title" placeholder="<?php echo esc_attr( $item_schema['title']['properties']['raw']['default'] ); ?>">
-			</p>
-			<p>
-				<label for="{{ data.element_id_base }}_number"><?php esc_html_e( 'Number of posts to show:', 'default' ) ?></label>
-				<input id="{{ data.element_id_base }}_number" class="widefat" type="number" name="number">
-			</p>
-			<p>
-				<input id="{{ data.element_id_base }}_show_date" class="widefat" type="checkbox" name="show_date">
-				<label for="{{ data.element_id_base }}_show_date"><?php esc_html_e( 'Display post date?', 'default' ) ?></label>
-			</p>
+			<?php
+			$this->render_title_form_field( array(
+				'placeholder' => $item_schema['title']['properties']['raw']['default'],
+			) );
+			$this->render_form_field( array(
+				'name' => 'number',
+				'label' => __( 'Number of posts to show:', 'default' ),
+				'type' => 'number',
+				'min' => 1,
+				'step' => 1,
+			) );
+			$this->render_form_field( array(
+				'name' => 'show_date',
+				'label' => __( 'Display post date?', 'default' ),
+				'type' => 'checkbox',
+				'min' => 1,
+				'step' => 1,
+			) );
+			?>
 		</script>
 		<?php
 	}
