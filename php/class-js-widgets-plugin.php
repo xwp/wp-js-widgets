@@ -146,6 +146,16 @@ class JS_Widgets_Plugin {
 		$deps = array( 'customize-widgets', $this->script_handles['control-form'] );
 		$wp_scripts->add( $this->script_handles['js-widgets'], $src, $deps, $this->version );
 
+		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
+		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
+		$deps = array( 'customize-widgets' );
+		$wp_scripts->add( $this->script_handles['trac-39389-controls'], $src, $deps, $this->version );
+
+		$this->script_handles['trac-39389-preview'] = 'js-widgets-trac-39389-preview';
+		$src = $plugin_dir_url . 'js/trac-39389-preview.js';
+		$deps = array( 'customize-preview-widgets' );
+		$wp_scripts->add( $this->script_handles['trac-39389-preview'], $src, $deps, $this->version );
+
 		// Register scripts for widgets.
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
@@ -231,6 +241,8 @@ class JS_Widgets_Plugin {
 				$widget->enqueue_control_scripts();
 			}
 		}
+
+		wp_enqueue_script( $this->script_handles['trac-39389-controls'] );
 	}
 
 	/**
@@ -245,6 +257,10 @@ class JS_Widgets_Plugin {
 			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
+		}
+
+		if ( is_customize_preview() ) {
+			wp_enqueue_script( $this->script_handles['trac-39389-preview'] );
 		}
 	}
 
