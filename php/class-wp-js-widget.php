@@ -213,10 +213,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 			$title_rendered = '';
 			if ( ! empty( $instance['title'] ) ) {
 				$title_rendered = $instance['title'];
-			} elseif ( isset( $schema['title']['rendered']['default'] ) ) {
-				$title_rendered = $schema['title']['rendered']['default'];
-			} elseif ( isset( $schema['title']['raw']['default'] ) ) {
-				$title_rendered = $schema['title']['raw']['default'];
+			} elseif ( isset( $schema['title']['properties']['rendered']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['rendered']['default'];
+			} elseif ( isset( $schema['title']['properties']['raw']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['raw']['default'];
 			}
 
 			/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
