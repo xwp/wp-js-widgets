@@ -133,6 +133,9 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	/**
 	 * Render form field.
 	 *
+	 * @todo Move to base class.
+	 * @todo Rename to render_form_field_template().
+	 *
 	 * @param array $args Args.
 	 */
 	protected function render_form_field( $args = array() ) {
