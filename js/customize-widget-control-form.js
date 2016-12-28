@@ -3,7 +3,7 @@
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.Form = (function( api ) {
+wp.customize.Widgets.Form = (function( api, $ ) {
 	'use strict';
 
 	/**
@@ -17,7 +17,15 @@ wp.customize.Widgets.Form = (function( api ) {
 	 */
 	return api.Class.extend({
 
-		initialize: function( properties ) {
+		/**
+		 * Initialize.
+		 *
+		 * @param {object}                             properties         Properties.
+		 * @param {wp.customize.Widgets.WidgetControl} properties.control Customize control.
+		 * @param {object}                             properties.config  Form config.
+		 * @return {void}
+		 */
+		initialize: function initialize( properties ) {
 			var form = this, args, previousValidate;
 
 			args = _.extend(
@@ -31,6 +39,9 @@ wp.customize.Widgets.Form = (function( api ) {
 				properties
 			);
 
+			if ( ! args.control || ! args.control.extended( wp.customize.Widgets.WidgetControl ) ) {
+				throw new Error( 'Missing control param.' );
+			}
 			form.control = args.control;
 			form.setting = form.control.setting;
 			form.config = args.config;
@@ -57,9 +68,7 @@ wp.customize.Widgets.Form = (function( api ) {
 				return newValue;
 			};
 
-			form.setting.bind( function() {
-				form.render();
-			} );
+			form.embed();
 		},
 
 		/**
@@ -74,7 +83,7 @@ wp.customize.Widgets.Form = (function( api ) {
 		 * @param {string} message Message.
 		 * @returns {void}
 		 */
-		setValidationMessage: function( message ) {
+		setValidationMessage: function setValidationMessage( message ) {
 			var form = this;
 			if ( form.control.setting.validationMessage ) {
 				form.control.setting.validationMessage.set( message || '' );
@@ -90,7 +99,7 @@ wp.customize.Widgets.Form = (function( api ) {
 		 * @param {object} oldInstance Existing instance.
 		 * @returns {object} Sanitized instance.
 		 */
-		sanitize: function( newInstance, oldInstance ) {
+		sanitize: function sanitize( newInstance, oldInstance ) {
 			if ( ! oldInstance ) {
 				throw new Error( 'Expected oldInstance' );
 			}
@@ -104,7 +113,7 @@ wp.customize.Widgets.Form = (function( api ) {
 		 *
 		 * @return {object} Instance.
 		 */
-		getValue: function() {
+		getValue: function getValue() {
 			var form = this;
 			return _.extend(
 				{},
@@ -121,7 +130,7 @@ wp.customize.Widgets.Form = (function( api ) {
 		 * @param {object} props Instance props.
 		 * @returns {void}
 		 */
-		setState: function( props ) {
+		setState: function setState( props ) {
 			var form = this, value;
 			value = _.extend( form.getValue(), props || {} );
 			form.setting.set( value );
@@ -160,10 +169,53 @@ wp.customize.Widgets.Form = (function( api ) {
 			return propertyValue;
 		},
 
-		embed: function() {},
+		/**
+		 * Link property elements.
+		 *
+		 * @returns {void}
+		 */
+		linkPropertyElements: function linkPropertyElements() {
+			var form = this, initialInstanceData;
+			initialInstanceData = form.getValue();
+			form.propertyValues = {};
+			form.propertyElements = {};
+			form.container.find( ':input[name]' ).each( function() {
+				var input = $( this ), name = input.prop( 'name' ), propertyValue, propertyElement;
+				if ( _.isUndefined( initialInstanceData[ name ] ) ) {
+					return;
+				}
+				propertyValue = form.createSyncedPropertyValue( form.setting, name );
+				propertyElement = new wp.customize.Element( input );
+				propertyElement.set( initialInstanceData[ name ] );
+				propertyElement.sync( propertyValue );
 
-		render: function() {}
+				form.propertyValues[ name ] = propertyValue;
+				form.propertyElements[ name ] = propertyElement;
+			} );
+		},
 
+		/**
+		 * Get template function.
+		 *
+		 * @returns {Function} Template function.
+		 */
+		getTemplate: function getTemplate() {
+			var form = this;
+
+			// @todo The id_base should be passed in when initializing the Form itself.
+			return wp.template( 'customize-widget-form-' + form.control.params.widget_id_base );
+		},
+
+		/**
+		 * Embed the form into the container.
+		 *
+		 * @returns {void}
+		 */
+		embed: function embed() {
+			var form = this, template = form.getTemplate();
+			form.container.html( template( form ) );
+			form.linkPropertyElements();
+		}
 	});
 
-} )( wp.customize );
+} )( wp.customize, jQuery );

@@ -138,7 +138,7 @@ class JS_Widgets_Plugin {
 
 		$this->script_handles['control-form'] = 'customize-widget-control-form';
 		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
-		$deps = array( 'customize-base' );
+		$deps = array( 'customize-base', 'wp-util', 'jquery' );
 		$wp_scripts->add( $this->script_handles['control-form'], $src, $deps, $this->version );
 
 		$this->script_handles['js-widgets'] = 'customize-js-widgets';
