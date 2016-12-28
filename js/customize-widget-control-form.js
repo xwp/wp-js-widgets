@@ -51,8 +51,17 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 			}
 
 			previousValidate = form.setting.validate;
+
+			/**
+			 * Validate the instance data.
+			 *
+			 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
+			 *
+			 * @param {object} value Instance value.
+			 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
+			 */
 			form.setting.validate = function validate( value ) {
-				var setting = this, newValue, oldValue; // eslint-disable-line consistent-this
+				var setting = this, newValue, oldValue, error, code, notification; // eslint-disable-line consistent-this
 				newValue = _.extend( {}, form.config.default_instance, value );
 				oldValue = _.extend( {}, setting() );
 
@@ -60,9 +69,36 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 
 				newValue = form.sanitize( newValue, oldValue );
 				if ( newValue instanceof Error ) {
+					error = newValue;
+					code = 'invalidValue';
+					notification = new api.Notification( code, {
+						message: error.message,
+						type: 'error'
+					} );
+				} else if ( newValue instanceof api.Notification ) {
+					notification = newValue;
+				}
 
-					// @todo Show error.
+				// If sanitize method returned an error/notification, block setting u0date.
+				if ( notification ) {
 					newValue = null;
+				}
+
+				// Sync the notification into the setting's notifications collection.
+				if ( form.setting.notifications ) {
+
+					// Remove all existing notifications added via sanitization since only one can be returned.
+					form.setting.notifications.each( function iterateNotifications( iteratedNotification ) {
+						if ( iteratedNotification.viaWidgetFormSanitizeReturn && ( ! notification || notification.code !== iteratedNotification.code ) ) {
+							form.setting.notifications.remove( iteratedNotification.code );
+						}
+					} );
+
+					// Add the new notification.
+					if ( notification ) {
+						notification.viaWidgetFormSanitizeReturn = true;
+						form.setting.notifications.add( notification.code, notification );
+					}
 				}
 
 				return newValue;
@@ -72,32 +108,11 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		},
 
 		/**
-		 * Set validation message.
-		 *
-		 * See Customize Setting Validation plugin.
-		 *
-		 * @link https://github.com/xwp/wp-customize-setting-validation
-		 * @link https://make.wordpress.org/core/2016/05/04/improving-setting-validation-in-the-customizer/
-		 * @link https://core.trac.wordpress.org/ticket/34893
-		 *
-		 * @param {string} message Message.
-		 * @returns {void}
-		 */
-		setValidationMessage: function setValidationMessage( message ) {
-			var form = this;
-			if ( form.control.setting.validationMessage ) {
-				form.control.setting.validationMessage.set( message || '' );
-			} else if ( message && 'undefined' !== typeof console && console.warn ) {
-				console.warn( message );
-			}
-		},
-
-		/**
 		 * Sanitize widget instance data.
 		 *
 		 * @param {object} newInstance New instance.
 		 * @param {object} oldInstance Existing instance.
-		 * @returns {object} Sanitized instance.
+		 * @returns {object|Error|wp.customize.Notification} Sanitized instance or validation error/notification.
 		 */
 		sanitize: function sanitize( newInstance, oldInstance ) {
 			if ( ! oldInstance ) {
