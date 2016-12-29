@@ -14,7 +14,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 	 *
 	 * @constructor
 	 */
-	PostCollectionWidgetForm = api.Widgets.CoreForm.extend({
+	PostCollectionWidgetForm = api.Widgets.Form.extend({
 
 		/**
 		 * Initialize.
@@ -31,7 +31,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 			props.config = _.clone( props.config );
 			props.config.select_id = 'select' + String( Math.random() );
 
-			api.Widgets.CoreForm.prototype.initialize.call( form, props );
+			api.Widgets.Form.prototype.initialize.call( form, props );
 		},
 
 		/**
@@ -42,7 +42,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		linkPropertyElements: function linkPropertyElements() {
 			var form = this, selectorContainer;
 
-			api.Widgets.CoreForm.prototype.linkPropertyElements.call( form );
+			api.Widgets.Form.prototype.linkPropertyElements.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
 				form.propertyValues.posts = form.createSyncedPropertyValue( form.setting, 'posts' );

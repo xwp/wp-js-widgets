@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.calendar = (function() {
 	 *
 	 * @constructor
 	 */
-	CalendarWidgetForm = wp.customize.Widgets.CoreForm.extend( {} );
+	CalendarWidgetForm = wp.customize.Widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CalendarWidgetForm;

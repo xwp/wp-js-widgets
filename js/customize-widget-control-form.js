@@ -103,17 +103,42 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		},
 
 		/**
-		 * Sanitize widget instance data.
+		 * Sanitize the instance data.
 		 *
 		 * @param {object} newInstance New instance.
 		 * @param {object} oldInstance Existing instance.
 		 * @returns {object|Error|wp.customize.Notification} Sanitized instance or validation error/notification.
 		 */
 		sanitize: function sanitize( newInstance, oldInstance ) {
-			if ( ! oldInstance ) {
+			var form = this, instance, code, notification;
+			if ( _.isUndefined( oldInstance ) ) {
 				throw new Error( 'Expected oldInstance' );
 			}
-			return newInstance;
+			instance = _.extend( {}, form.config.default_instance, newInstance );
+
+			if ( ! instance.title ) {
+				instance.title = '';
+			}
+
+			// Warn about markup in title.
+			code = 'markupTitleInvalid';
+			if ( /<\/?\w+[^>]*>/.test( instance.title ) ) {
+				notification = new api.Notification( code, {
+					message: form.config.l10n.title_tags_invalid,
+					type: 'warning'
+				} );
+				form.setting.notifications.add( code, notification );
+			} else {
+				form.setting.notifications.remove( code );
+			}
+
+			/*
+			 * Trim per sanitize_text_field().
+			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
+			 */
+			instance.title = $.trim( instance.title );
+
+			return instance;
 		},
 
 		/**

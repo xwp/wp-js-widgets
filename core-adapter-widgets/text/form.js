@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 	 *
 	 * @constructor
 	 */
-	TextWidgetForm = api.Widgets.CoreForm.extend({
+	TextWidgetForm = api.Widgets.Form.extend({
 
 		/**
 		 * Sanitize the instance data.
@@ -24,7 +24,7 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		sanitize: function( newInstance, oldInstance ) {
 			var form = this, instance, code, notification;
 
-			instance = api.Widgets.CoreForm.prototype.sanitize.call( form, newInstance, oldInstance );
+			instance = api.Widgets.Form.prototype.sanitize.call( form, newInstance, oldInstance );
 
 			if ( ! instance.text ) {
 				instance.text = '';

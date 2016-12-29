@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.archives = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	ArchivesWidgetForm = api.Widgets.CoreForm.extend( {} );
+	ArchivesWidgetForm = api.Widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = ArchivesWidgetForm;

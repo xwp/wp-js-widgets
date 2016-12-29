@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	RecentPostsWidgetForm = api.Widgets.CoreForm.extend({
+	RecentPostsWidgetForm = api.Widgets.Form.extend({
 
 		/**
 		 * Sanitize the instance data.
@@ -23,7 +23,7 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 		 */
 		sanitize: function( oldInstance ) {
 			var form = this, newInstance;
-			newInstance = api.Widgets.CoreForm.prototype.sanitize.call( form, oldInstance );
+			newInstance = api.Widgets.Form.prototype.sanitize.call( form, oldInstance );
 
 			if ( ! newInstance.number || newInstance.number < form.config.minimum_number ) {
 				newInstance.number = form.config.minimum_number;

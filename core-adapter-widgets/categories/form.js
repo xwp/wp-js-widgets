@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.categories = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	CategoriesWidgetForm = api.Widgets.CoreForm.extend( {} );
+	CategoriesWidgetForm = api.Widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CategoriesWidgetForm;

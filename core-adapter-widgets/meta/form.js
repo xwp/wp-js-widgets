@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.meta = (function() {
 	 *
 	 * @constructor
 	 */
-	MetaWidgetForm = wp.customize.Widgets.CoreForm.extend( {} );
+	MetaWidgetForm = wp.customize.Widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = MetaWidgetForm;
