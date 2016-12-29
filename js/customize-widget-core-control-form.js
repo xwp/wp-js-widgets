@@ -19,30 +19,37 @@ wp.customize.Widgets.CoreForm = (function( api, $ ) {
 		/**
 		 * Sanitize the instance data.
 		 *
-		 * @param {object} nextInstance     Next instance.
-		 * @param {object} previousInstance Previous instance.
+		 * @param {object} newInstance Next instance.
+		 * @param {object} oldInstance Previous instance.
 		 * @returns {object} Sanitized instance.
 		 */
-		sanitize: function sanitize( nextInstance, previousInstance ) {
-			var form = this, newInstance;
-			newInstance = wp.customize.Widgets.Form.prototype.sanitize.call( form, _.clone( nextInstance ), previousInstance );
+		sanitize: function sanitize( newInstance, oldInstance ) {
+			var form = this, instance, code, notification;
+			instance = wp.customize.Widgets.Form.prototype.sanitize.call( form, _.clone( newInstance ), oldInstance );
 
-			if ( ! newInstance.title ) {
-				newInstance.title = '';
+			if ( ! instance.title ) {
+				instance.title = '';
 			}
 
 			// Warn about markup in title.
-			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
-				form.setValidationMessage( form.config.l10n.title_tags_invalid );
+			code = 'markupTitleInvalid';
+			if ( /<\/?\w+[^>]*>/.test( instance.title ) ) {
+				notification = new api.Notification( code, {
+					message: form.config.l10n.title_tags_invalid,
+					type: 'warning'
+				} );
+				form.setting.notifications.add( code, notification );
+			} else {
+				form.setting.notifications.remove( code );
 			}
 
 			/*
 			 * Trim per sanitize_text_field().
 			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
 			 */
-			newInstance.title = $.trim( newInstance.title );
+			instance.title = $.trim( instance.title );
 
-			return newInstance;
+			return instance;
 		}
 	});
 

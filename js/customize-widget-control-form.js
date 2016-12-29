@@ -103,29 +103,6 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		},
 
 		/**
-		 * Set validation message.
-		 *
-		 * See Customize Setting Validation plugin.
-		 *
-		 * @link https://github.com/xwp/wp-customize-setting-validation
-		 * @link https://make.wordpress.org/core/2016/05/04/improving-setting-validation-in-the-customizer/
-		 * @link https://core.trac.wordpress.org/ticket/34893
-		 *
-		 * @todo Eliminate this.
-		 *
-		 * @param {string} message Message.
-		 * @returns {void}
-		 */
-		setValidationMessage: function setValidationMessage( message ) {
-			var form = this;
-			if ( form.control.setting.validationMessage ) {
-				form.control.setting.validationMessage.set( message || '' );
-			} else if ( message && 'undefined' !== typeof console && console.warn ) {
-				console.warn( message );
-			}
-		},
-
-		/**
 		 * Sanitize widget instance data.
 		 *
 		 * @param {object} newInstance New instance.

@@ -21,27 +21,36 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 		 * @param {object} oldInstance Unsanitized instance.
 		 * @returns {object} Sanitized instance.
 		 */
-		sanitize: function( oldInstance ) {
-			var form = this, newInstance;
+		sanitize: function( newInstance, oldInstance ) {
+			var form = this, instance, code, notification;
 
-			newInstance = api.Widgets.CoreForm.prototype.sanitize.call( form, oldInstance );
+			instance = api.Widgets.CoreForm.prototype.sanitize.call( form, newInstance, oldInstance );
 
-			if ( ! newInstance.text ) {
-				newInstance.text = '';
+			if ( ! instance.text ) {
+				instance.text = '';
 			}
 
 			// Warn about unfiltered HTML.
-			if ( ! form.config.can_unfiltered_html && /<\/?(script|iframe)[^>]*>/i.test( newInstance.text ) ) {
-				form.setValidationMessage( form.config.l10n.text_unfiltered_html_invalid );
+			if ( ! form.config.can_unfiltered_html ) {
+				code = 'unfilteredHtmlInvalid';
+				if ( /<\/?(script|iframe)[^>]*>/i.test( instance.text ) ) {
+					notification = new api.Notification( code, {
+						message: form.config.l10n.text_unfiltered_html_invalid,
+						type: 'warning'
+					} );
+					form.setting.notifications.add( code, notification );
+				} else {
+					form.setting.notifications.remove( code );
+				}
 			}
 
 			/*
 			 * Trim per sanitize_text_field().
 			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
 			 */
-			newInstance.text = $.trim( newInstance.text );
+			instance.text = $.trim( instance.text );
 
-			return newInstance;
+			return instance;
 		}
 	});
 
