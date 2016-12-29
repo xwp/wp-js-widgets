@@ -97,7 +97,7 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 			parent::prepare_item_for_response( $instance, $request ),
 			array(
 				'number' => $number,
-				'show_date' => boolval( $instance['show_date'] ),
+				'show_date' => (bool) $instance['show_date'],
 				'posts' => wp_list_pluck( $query->posts, 'ID' ),
 			)
 		);
@@ -165,17 +165,17 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php
-			$this->render_title_form_field( array(
+			$this->render_title_form_field_template( array(
 				'placeholder' => $item_schema['title']['properties']['raw']['default'],
 			) );
-			$this->render_form_field( array(
+			$this->render_form_field_template( array(
 				'name' => 'number',
 				'label' => __( 'Number of posts to show:', 'default' ),
 				'type' => 'number',
 				'min' => 1,
 				'step' => 1,
 			) );
-			$this->render_form_field( array(
+			$this->render_form_field_template( array(
 				'name' => 'show_date',
 				'label' => __( 'Display post date?', 'default' ),
 				'type' => 'checkbox',

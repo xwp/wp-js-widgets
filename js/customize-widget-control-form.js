@@ -9,9 +9,6 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 	/**
 	 * Customize Widget Form.
 	 *
-	 * @todo Should this be not a wp.customize.Class instance so that we can re-use it more easily in Shortcake and elsewhere? Customize Widget Proxy?
-	 * @todo This can be a proxy/adapter for a more abstract form which is unaware of the Customizer specifics.
-	 *
 	 * @constructor
 	 * @augments wp.customize.Widgets.WidgetControl
 	 */
@@ -103,8 +100,29 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 
 				return newValue;
 			};
+		},
 
-			form.embed();
+		/**
+		 * Set validation message.
+		 *
+		 * See Customize Setting Validation plugin.
+		 *
+		 * @link https://github.com/xwp/wp-customize-setting-validation
+		 * @link https://make.wordpress.org/core/2016/05/04/improving-setting-validation-in-the-customizer/
+		 * @link https://core.trac.wordpress.org/ticket/34893
+		 *
+		 * @todo Eliminate this.
+		 *
+		 * @param {string} message Message.
+		 * @returns {void}
+		 */
+		setValidationMessage: function setValidationMessage( message ) {
+			var form = this;
+			if ( form.control.setting.validationMessage ) {
+				form.control.setting.validationMessage.set( message || '' );
+			} else if ( message && 'undefined' !== typeof console && console.warn ) {
+				console.warn( message );
+			}
 		},
 
 		/**
@@ -216,17 +234,31 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		 */
 		getTemplate: function getTemplate() {
 			var form = this;
-
-			// @todo The id_base should be passed in when initializing the Form itself.
-			return wp.template( 'customize-widget-form-' + form.control.params.widget_id_base );
+			if ( ! form._template ) {
+				form._template = wp.template( 'customize-widget-form-' + form.control.params.widget_id_base );
+			}
+			return form._template;
 		},
 
 		/**
-		 * Embed the form into the container.
+		 * Embed.
 		 *
+		 * @deprecated
 		 * @returns {void}
 		 */
 		embed: function embed() {
+			if ( 'undefined' !== typeof console ) {
+				console.warn( 'wp.customize.Widgets.Form#embed is deprecated.' );
+			}
+			this.render();
+		},
+
+		/**
+		 * Render the form into the container.
+		 *
+		 * @returns {void}
+		 */
+		render: function render() {
 			var form = this, template = form.getTemplate();
 			form.container.html( template( form ) );
 			form.linkPropertyElements();

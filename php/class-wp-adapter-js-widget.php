@@ -95,115 +95,12 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 			parent::get_form_args(),
 			array(
 				'l10n' => array(
+
+					// @todo Move this to the component level.
 					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 				),
 			)
 		);
-	}
-
-	/**
-	 * Render title form field.
-	 *
-	 * @param array $input_attrs Input attributes.
-	 */
-	protected function render_title_form_field( $input_attrs = array() ) {
-		$this->render_form_field( array_merge(
-			array(
-				'name' => 'title',
-				'label' => __( 'Title:', 'default' ),
-				'type' => 'text',
-			),
-			$input_attrs
-		) );
-	}
-
-	/**
-	 * Render input attributes.
-	 *
-	 * @param array $input_attrs Input attributes.
-	 */
-	protected function render_input_attrs( $input_attrs ) {
-		$input_attrs_str = '';
-		foreach ( $input_attrs as $key => $value ) {
-			$input_attrs_str .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
-		}
-		echo $input_attrs_str; // WPCS: XSS OK.
-	}
-
-	/**
-	 * Render form field.
-	 *
-	 * @todo Move to base class.
-	 * @todo Rename to render_form_field_template().
-	 *
-	 * @param array $args Args.
-	 */
-	protected function render_form_field( $args = array() ) {
-		$defaults = array(
-			'name' => '',
-			'label' => '',
-			'type' => 'text',
-			'choices' => array(),
-			'value' => '',
-			'placeholder' => '',
-		);
-		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
-			$defaults['class'] = 'widefat';
-		}
-		$args = wp_parse_args( $args, $defaults );
-
-		$input_attrs = $args;
-		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
-
-		echo '<p>';
-		echo '<# (function( domId ) { #>';
-		if ( 'checkbox' === $args['type'] ) {
-			?>
-			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
-			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<?php
-		} elseif ( 'select' === $args['type'] ) {
-			?>
-			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
-			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
-				<?php foreach ( $args['choices'] as $value => $text ) : ?>
-					<option value="<?php echo esc_attr( $value ); ?>">
-						<?php echo esc_html( $text ); ?>
-					</option>
-				<?php endforeach; ?>
-			</select>
-			<?php
-		} elseif ( 'textarea' === $args['type'] ) {
-			?>
-			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
-			<?php
-		} else {
-			?>
-			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
-			<?php
-		} // End if().
-		echo '<# }( "el" + String( Math.random() ) )); #>';
-		echo '</p>';
-	}
-
-	/**
-	 * Render JS Template.
-	 */
-	public function form_template() {
-		$placeholder = '';
-		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['raw']['default'];
-		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['rendered']['default'];
-		}
-
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php $this->render_title_form_field( compact( 'placeholder' ) ); ?>
-		</script>
-		<?php
 	}
 
 	/**

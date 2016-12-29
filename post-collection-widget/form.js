@@ -14,7 +14,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 	 *
 	 * @constructor
 	 */
-	PostCollectionWidgetForm = api.Widgets.Form.extend({
+	PostCollectionWidgetForm = api.Widgets.CoreForm.extend({
 
 		/**
 		 * Initialize.
@@ -24,92 +24,47 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		 * @param {object}                             properties.config  Form config.
 		 * @return {void}
 		 */
-		initialize: function( properties ) {
-			var form = this;
+		initialize: function initializePostCollectionWidgetForm( properties ) {
+			var form = this, props;
 
-			api.Widgets.Form.prototype.initialize.call( form, properties );
+			props = _.clone( properties );
+			props.config = _.clone( props.config );
+			props.config.select_id = 'select' + String( Math.random() );
 
-			form.embed();
+			api.Widgets.CoreForm.prototype.initialize.call( form, props );
 		},
 
 		/**
-		 * Embed the form from the template and set up event handlers.
+		 * Link property elements.
 		 *
-		 * @return {void}
+		 * @returns {void}
 		 */
-		embed: function() {
-			var form = this, elementIdBase = 'el' + String( Math.random() ), initialInstanceData;
+		linkPropertyElements: function linkPropertyElements() {
+			var form = this, selectorContainer;
 
-			form.template = wp.template( 'customize-widget-post-collection' );
-			form.container.html( form.template( {
-				element_id_base: elementIdBase
-			} ) );
+			api.Widgets.CoreForm.prototype.linkPropertyElements.call( form );
 
-			if ( ! api.ObjectSelectorComponent ) {
-				return;
+			if ( api.ObjectSelectorComponent ) {
+				form.propertyValues.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
+				form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
+				form.postObjectSelector = new api.ObjectSelectorComponent({
+					model: form.propertyValues.posts,
+					containing_construct: form.control,
+					post_query_vars: form.config.post_query_args,
+					select2_options: _.extend(
+						{
+							multiple: true,
+							width: '100%'
+						},
+						form.config.select2_options
+					),
+					select_id: form.config.select_id,
+					select2_result_template: form.postsItemTemplate,
+					select2_selection_template: form.postsItemTemplate
+				});
+				selectorContainer = form.container.find( '.customize-object-selector-container:first' );
+				form.postObjectSelector.embed( selectorContainer );
 			}
-
-			form.propertyValues = {
-				posts: form.createSyncedPropertyValue( form.setting, 'posts' )
-			};
-
-			form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
-			form.postObjectSelector = new api.ObjectSelectorComponent({
-				model: form.propertyValues.posts,
-				containing_construct: form.control,
-				post_query_vars: form.config.post_query_args,
-				select2_options: _.extend(
-					{
-						multiple: true,
-						width: '100%'
-					},
-					form.config.select2_options
-				),
-				select_id: elementIdBase + '_posts',
-				select2_result_template: form.postsItemTemplate,
-				select2_selection_template: form.postsItemTemplate
-			});
-
-			initialInstanceData = form.getValue();
-			form.elements = {};
-			form.container.find( ':input[name]' ).each( function() {
-				var input = $( this ), name = input.prop( 'name' ), propertyValue, propertyElement;
-				if ( _.isUndefined( initialInstanceData[ name ] ) ) {
-					return;
-				}
-				propertyValue = form.createSyncedPropertyValue( form.setting, name );
-				propertyElement = new wp.customize.Element( input );
-				propertyElement.set( initialInstanceData[ name ] );
-				propertyElement.sync( propertyValue );
-
-				form.propertyValues[ name ] = propertyValue;
-				form.elements[ name ] = propertyElement;
-
-			} );
-
-			form.postObjectSelector.embed( form.container.find( '.customize-object-selector-container:first' ) );
-		},
-
-		/**
-		 * Sanitize the instance data.
-		 *
-		 * @param {object} oldInstance Unsanitized instance.
-		 * @returns {object} Sanitized instance.
-		 */
-		sanitize: function( oldInstance ) {
-			var form = this, newInstance;
-			newInstance = _.extend( {}, oldInstance );
-
-			if ( ! newInstance.title ) {
-				newInstance.title = '';
-			}
-
-			// Warn about markup in title.
-			if ( /<\/?\w+[^>]*>/.test( newInstance.title ) ) {
-				form.setValidationMessage( form.config.l10n.title_tags_invalid );
-			}
-
-			return newInstance;
 		}
 	});
 

@@ -31,16 +31,26 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 
 	/**
 	 * Inject WidgetControl instances with our component.WidgetControl method overrides.
+	 *
+	 * @returns {void}
 	 */
 	component.extendWidgetControl = function extendWidgetControl() {
+
+		/**
+		 * Initialize JS widget control.
+		 *
+		 * @param {string} id      Control ID.
+		 * @param {object} options Control options.
+		 * @returns {void}
+		 */
 		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
 			var control = this;
 			control.isCustomizeControl = options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ];
 			if ( control.isCustomizeControl ) {
 				_.extend( control, component.WidgetControl.prototype );
-				return component.WidgetControl.prototype.initialize.call( control, id, options );
+				component.WidgetControl.prototype.initialize.call( control, id, options );
 			} else {
-				return originalInitialize.call( control, id, options );
+				originalInitialize.call( control, id, options );
 			}
 		};
 	};
@@ -68,9 +78,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @param {string} [options.params.content] - This may be supplied by addWidget, but it will not be read since the form is constructed dynamically.
 		 * @param {string} [options.params.widget_control] - Handled internally, if supplied, an error will be thrown.
 		 * @param {string} [options.params.widget_content] - Handled internally, if supplied, an error will be thrown.
-		 * @returns {*}
+		 * @returns {void}
 		 */
-		initialize: function( id, options ) {
+		initialize: function initializeWidgetControl( id, options ) {
 			var control = this, elementId, elementClass, availableWidget, widgetNumber, widgetControlWrapperMarkup;
 
 			// @todo The arguments supplied via addWidget can just be ignored for Customize Widgets.
@@ -120,13 +130,15 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 			} );
 			options.params.widget_control = widgetControlWrapperMarkup;
 
-			return originalInitialize.call( control, id, options );
+			originalInitialize.call( control, id, options );
 		},
 
 		/**
 		 * Embed the actual widget form inside of .widget-content and finally trigger the widget-added event.
+		 *
+		 * @returns {void}
 		 */
-		embedWidgetContent: function() {
+		embedWidgetContent: function embedWidgetContent() {
 			var control = this, Form, widgetContent, formContainer;
 
 			Form = api.Widgets.formConstructor[ control.params.widget_id_base ];
@@ -146,6 +158,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 				container: formContainer,
 				config: component.data.form_configs[ control.params.widget_id_base ]
 			} );
+			control.form.render();
 
 			// @todo What about extra inputs that are added via the in_widget_form action? These basically cannot be supported.
 
@@ -162,8 +175,10 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * This mostly removes code located in `wp.customize.Widgets.WidgetControl.prototype._setupModel`,
 		 * as most of the code there is made obsolete by `wp.customize.Widgets.Form` which is responsible
 		 * for re-rendering the form when when the setting changes.
+		 *
+		 * @returns {void}
 		 */
-		_setupModel: function() {
+		_setupModel: function _setupModel() {
 			var control = this, rememberSavedWidgetId;
 
 			// Remember saved widgets so we know which to trash (move to inactive widgets sidebar)
@@ -181,11 +196,13 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * Override WidgetControl logic for setting up event handlers for widget updating.
 		 *
 		 * This is now handled entirely in the wp.customize.Widgets.Form instance.
+		 *
+		 * @returns {void}
 		 */
-		_setupUpdateUI: function() {
+		_setupUpdateUI: function _setupUpdateUI() {
 			var control = this, saveBtn;
 
-			// The save button is totally unused in Customize Widgets, so make it more disabled.
+			// The save button is totally unused in JS Widgets, so make it more disabled.
 			saveBtn = control.container.find( '.widget-control-save' );
 			saveBtn.prop( 'disabled', true );
 			saveBtn.prop( 'hidden', true );
@@ -202,8 +219,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @param {object} [args]
 		 * @param {Object|null} [args.instance=null]  When the model changes, the instance is sent here; otherwise, the inputs from the form are used
 		 * @param {Function|null} [args.complete=null]  Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
+		 * @returns {void}
 		 */
-		updateWidget: function( args ) {
+		updateWidget: function updateWidget( args ) {
 			var control = this;
 
 			// The updateWidget logic requires that the form fields to be fully present.
@@ -226,7 +244,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @deprecated
 		 * @private
 		 */
-		_getInputs: function() {
+		_getInputs: function _getInputs() {
 			throw new Error( 'The _getInputs method should not be called for customize widget instances.' );
 		},
 
@@ -238,7 +256,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @deprecated
 		 * @private
 		 */
-		_getInputsSignature: function() {
+		_getInputsSignature: function _getInputsSignature() {
 			throw new Error( 'The _getInputsSignature method should not be called for customize widget instances.' );
 		},
 
@@ -250,7 +268,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @deprecated
 		 * @private
 		 */
-		_getInputState: function() {
+		_getInputState: function _getInputState() {
 			throw new Error( 'The _getInputState method should not be called for customize widget instances.' );
 		},
 
@@ -262,7 +280,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @deprecated
 		 * @private
 		 */
-		_setInputState: function() {
+		_setInputState: function _setInputState() {
 			throw new Error( 'The _setInputState method should not be called for customize widget instances.' );
 		}
 	});

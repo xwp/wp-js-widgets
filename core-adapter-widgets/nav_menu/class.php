@@ -54,7 +54,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php
-			$this->render_title_form_field();
+			$this->render_title_form_field_template();
 
 			$nav_menus = wp_get_nav_menus();
 			$choices = array(
@@ -63,7 +63,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 			foreach ( $nav_menus as $nav_menu ) {
 				$choices[ $nav_menu->term_id ] = $nav_menu->name;
 			}
-			$this->render_form_field( array(
+			$this->render_form_field_template( array(
 				'name' => 'nav_menu',
 				'label' => __( 'Select Menu:', 'default' ),
 				'type' => 'select',

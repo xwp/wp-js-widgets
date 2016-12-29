@@ -131,15 +131,15 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php
-			$this->render_title_form_field();
-			$this->render_form_field( array(
+			$this->render_title_form_field_template();
+			$this->render_form_field_template( array(
 				'name' => 'text',
 				'label' => __( 'Content:', 'default' ),
 				'type' => 'textarea',
 				'rows' => 16,
 				'cols' => 20,
 			) );
-			$this->render_form_field( array(
+			$this->render_form_field_template( array(
 				'name' => 'filter',
 				'label' => __( 'Automatically add paragraphs', 'default' ),
 				'type' => 'checkbox',

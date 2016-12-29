@@ -123,66 +123,46 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
-			'title' => array(
-				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'object',
-				'context' => array( 'view', 'edit', 'embed' ),
-				'properties' => array(
-					'raw' => array(
-						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'edit' ),
-						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_title_field' ),
-						),
-					),
-					'rendered' => array(
-						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
-						'type' => 'string',
-						'context' => array( 'view', 'edit', 'embed' ),
-						'default' => __( 'Recent Posts', 'js-widgets' ),
-						'readonly' => true,
+		$schema = array_merge(
+			parent::get_item_schema(),
+			array(
+				'show_date' => array(
+					'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
+					'type' => 'boolean',
+					'default' => false,
+					'context' => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
 					),
 				),
-			),
-			'show_date' => array(
-				'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'view', 'edit', 'embed' ),
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
+				'show_featured_image' => array(
+					'description' => __( 'Whether the featured image is shown.', 'js-widgets' ),
+					'type' => 'boolean',
+					'default' => false,
+					'context' => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
+					),
 				),
-			),
-			'show_featured_image' => array(
-				'description' => __( 'Whether the featured image is shown.', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'view', 'edit', 'embed' ),
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
+				'show_author' => array(
+					'description' => __( 'Whether the author is shown.', 'js-widgets' ),
+					'type' => 'boolean',
+					'default' => false,
+					'context' => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'validate_callback' => 'rest_validate_request_arg',
+					),
 				),
-			),
-			'show_author' => array(
-				'description' => __( 'Whether the author is shown.', 'js-widgets' ),
-				'type' => 'boolean',
-				'default' => false,
-				'context' => array( 'view', 'edit', 'embed' ),
-				'arg_options' => array(
-					'validate_callback' => 'rest_validate_request_arg',
+				'posts' => array(
+					'description' => __( 'The IDs for the collected posts.', 'js-widgets' ),
+					'type' => 'array',
+					'items' => array(
+						'type' => 'integer',
+					),
+					'context' => array( 'view', 'edit', 'embed' ),
+					'default' => array(),
 				),
-			),
-			'posts' => array(
-				'description' => __( 'The IDs for the collected posts.', 'js-widgets' ),
-				'type' => 'array',
-				'items' => array(
-					'type' => 'integer',
-				),
-				'context' => array( 'view', 'edit', 'embed' ),
-				'default' => array(),
-			),
+			)
 		);
 		return $schema;
 	}
@@ -200,26 +180,15 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
-		unset( $request );
-
-		$schema = $this->get_item_schema();
-		$instance = array_merge( $this->get_default_instance(), $instance );
-
-		$title_rendered = $instance['title'] ? $instance['title'] : $schema['title']['properties']['rendered']['default'];
-		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
-		$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
-
-		$item = array(
-			'title' => array(
-				'raw' => $instance['title'],
-				'rendered' => $title_rendered,
-			),
-			'posts' => $instance['posts'],
-			'show_date' => $instance['show_date'],
-			'show_featured_image' => $instance['show_featured_image'],
-			'show_author' => $instance['show_author'],
+		$item = array_merge(
+			parent::prepare_item_for_response( $instance, $request ),
+			array(
+				'posts' => $instance['posts'],
+				'show_date' => $instance['show_date'],
+				'show_featured_image' => $instance['show_featured_image'],
+				'show_author' => $instance['show_author'],
+			)
 		);
-
 		return $item;
 	}
 
@@ -259,34 +228,6 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	}
 
 	/**
-	 * Validate a title request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_title_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
-			}
-			if ( trim( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
-			}
-			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Sanitize instance data.
 	 *
 	 * @inheritdoc
@@ -296,12 +237,10 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
-		unset( $old_instance );
-		$instance = array_merge( $this->get_default_instance(), $new_instance );
-		$instance['title'] = sanitize_text_field( $instance['title'] );
+		$instance = parent::sanitize( $new_instance, $old_instance );
 		$instance['posts'] = array_filter( wp_parse_id_list( $instance['posts'] ) );
 		foreach ( array( 'show_date', 'show_featured_image', 'show_author' ) as $field ) {
-			$instance[ $field ] = boolval( $instance[ $field ] );
+			$instance[ $field ] = (bool) $instance[ $field ];
 		}
 		return $instance;
 	}
@@ -407,7 +346,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 */
 	public function form_template() {
 		?>
-		<script id="tmpl-customize-widget-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php if ( ! wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
 				<p><em>
 					<?php
@@ -422,26 +361,30 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 					?>
 				</em></p>
 			<?php else : ?>
-				<p>
-					<label for="{{ data.element_id_base }}_title"><?php esc_html_e( 'Title:', 'js-widgets' ) ?></label>
-					<input id="{{ data.element_id_base }}_title" class="widefat" type="text" name="title">
-				</p>
-				<p>
-					<label for="{{ data.element_id_base }}_posts"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
+				<?php
+				$this->render_title_form_field_template();
+				?>
+				<p class="posts-selector">
+					<label for="{{ data.config.select_id }}"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
 					<span class="customize-object-selector-container"></span>
 				</p>
-				<p>
-					<input id="{{ data.element_id_base }}_show_date" class="widefat" type="checkbox" name="show_date">
-					<label for="{{ data.element_id_base }}_show_date"><?php esc_html_e( 'Show date', 'js-widgets' ) ?></label>
-				</p>
-				<p>
-					<input id="{{ data.element_id_base }}_show_author" class="widefat" type="checkbox" name="show_author">
-					<label for="{{ data.element_id_base }}_show_author"><?php esc_html_e( 'Show author', 'js-widgets' ) ?></label>
-				</p>
-				<p>
-					<input id="{{ data.element_id_base }}_show_featured_image" class="widefat" type="checkbox" name="show_featured_image">
-					<label for="{{ data.element_id_base }}_show_featured_image"><?php esc_html_e( 'Show featured image', 'js-widgets' ) ?></label>
-				</p>
+				<?php
+				$this->render_form_field_template( array(
+					'name' => 'show_date',
+					'label' => __( 'Show date', 'js-widgets' ),
+					'type' => 'checkbox',
+				) );
+				$this->render_form_field_template( array(
+					'name' => 'show_author',
+					'label' => __( 'Show author', 'js-widgets' ),
+					'type' => 'checkbox',
+				) );
+				$this->render_form_field_template( array(
+					'name' => 'show_featured_image',
+					'label' => __( 'Show featured image', 'js-widgets' ),
+					'type' => 'checkbox',
+				) );
+				?>
 			<?php endif; ?>
 		</script>
 

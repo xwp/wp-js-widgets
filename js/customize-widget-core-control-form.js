@@ -9,6 +9,8 @@ wp.customize.Widgets.CoreForm = (function( api, $ ) {
 	/**
 	 * Core widget form.
 	 *
+	 * @todo This might as well be eliminated in favor of letting sanitize be part of the base class.
+	 *
 	 * @constructor
 	 * @augments wp.customize.Widgets.WidgetControl
 	 */
