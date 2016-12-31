@@ -9,7 +9,7 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	var RecentPostsWidgetForm;
 
 	/**
-	 * Text Widget Form.
+	 * Recent Posts Widget Form.
 	 *
 	 * @constructor
 	 */

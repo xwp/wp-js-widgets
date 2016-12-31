@@ -9,7 +9,7 @@ wp.customize.Widgets.formConstructor.categories = (function( api ) {
 	var CategoriesWidgetForm;
 
 	/**
-	 * Text Widget Form.
+	 * Categories Widget Form.
 	 *
 	 * @constructor
 	 */

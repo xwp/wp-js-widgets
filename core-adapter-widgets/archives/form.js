@@ -9,7 +9,7 @@ wp.customize.Widgets.formConstructor.archives = (function( api ) {
 	var ArchivesWidgetForm;
 
 	/**
-	 * Text Widget Form.
+	 * Archives Widget Form.
 	 *
 	 * @constructor
 	 */
