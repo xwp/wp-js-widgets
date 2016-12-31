@@ -35,18 +35,21 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		},
 
 		/**
-		 * Link property elements.
+		 * Render.
 		 *
+		 * @inheritDoc
 		 * @returns {void}
 		 */
-		linkPropertyElements: function linkPropertyElements() {
+		render: function render() {
 			var form = this, selectorContainer;
-
-			api.Widgets.Form.prototype.linkPropertyElements.call( form );
+			api.Widgets.Form.prototype.render.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
-				form.syncedProperties.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
-				form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
+
+				if ( ! form.postsItemTemplate ) {
+					form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
+				}
+
 				form.postObjectSelector = new api.ObjectSelectorComponent({
 					model: form.syncedProperties.posts.value,
 					containing_construct: form.control,
@@ -64,6 +67,20 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 				});
 				selectorContainer = form.container.find( '.customize-object-selector-container:first' );
 				form.postObjectSelector.embed( selectorContainer );
+			}
+		},
+
+		/**
+		 * Link property elements.
+		 *
+		 * @returns {void}
+		 */
+		linkPropertyElements: function linkPropertyElements() {
+			var form = this;
+
+			api.Widgets.Form.prototype.linkPropertyElements.call( form );
+			if ( api.ObjectSelectorComponent ) {
+				form.syncedProperties.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
 			}
 		}
 	});

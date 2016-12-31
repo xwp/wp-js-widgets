@@ -206,15 +206,22 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 					'ID' => __( 'Page ID', 'default' ),
 				),
 			) );
-			$this->render_form_field_template( array(
-				'name' => 'exclude',
-				'label' => __( 'Exclude:', 'default' ),
-				'type' => 'text',
-				'pattern' => self::ID_LIST_PATTERN,
-				'title' => __( 'Page IDs, separated by commas.', 'default' ),
-				'help' => __( 'Page IDs, separated by commas.', 'default' ),
-			) );
 			?>
+			<?php if ( wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
+				<p class="exclude-pages-selector">
+					<label for="{{ data.config.exclude_select_id }}"><?php esc_html_e( 'Exclude:', 'default' ) ?></label>
+					<span class="customize-object-selector-container"></span>
+				</p>
+			<?php else :
+				$this->render_form_field_template( array(
+					'name' => 'exclude',
+					'label' => __( 'Exclude:', 'default' ),
+					'type' => 'text',
+					'pattern' => self::ID_LIST_PATTERN,
+					'title' => __( 'Page IDs, separated by commas.', 'default' ),
+					'help' => __( 'Page IDs, separated by commas.', 'default' ),
+				) );
+			endif; ?>
 		</script>
 		<?php
 	}
