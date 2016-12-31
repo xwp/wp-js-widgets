@@ -68,9 +68,6 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	/**
 	 * Render a widget instance for a REST API response.
 	 *
-	 * Map the instance data to the REST resource fields and add rendered fields.
-	 * The Text widget stores the `content` field in `text` and `auto_paragraph` in `filter`.
-	 *
 	 * @inheritdoc
 	 *
 	 * @param array           $instance Raw database instance.

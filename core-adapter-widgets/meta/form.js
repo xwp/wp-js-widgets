@@ -9,7 +9,7 @@ wp.customize.Widgets.formConstructor.meta = (function() {
 	var MetaWidgetForm;
 
 	/**
-	 * Calendar Widget Form.
+	 * Meta Widget Form.
 	 *
 	 * @constructor
 	 */

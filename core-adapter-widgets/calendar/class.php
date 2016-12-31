@@ -6,7 +6,7 @@
  */
 
 /**
- * Class WP_JS_Widget_Text
+ * Class WP_JS_Widget_Calendar
  *
  * @package WP_JS_Widget_Calendar
  */

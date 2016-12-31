@@ -525,6 +525,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 			'choices' => array(),
 			'value' => '',
 			'placeholder' => '',
+			'help' => '',
 		);
 		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
 			$defaults['class'] = 'widefat';
@@ -563,6 +564,14 @@ abstract class WP_JS_Widget extends WP_Widget {
 			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<?php
 		} // End if().
+
+		if ( $args['help'] ) {
+			?>
+			<br>
+			<small><?php echo esc_html( $args['help'] ); ?></small>
+			<?php
+		}
+
 		echo '<# }( "el" + String( Math.random() ) )); #>';
 		echo '</p>';
 	}

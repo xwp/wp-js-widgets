@@ -6,7 +6,7 @@
  */
 
 /**
- * Class WP_JS_Widget_Text
+ * Class WP_JS_Widget_Meta
  *
  * @package WP_JS_Widget_Meta
  */
