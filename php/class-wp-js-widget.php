@@ -400,7 +400,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
 	 * @see WP_JS_Widget::get_item_schema()
-	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
 	 * @param array $old_instance  Old instance.

@@ -408,7 +408,6 @@ class JS_Widgets_Plugin {
 			$this->original_customize_sanitize_js_callbacks[ $setting_id ] = $args['sanitize_js_callback'];
 			$args['sanitize_callback'] = array( $this, 'sanitize_widget_instance' );
 			$args['sanitize_js_callback'] = array( $this, 'sanitize_widget_js_instance' );
-			$args['validate_callback'] = array( $this, 'validate_widget_instance' );
 		}
 		return $args;
 	}
@@ -416,7 +415,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Get the REST Request for the PUT to update the widget resource.
 	 *
-	 * The provided instance will be sanitized, filled with defaults.
+	 * The provided instance will be populated with the instance, filled with defaults.
 	 * Applies the same logic as `WP_REST_Server::dispatch()`. Validation is
 	 * done in another method.
 	 *
@@ -427,7 +426,7 @@ class JS_Widgets_Plugin {
 	 * @param WP_JS_Widget $widget   Widget instance.
 	 * @return WP_REST_Request|null Sanitized request on success, or `null` if no schema.
 	 */
-	public function get_sanitized_request( $instance, $widget ) {
+	public function get_put_request( $instance, $widget ) {
 		$instance_schema = $widget->get_item_schema();
 		if ( empty( $instance_schema ) ) {
 			return null;
@@ -446,7 +445,6 @@ class JS_Widgets_Plugin {
 		}
 		$request->set_attributes( $attributes );
 		$request->set_body_params( $instance );
-		$request->sanitize_params();
 		$defaults = array();
 		foreach ( $attributes['args'] as $arg => $options ) {
 			if ( isset( $options['default'] ) ) {
@@ -455,36 +453,6 @@ class JS_Widgets_Plugin {
 		}
 		$request->set_default_params( $defaults );
 		return $request;
-	}
-
-	/**
-	 * Sanitize the instance via the instance schema.
-	 *
-	 * @param array        $instance Widget instance data.
-	 * @param WP_JS_Widget $widget   Widget object.
-	 * @return array Sanitized instance.
-	 */
-	public function sanitize_via_instance_schema( $instance, $widget ) {
-		$request = $this->get_sanitized_request( $instance, $widget );
-		if ( is_null( $request ) ) {
-			return $instance;
-		}
-		return $request->get_body_params();
-	}
-
-	/**
-	 * Validate the instance via the instance schema.
-	 *
-	 * @param array        $instance Widget instance data.
-	 * @param WP_JS_Widget $widget   Widget object.
-	 * @return bool|WP_Error
-	 */
-	public function validate_via_instance_schema( $instance, $widget ) {
-		$request = $this->get_sanitized_request( $instance, $widget );
-		if ( is_null( $request ) ) {
-			return true;
-		}
-		return $request->has_valid_params();
 	}
 
 	/**
@@ -587,7 +555,30 @@ class JS_Widgets_Plugin {
 		} else {
 			$old_instance = array();
 		}
-		$instance = $this->sanitize_via_instance_schema( $new_instance, $widget );
+
+		if ( is_null( $new_instance ) ) {
+			return new WP_Error( 'invalid_value', __( 'Widget invalidated by widget_update_callback filter.', 'js-widgets' ) );
+		}
+
+		$request = $this->get_put_request( $new_instance, $widget );
+		if ( $request ) {
+			$validity = $request->has_valid_params();
+			if ( is_wp_error( $validity ) ) {
+				return $validity;
+			}
+		}
+
+		$method_validity = $widget->validate( $new_instance );
+		if ( is_wp_error( $method_validity ) ) {
+			return $method_validity;
+		}
+
+		$validity = $request->sanitize_params();
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
+		$instance = $request->get_body_params();
 
 		if ( is_array( $instance ) ) {
 			$instance = $widget->sanitize( $instance, $old_instance );
@@ -628,52 +619,6 @@ class JS_Widgets_Plugin {
 		if ( ! is_array( $instance ) ) {
 			$validity->add( 'invalid_value', __( 'Invalid value.', 'js-widgets' ) );
 		}
-		return $validity;
-	}
-
-	/**
-	 * Validate widget instance.
-	 *
-	 * @param WP_Error             $validity     Validity.
-	 * @param array|null           $new_instance Widget instance.
-	 * @param WP_Customize_Setting $setting      Widget setting.
-	 * @return true|WP_Error True if valid, or `WP_Error` if invalid.
-	 */
-	public function validate_widget_instance( $validity, $new_instance, $setting ) {
-		if ( isset( $this->original_customize_validate_callbacks[ $setting->id ] ) ) {
-			$original_validate_callback = $this->original_customize_validate_callbacks[ $setting->id ];
-		} else {
-			$original_validate_callback = array( $this, 'fallback_validate_callback' );
-		}
-
-		$parsed_setting_id = $setting->manager->widgets->parse_widget_setting_id( $setting->id );
-		if ( is_wp_error( $parsed_setting_id ) ) {
-			return call_user_func( $original_validate_callback, $validity, $new_instance, $setting );
-		}
-		$widget = $this->get_widget_instance( $parsed_setting_id['id_base'] );
-		if ( ! $widget || ! ( $widget instanceof WP_JS_Widget ) ) {
-			return call_user_func( $original_validate_callback, $validity, $new_instance, $setting );
-		}
-
-		if ( is_null( $new_instance ) ) {
-			$validity->add( 'invalid_value', __( 'Widget invalidated by widget_update_callback filter.', 'js-widgets' ) );
-		} else {
-
-			$schema_validity = $this->validate_via_instance_schema( $new_instance, $widget );
-			if ( is_wp_error( $schema_validity ) ) {
-				foreach ( $schema_validity->errors as $code => $messages ) {
-					$validity->add( $code, join( ' ', $messages ), $schema_validity->get_error_data( $code ) );
-				}
-			}
-
-			$method_validity = $widget->validate( $new_instance );
-			if ( is_wp_error( $method_validity ) ) {
-				foreach ( $method_validity->errors as $code => $messages ) {
-					$validity->add( $code, join( ' ', $messages ), $method_validity->get_error_data( $code ) );
-				}
-			}
-		}
-
 		return $validity;
 	}
 
