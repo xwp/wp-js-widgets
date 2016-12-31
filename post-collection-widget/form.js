@@ -45,10 +45,10 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 			api.Widgets.Form.prototype.linkPropertyElements.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
-				form.propertyValues.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
+				form.syncedProperties.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
 				form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
 				form.postObjectSelector = new api.ObjectSelectorComponent({
-					model: form.propertyValues.posts,
+					model: form.syncedProperties.posts.value,
 					containing_construct: form.control,
 					post_query_vars: form.config.post_query_args,
 					select2_options: _.extend(

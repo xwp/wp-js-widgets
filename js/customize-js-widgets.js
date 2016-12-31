@@ -27,6 +27,30 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 			_.extend( component.data, data );
 		}
 		component.extendWidgetControl();
+
+		// Handle (re-)adding a (previously-removed) control.
+		api.control.bind( 'add', function( addedControl ) {
+			if ( component.isJsWidgetControl( addedControl ) && addedControl.widgetContentEmbedded ) {
+				addedControl.form.render();
+			}
+		} );
+
+		// Destruct (unmount) a form when a widget control is removed.
+		api.control.bind( 'remove', function( removedControl ) {
+			if ( component.isJsWidgetControl( removedControl ) && removedControl.widgetContentEmbedded ) {
+				removedControl.form.destruct();
+			}
+		} );
+	};
+
+	/**
+	 * Determine whether the given control is a JS Widget.
+	 *
+	 * @param {wp.customize.Control} widgetControl Widget control.
+	 * @returns {boolean} Whether the control is a JS widget.
+	 */
+	component.isJsWidgetControl = function isJsWidgetControl( widgetControl ) {
+		return widgetControl.extended( api.Widgets.WidgetControl ) && component.data.id_bases[ widgetControl.params.widget_id_base ];
 	};
 
 	/**
@@ -44,9 +68,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @returns {void}
 		 */
 		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
-			var control = this;
-			control.isCustomizeControl = options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ];
-			if ( control.isCustomizeControl ) {
+			var control = this, isJsWidget;
+			isJsWidget = options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ];
+			if ( isJsWidget ) {
 				_.extend( control, component.WidgetControl.prototype );
 				component.WidgetControl.prototype.initialize.call( control, id, options );
 			} else {

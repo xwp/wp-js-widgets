@@ -55,21 +55,26 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php
 			$this->render_title_form_field_template();
-
-			$nav_menus = wp_get_nav_menus();
-			$choices = array(
-				'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
-			);
-			foreach ( $nav_menus as $nav_menu ) {
-				$choices[ $nav_menu->term_id ] = $nav_menu->name;
-			}
-			$this->render_form_field_template( array(
-				'name' => 'nav_menu',
-				'label' => __( 'Select Menu:', 'default' ),
-				'type' => 'select',
-				'choices' => $choices,
-			) );
 			?>
+
+			<div class="no-menus-message">
+				<p><?php echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) ); ?></p>
+			</div>
+			<div class="menu-selection">
+				<?php
+				$this->render_form_field_template( array(
+					'name' => 'nav_menu',
+					'label' => __( 'Select Menu:', 'default' ),
+					'type' => 'select',
+					'choices' => array(
+						'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
+					),
+				) );
+				?>
+				<p>
+					<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
+				</p>
+			</div>
 		</script>
 		<?php
 	}

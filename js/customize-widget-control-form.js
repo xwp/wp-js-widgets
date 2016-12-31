@@ -182,51 +182,72 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		 *
 		 * @param {wp.customize.Value} root Root value instance.
 		 * @param {string} property Property name.
-		 * @returns {wp.customize.Value} Property value instance.
+		 * @returns {object} Property value instance.
 		 */
 		createSyncedPropertyValue: function createSyncedPropertyValue( root, property ) {
-			var propertyValue = new api.Value( root.get()[ property ] );
+			var propertyValue, rootChangeListener, propertyChangeListener;
+
+			propertyValue = new api.Value( root.get()[ property ] );
 
 			// Sync changes to the property back to the root value.
-			propertyValue.bind( function updatePropertyValue( newPropertyValue ) {
+			propertyChangeListener = function( newPropertyValue ) {
 				var rootValue = _.clone( root.get() );
 				rootValue[ property ] = newPropertyValue;
 				root.set( rootValue );
-			} );
+			};
+			propertyValue.bind( propertyChangeListener );
 
 			// Sync changes in the root value to the model.
-			root.bind( function updateRootValue( newRootValue, oldRootValue ) {
+			rootChangeListener = function updateRootValue( newRootValue, oldRootValue ) {
 				if ( ! _.isEqual( newRootValue[ property ], oldRootValue[ property ] ) ) {
 					propertyValue.set( newRootValue[ property ] );
 				}
-			} );
+			};
+			root.bind( rootChangeListener );
 
-			return propertyValue;
+			return {
+				value: propertyValue,
+				propertyChangeListener: propertyChangeListener,
+				rootChangeListener: rootChangeListener
+			};
 		},
 
 		/**
-		 * Link property elements.
+		 * Create elements to link setting value properties with corresponding inputs in the form.
 		 *
 		 * @returns {void}
 		 */
 		linkPropertyElements: function linkPropertyElements() {
 			var form = this, initialInstanceData;
 			initialInstanceData = form.getValue();
-			form.propertyValues = {};
-			form.propertyElements = {};
+			form.syncedProperties = {};
 			form.container.find( ':input[name]' ).each( function() {
-				var input = $( this ), name = input.prop( 'name' ), propertyValue, propertyElement;
+				var input = $( this ), name = input.prop( 'name' ), syncedProperty;
 				if ( _.isUndefined( initialInstanceData[ name ] ) ) {
 					return;
 				}
-				propertyValue = form.createSyncedPropertyValue( form.setting, name );
-				propertyElement = new wp.customize.Element( input );
-				propertyElement.set( initialInstanceData[ name ] );
-				propertyElement.sync( propertyValue );
 
-				form.propertyValues[ name ] = propertyValue;
-				form.propertyElements[ name ] = propertyElement;
+				syncedProperty = form.createSyncedPropertyValue( form.setting, name );
+				syncedProperty.element = new api.Element( input );
+				syncedProperty.element.set( initialInstanceData[ name ] );
+				syncedProperty.element.sync( syncedProperty.value );
+				form.syncedProperties[ name ] = syncedProperty;
 			} );
+		},
+
+		/**
+		 * Unlink setting value properties with corresponding inputs in the form.
+		 *
+		 * @returns {void}
+		 */
+		unlinkPropertyElements: function unlinkPropertyElements() {
+			var form = this;
+			_.each( form.syncedProperties, function( syncedProperty ) {
+				syncedProperty.element.unsync( syncedProperty.value );
+				form.setting.unbind( syncedProperty.rootChangeListener );
+				syncedProperty.value.callbacks.remove();
+			} );
+			form.syncedProperties = {};
 		},
 
 		/**
@@ -256,7 +277,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		},
 
 		/**
-		 * Render the form into the container.
+		 * Render (mount) the form into the container.
 		 *
 		 * @returns {void}
 		 */
@@ -264,6 +285,19 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 			var form = this, template = form.getTemplate();
 			form.container.html( template( form ) );
 			form.linkPropertyElements();
+		},
+
+		/**
+		 * Destruct (unrender/unmount) the form.
+		 *
+		 * Subclasses can do cleanup of event listeners on other components,
+		 *
+		 * @returns {void}
+		 */
+		destruct: function destroy() {
+			var form = this;
+			form.container.empty();
+			form.unlinkPropertyElements();
 		}
 	});
 
