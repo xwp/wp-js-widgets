@@ -44,7 +44,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 				'error' => array(
 					'description' => __( 'Any error when fetching the feed.', 'js-widgets' ),
 					'type' => array( 'boolean', 'string' ),
-					'readonly' => true, // @todo This is not causing an arg to be rejected.
+					'readonly' => true,
 					'context' => array( 'edit' ),
 					'default' => false,
 				),
@@ -81,7 +81,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 						'type' => 'object',
 					),
 					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true, // @todo This is not causing an arg to be rejected.
+					'readonly' => true,
 					'default' => array(),
 				),
 			)

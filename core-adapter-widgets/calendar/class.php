@@ -36,7 +36,7 @@ class WP_JS_Widget_Calendar extends WP_Adapter_JS_Widget {
 			'description' => __( 'The rendered HTML for the post calendar.', 'js-widgets' ),
 			'type' => 'string',
 			'context' => array( 'view', 'edit', 'embed' ),
-			'readonly' => true, // @todo This is not causing an arg to be rejected.
+			'readonly' => true,
 			'default' => '',
 		);
 		return $schema;

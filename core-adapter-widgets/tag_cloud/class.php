@@ -54,7 +54,7 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 						'type' => 'object',
 					),
 					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true, // @todo This is not causing an arg to be rejected.
+					'readonly' => true,
 					'default' => array(),
 				),
 			)

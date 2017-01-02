@@ -45,7 +45,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 						'type' => 'integer',
 					),
 					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true, // @todo This is not causing the arg to be rejected.
+					'readonly' => true,
 					'default' => array(),
 				),
 			)
