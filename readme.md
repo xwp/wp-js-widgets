@@ -5,7 +5,7 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
-**Requires at least:** 4.5.0  
+**Requires at least:** 4.7.0  
 **Tested up to:** 4.7.0  
 **Stable tag:** 0.2.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
@@ -46,6 +46,12 @@ Limitations/Caveats:
 
 ### 0.2.0 - 2016-12-??
 
+* Important: Update minimum WordPress core version to 4.7.0.
+* Eliminate `Form#embed` JS method in favor of just `Form#render`. Introduce `Form#destruct` to handle unmounting a rendered form.
+* Implement ability for sanitize to return error/notification and display in control's notifications.
+* Show warning when attempting to add HTML to widget titles and when adding illegal HTML to Text widget content. This is a UX improvement over silently failing.
+* Add adapters for all of the core widgets (aside from Links). Include as much raw data as possible in the REST responses so that JS clients can construct widgets using client-side templates.
+* Add integration between the Pages widget's `exclude` param and the [Customize Object Selector](https://wordpress.org/plugins/customize-object-selector/) plugin to provide a Select2 UI for selecting pages to exclude instead of listing out page IDs.
 * Ensure old encoded instance data setting value format is supported (such as in starter content).
 * Move Post Collection widget into separate embedded plugin so that it is not active by default.
 * Inject rest_controller object dependency on `WP_JS_Widget` upon `rest_api_init`.
@@ -54,6 +60,12 @@ Limitations/Caveats:
 * Reorganize core adapter widgets and introduce `WP_Adapter_JS_Widget` class.
 * Eliminate uglification and CSS minification.
 * Use widget number as integer ID for widgets of a given type.
+* Update integration with REST API to take advantage of sanitization callbacks being able to do validation.
+* Replace Backbone implementation for Text widget with Customize `Element` implementation.
+* Reduce duplication by moving methods to base classes.
+* Add form field template generator helper methods.
+* Implement [WP Core Trac #39389](https://core.trac.wordpress.org/ticket/39389): Scroll widget partial into view when control expanded.
+
 
 = 0.1.1 - 2016-10-03 ###
 * Add 100% width to object-selector.
