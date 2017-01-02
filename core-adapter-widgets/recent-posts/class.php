@@ -75,14 +75,11 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
-		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
-
-		$number = max( intval( $instance['number'] ), $schema['number']['minimum'] );
 
 		/** This filter is documented in src/wp-includes/widgets/class-wp-widget-recent-posts.php */
 		$query = new WP_Query( apply_filters( 'widget_posts_args', array(
-			'posts_per_page' => $number,
+			'posts_per_page' => $instance['number'],
 			'no_found_rows' => true,
 			'post_status' => 'publish',
 			'ignore_sticky_posts' => true,
@@ -93,7 +90,7 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 		$item = array_merge(
 			parent::prepare_item_for_response( $instance, $request ),
 			array(
-				'number' => $number,
+				'number' => $instance['number'],
 				'show_date' => (bool) $instance['show_date'],
 				'posts' => wp_list_pluck( $query->posts, 'ID' ),
 			)

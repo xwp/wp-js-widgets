@@ -99,7 +99,6 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 		return $item;
 	}
 
-
 	/**
 	 * Get categories list.
 	 *
