@@ -41,7 +41,7 @@ Limitations/Caveats:
 
 == Changelog ==
 
-= 0.2.0 - 2016-12-??
+= 0.2.0 - 2017-01-02 =
 
 * Important: Update minimum WordPress core version to 4.7.0.
 * Eliminate `Form#embed` JS method in favor of just `Form#render`. Introduce `Form#destruct` to handle unmounting a rendered form.
@@ -62,7 +62,6 @@ Limitations/Caveats:
 * Reduce duplication by moving methods to base classes.
 * Add form field template generator helper methods.
 * Implement [WP Core Trac #39389](https://core.trac.wordpress.org/ticket/39389): Scroll widget partial into view when control expanded.
-
 
 = 0.1.1 - 2016-10-03 =
 
