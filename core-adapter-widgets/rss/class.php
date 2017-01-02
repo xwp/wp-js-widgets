@@ -35,7 +35,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 					'description' => __( 'The RSS feed URL.', 'js-widgets' ),
 					'type' => 'string',
 					'format' => 'uri',
-					'context' => array( 'view', 'edit', 'embed' ),
+					'context' => array( 'edit' ),
 					'default' => '',
 					'arg_options' => array(
 						'validate_callback' => array( $this, 'validate_feed_url' ),
@@ -45,7 +45,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 					'description' => __( 'Any error when fetching the feed.', 'js-widgets' ),
 					'type' => array( 'boolean', 'string' ),
 					'readonly' => true, // @todo This is not causing an arg to be rejected.
-					'context' => array( 'view', 'edit', 'embed' ),
+					'context' => array( 'edit' ),
 					'default' => false,
 				),
 				'items' => array(
