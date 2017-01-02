@@ -58,6 +58,7 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 						'validate_callback' => 'rest_validate_request_arg',
 					),
 				),
+				// @todo Add categories readonly response that lists the categories that would be returned.
 			)
 		);
 		return $schema;

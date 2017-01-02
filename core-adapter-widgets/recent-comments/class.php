@@ -48,7 +48,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 						'type' => 'integer',
 					),
 					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true,
+					'readonly' => true, // @todo This is not causing the arg to be rejected.
 					'default' => array(),
 				),
 			)
@@ -119,12 +119,6 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 		$item_schema = $this->get_item_schema();
 		$args = parent::get_form_args();
 		$args['minimum_number'] = $item_schema['number']['minimum'];
-		$args['l10n'] = array_merge(
-			$args['l10n'],
-			array(
-				'text_unfiltered_html_invalid' => __( 'Protected HTML such as script tags will be stripped from the content.', 'js-widgets' ),
-			)
-		);
 		return $args;
 	}
 
@@ -143,8 +137,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 				'name' => 'number',
 				'label' => __( 'Number of comments to show:', 'default' ),
 				'type' => 'number',
-				'min' => 1,
-				'step' => 1,
+				'min' => $item_schema['number']['minimum'],
 			) );
 			?>
 		</script>

@@ -47,7 +47,7 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 							'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit', 'embed' ),
-							'readonly'    => true,
+							'readonly'    => true, // @todo This is not causing an arg to be rejected.
 						),
 					),
 				),

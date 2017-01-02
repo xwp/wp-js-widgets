@@ -515,6 +515,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 	/**
 	 * Render form field template.
 	 *
+	 * @todo Use a random string for a common name prefix to ensure that radio buttons will work properly.
+	 *
 	 * @param array $args Args.
 	 */
 	protected function render_form_field_template( $args = array() ) {

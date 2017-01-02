@@ -60,7 +60,7 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 					'description' => __( 'The IDs for the listed pages.', 'js-widgets' ),
 					'type' => 'array',
 					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true,
+					'readonly' => true, // @todo This is not causing the arg to be rejected.
 					'default' => array(),
 				),
 			)
