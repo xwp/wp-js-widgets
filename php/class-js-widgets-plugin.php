@@ -564,7 +564,7 @@ class JS_Widgets_Plugin {
 		if ( $request ) {
 			$validity = $request->has_valid_params();
 			if ( is_wp_error( $validity ) ) {
-				return $validity;
+				return $this->augment_error_with_rest_invalid_params( $validity );
 			}
 		}
 
@@ -575,7 +575,7 @@ class JS_Widgets_Plugin {
 
 		$validity = $request->sanitize_params();
 		if ( is_wp_error( $validity ) ) {
-			return $validity;
+			return $this->augment_error_with_rest_invalid_params( $validity );
 		}
 
 		$instance = $request->get_body_params();
@@ -606,6 +606,26 @@ class JS_Widgets_Plugin {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Augment error with REST invalid param errors.
+	 *
+	 * @param WP_Error $error Error.
+	 * @return WP_Error With errors added for rest_invalid_params.
+	 */
+	protected function augment_error_with_rest_invalid_params( WP_Error $error ) {
+		$data = $error->get_error_data( 'rest_invalid_param' );
+		if ( ! empty( $data['params'] ) ) {
+			$error = clone $error;
+			foreach ( $data['params'] as $field => $error_message ) {
+				$error->add(
+					sprintf( 'rest_invalid_param[%s]', $field ),
+					$error_message
+				);
+			}
+		}
+		return $error;
 	}
 
 	/**
