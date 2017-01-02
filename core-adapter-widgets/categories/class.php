@@ -36,27 +36,18 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'count' => array(
 					'description' => __( 'Show post counts', 'default' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'hierarchical' => array(
 					'description' => __( 'Show hierarchy', 'default' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'terms' => array(
 					'description' => __( 'The IDs for the category terms.', 'js-widgets' ),

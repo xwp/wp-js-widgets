@@ -39,9 +39,6 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 					'enum' => array( 'post_title', 'menu_order', 'ID' ),
 					'default' => 'menu_order',
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'exclude' => array(
 					'description' => __( 'Page IDs to exclude.', 'js-widgets' ),
@@ -52,7 +49,6 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 					'default' => array(),
 					'context' => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
-						// Note validate_callback is performed in sanitization.
 						'sanitize_callback' => array( $this, 'sanitize_exclude' ),
 					),
 				),

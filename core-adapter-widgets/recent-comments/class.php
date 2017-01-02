@@ -37,9 +37,6 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 					'context' => array( 'view', 'edit', 'embed' ),
 					'default' => 5,
 					'minimum' => 1,
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'comments' => array(
 					'description' => __( 'The IDs for the recent comments.', 'js-widgets' ),

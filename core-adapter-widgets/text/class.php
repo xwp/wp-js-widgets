@@ -56,9 +56,6 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'edit' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 			)
 		);

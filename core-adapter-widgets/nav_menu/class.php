@@ -38,9 +38,6 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 					'type' => 'integer',
 					'default' => 0,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 			)
 		);

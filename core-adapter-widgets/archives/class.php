@@ -36,18 +36,12 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'count' => array(
 					'description' => __( 'Show post counts', 'default' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				// @todo There needs to be raw data returned such that a client can construct an archive view as get_archives() does on the server.
 			)

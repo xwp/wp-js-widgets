@@ -55,36 +55,24 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 					'minimum' => 1,
 					'default' => 10,
 					'maximum' => 20,
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'show_summary' => array(
 					'description' => __( 'Whether the summary should be shown.', 'js-widgets' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'show_author' => array(
 					'description' => __( 'Whether the author should be shown.', 'js-widgets' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'show_date' => array(
 					'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'rss_items' => array(
 					'description' => __( 'The RSS items.', 'js-widgets' ),

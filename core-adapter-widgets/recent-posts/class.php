@@ -37,18 +37,12 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 					'context' => array( 'view', 'edit', 'embed' ),
 					'default' => 5,
 					'minimum' => 1,
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'show_date' => array(
 					'description' => __( 'Whether the date should be shown.', 'js-widgets' ),
 					'type' => 'boolean',
 					'default' => false,
 					'context' => array( 'view', 'edit', 'embed' ),
-					'arg_options' => array(
-						'validate_callback' => 'rest_validate_request_arg',
-					),
 				),
 				'posts' => array(
 					'description' => __( 'The IDs for the recent posts.', 'js-widgets' ),
