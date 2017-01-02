@@ -1,20 +1,19 @@
 /* global wp, module */
 /* eslint consistent-this: [ "error", "form" ] */
-/* eslint no-magic-numbers: [ "error", {"ignore":[0,1]} ] */
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
+wp.customize.Widgets.formConstructor.pages = (function( api ) {
 	'use strict';
 
-	var PostCollectionWidgetForm;
+	var PagesWidgetForm;
 
 	/**
-	 * Post Collection Widget Form.
+	 * Pages Widget Form.
 	 *
 	 * @constructor
 	 */
-	PostCollectionWidgetForm = api.Widgets.Form.extend({
+	PagesWidgetForm = wp.customize.Widgets.Form.extend( {
 
 		/**
 		 * Initialize.
@@ -24,12 +23,12 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		 * @param {object}                             properties.config  Form config.
 		 * @return {void}
 		 */
-		initialize: function initializePostCollectionWidgetForm( properties ) {
+		initialize: function initializePagesWidgetForm( properties ) {
 			var form = this, props;
 
 			props = _.clone( properties );
 			props.config = _.clone( props.config );
-			props.config.select_id = 'select' + String( Math.random() );
+			props.config.exclude_select_id = 'select' + String( Math.random() );
 
 			api.Widgets.Form.prototype.initialize.call( form, props );
 		},
@@ -45,25 +44,17 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 			api.Widgets.Form.prototype.render.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
-
-				if ( ! form.postsItemTemplate ) {
-					form.postsItemTemplate = wp.template( 'customize-widget-post-collection-select2-option' );
-				}
-
 				form.postObjectSelector = new api.ObjectSelectorComponent({
-					model: form.syncedProperties.posts.value,
+					model: form.syncedProperties.exclude.value,
 					containing_construct: form.control,
-					post_query_vars: form.config.post_query_args,
-					select2_options: _.extend(
-						{
-							multiple: true,
-							width: '100%'
-						},
-						form.config.select2_options
-					),
-					select_id: form.config.select_id,
-					select2_result_template: form.postsItemTemplate,
-					select2_selection_template: form.postsItemTemplate
+					post_query_vars: {
+						post_type: 'page'
+					},
+					select2_options: {
+						multiple: true,
+						width: '100%'
+					},
+					select_id: form.config.exclude_select_id
 				});
 				selectorContainer = form.container.find( '.customize-object-selector-container:first' );
 				form.postObjectSelector.embed( selectorContainer );
@@ -76,18 +67,31 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 		 * @returns {void}
 		 */
 		linkPropertyElements: function linkPropertyElements() {
-			var form = this;
+			var form = this, excludeIds;
 
 			api.Widgets.Form.prototype.linkPropertyElements.call( form );
 			if ( api.ObjectSelectorComponent ) {
-				form.syncedProperties.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
+
+				// Quietly convert the exclude property from comma-separated list string to ID array, as required by Customize Object Selector.
+				excludeIds = [];
+				if ( form.setting._value.exclude ) {
+					_.each( form.setting._value.exclude.split( /\s*,\s*/ ), function( value ) {
+						var id = parseInt( value, 10 );
+						if ( ! isNaN( id ) ) {
+							excludeIds.push( id );
+						}
+					} );
+				}
+				form.setting._value.exclude = excludeIds;
+
+				form.syncedProperties.exclude = form.createSyncedPropertyValue( form.setting, 'exclude' );
 			}
 		}
-	});
+	} );
 
 	if ( 'undefined' !== typeof module ) {
-		module.exports = PostCollectionWidgetForm;
+		module.exports = PagesWidgetForm;
 	}
-	return PostCollectionWidgetForm;
+	return PagesWidgetForm;
 
-})( wp.customize, jQuery );
+})( wp.customize );

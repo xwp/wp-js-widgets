@@ -93,13 +93,67 @@ abstract class WP_JS_Widget extends WP_Widget {
 	public function enqueue_frontend_scripts() {}
 
 	/**
-	 * Get schema for the widget instance REST resource item.
+	 * Get instance schema properties.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
 	 *
-	 * @return array
+	 * @return array Schema.
 	 */
-	abstract public function get_item_schema();
+	public function get_item_schema() {
+		$schema = array(
+			'title' => array(
+				'description' => __( 'The title for the widget.', 'js-widgets' ),
+				'type' => 'object',
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'default' => '',
+						'arg_options' => array(
+							'validate_callback' => array( $this, 'validate_title_field' ),
+						),
+					),
+					'rendered' => array(
+						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'view', 'edit', 'embed' ),
+						'readonly' => true,
+					),
+				),
+			),
+		);
+		return $schema;
+	}
+
+	/**
+	 * Validate a title request argument based on details registered to the route.
+	 *
+	 * @param  mixed           $value   Value.
+	 * @param  WP_REST_Request $request Request.
+	 * @param  string          $param   Param.
+	 * @return WP_Error|boolean
+	 */
+	public function validate_title_field( $value, $request, $param ) {
+		$valid = rest_validate_request_arg( $value, $request, $param );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		if ( $this->should_validate_strictly( $request ) ) {
+			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
+			}
+			if ( trim( $value ) !== $value ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
+			}
+			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
+			}
+		}
+		return true;
+	}
 
 	/**
 	 * Get default instance data.
@@ -143,15 +197,72 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * underlying instance data have different structures, or if additional
 	 * dynamic (readonly) fields should be included in the response.
 	 *
-	 * @see WP_JS_Widget::render()
+	 * @inheritdoc
 	 *
-	 * @param array           $instance Raw (legacy) instance.
+	 * @param array           $instance Raw database instance without rendered properties.
 	 * @param WP_REST_Request $request  REST request.
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
 		unset( $request );
-		return $instance;
+		$schema = $this->get_item_schema();
+		$instance = array_merge( $this->get_default_instance(), $instance );
+
+		$item = array();
+		if ( isset( $schema['title']['properties']['raw'] ) ) {
+			$title_rendered = '';
+			if ( ! empty( $instance['title'] ) ) {
+				$title_rendered = $instance['title'];
+			} elseif ( isset( $schema['title']['properties']['rendered']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['rendered']['default'];
+			} elseif ( isset( $schema['title']['properties']['raw']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['raw']['default'];
+			}
+
+			/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
+			$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
+			$title_rendered = html_entity_decode( $title_rendered, ENT_QUOTES, 'utf-8' );
+
+			$item['title'] = array(
+				'raw' => $instance['title'],
+				'rendered' => $title_rendered,
+			);
+			unset( $schema['title'] );
+		}
+
+		foreach ( $schema as $field_id => $field_attributes ) {
+			$field_value = null;
+			if ( ! isset( $instance[ $field_id ] ) ) {
+				// @todo Add recursive method to compute default value.
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					foreach ( $field_attributes['properties'] as $prop_id => $prop_attributes ) {
+						$prop_value = null;
+						if ( isset( $item[ $field_id ]['default'] ) ) {
+							$prop_value = $item[ $field_id ]['default'];
+						}
+						$field_value[ $prop_id ] = $prop_value;
+					}
+				} elseif ( isset( $field_attributes['default'] ) ) {
+					$field_value = $field_attributes['default'];
+				}
+			} else {
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					if ( isset( $field_attributes['properties']['raw'] ) ) {
+						$field_value['raw'] = $instance[ $field_id ];
+					}
+					if ( isset( $field_attributes['properties']['rendered'] ) ) {
+						$field_value['rendered'] = null; // A subclass must render the value.
+					}
+				} else {
+					$field_value = $instance[ $field_id ];
+				}
+			}
+			$item[ $field_id ] = $field_value;
+		}
+
+		return $item;
 	}
 
 	/**
@@ -289,14 +400,17 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
 	 * @see WP_JS_Widget::get_item_schema()
-	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
 	 * @param array $old_instance  Old instance.
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
-		unset( $old_instance, $setting );
+		unset( $old_instance );
+		$new_instance = array_merge( $this->get_default_instance(), $new_instance );
+		if ( isset( $instance['title'] ) ) {
+			$instance['title'] = sanitize_text_field( $instance['title'] );
+		}
 		return $new_instance;
 	}
 
@@ -370,9 +484,117 @@ abstract class WP_JS_Widget extends WP_Widget {
 	abstract public function render( $args, $instance );
 
 	/**
-	 * Render JS template.
+	 * Render title form field.
+	 *
+	 * @param array $input_attrs Input attributes.
 	 */
-	public function form_template() {}
+	protected function render_title_form_field_template( $input_attrs = array() ) {
+		$this->render_form_field_template( array_merge(
+			array(
+				'name' => 'title',
+				'label' => __( 'Title:', 'default' ),
+				'type' => 'text',
+			),
+			$input_attrs
+		) );
+	}
+
+	/**
+	 * Render input attributes.
+	 *
+	 * @param array $input_attrs Input attributes.
+	 */
+	protected function render_input_attrs( $input_attrs ) {
+		$input_attrs_str = '';
+		foreach ( $input_attrs as $key => $value ) {
+			$input_attrs_str .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
+		}
+		echo $input_attrs_str; // WPCS: XSS OK.
+	}
+
+	/**
+	 * Render form field template.
+	 *
+	 * @todo Use a random string for a common name prefix to ensure that radio buttons will work properly.
+	 *
+	 * @param array $args Args.
+	 */
+	protected function render_form_field_template( $args = array() ) {
+		$defaults = array(
+			'name' => '',
+			'label' => '',
+			'type' => 'text',
+			'choices' => array(),
+			'value' => '',
+			'placeholder' => '',
+			'help' => '',
+		);
+		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
+			$defaults['class'] = 'widefat';
+		}
+		$args = wp_parse_args( $args, $defaults );
+
+		$input_attrs = $args;
+		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
+
+		echo '<p>';
+		echo '<# (function( domId ) { #>';
+		if ( 'checkbox' === $args['type'] ) {
+			?>
+			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<?php
+		} elseif ( 'select' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
+			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+				<?php foreach ( $args['choices'] as $value => $text ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>">
+						<?php echo esc_html( $text ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<?php
+		} elseif ( 'textarea' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<?php
+		} else {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<?php
+		} // End if().
+
+		if ( $args['help'] ) {
+			?>
+			<br>
+			<small><?php echo esc_html( $args['help'] ); ?></small>
+			<?php
+		}
+
+		echo '<# }( "el" + String( Math.random() ) )); #>';
+		echo '</p>';
+	}
+
+	/**
+	 * Render JS Template.
+	 */
+	public function form_template() {
+		$placeholder = '';
+		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['raw']['default'];
+		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['rendered']['default'];
+		}
+
+		?>
+		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+			<?php $this->render_title_form_field_template( compact( 'placeholder' ) ); ?>
+		</script>
+		<?php
+	}
 
 	/**
 	 * Get data to pass to the JS form.

@@ -51,7 +51,7 @@ Limitations/Caveats:
 * Inject rest_controller object dependency on `WP_JS_Widget` upon `rest_api_init`.
 * Ensure that default instance values populate forms for newly-added widgets.
 * Remove React/Redux for implementing the Recent Posts widget.
-* Reorganize core proxied widgets and introduce `WP_JS_Proxy_Widget` class.
+* Reorganize core adapter widgets and introduce `WP_Adapter_JS_Widget` class.
 * Eliminate uglification and CSS minification.
 * Use widget number as integer ID for widgets of a given type.
 
