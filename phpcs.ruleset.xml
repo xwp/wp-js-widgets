@@ -7,6 +7,11 @@
 			<property name="text_domain" value="js-widgets,default" />
 		</properties>
 	</rule>
+	<rule ref="WordPress.NamingConventions.ValidVariableName">
+		<properties>
+			<property name="customPropertiesWhitelist" type="array" value="textContent,nodeName,nodeValue" />
+		</properties>
+	</rule>
 	<rule ref="WordPress-Docs" />
 
 	<rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
