@@ -6,8 +6,6 @@
 (function( api, WidgetPartial, $ ) {
 	'use strict';
 
-	var wrappedPreparePlacement, wrappedRenderContent;
-
 	if ( ! WidgetPartial || WidgetPartial.prototype.scrollIntoView ) {
 		return;
 	}
@@ -43,32 +41,6 @@
 				container[0].scrollIntoView( elemTop < docViewTop );
 			}
 		}
-	};
-
-	wrappedPreparePlacement = WidgetPartial.prototype.preparePlacement;
-	wrappedRenderContent = WidgetPartial.prototype.renderContent;
-
-	/**
-	 * Prepare container for selective refresh.
-	 *
-	 * @inheritDoc
-	 */
-	WidgetPartial.prototype.preparePlacement = function preparePlacement( placement ) {
-		var partial = this;
-		wrappedPreparePlacement.call( partial, placement );
-		partial.scrollIntoView( placement );
-	};
-
-	/**
-	 * Apply the addedContent in the placement to the document.
-	 *
-	 * @inheritDoc
-	 */
-	WidgetPartial.prototype.renderContent = function renderContent( placement ) {
-		var partial = this, retVal;
-		retVal = wrappedRenderContent.call( partial, placement );
-		partial.scrollIntoView( placement );
-		return retVal;
 	};
 
 	api.bind( 'preview-ready', function() {
