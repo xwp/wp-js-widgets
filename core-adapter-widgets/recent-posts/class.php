@@ -128,18 +128,6 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Get configuration data for the form.
-	 *
-	 * @return array
-	 */
-	public function get_form_args() {
-		$item_schema = $this->get_item_schema();
-		$args = parent::get_form_args();
-		$args['minimum_number'] = $item_schema['number']['minimum'];
-		return $args;
-	}
-
-	/**
 	 * Render JS Template.
 	 */
 	public function form_template() {

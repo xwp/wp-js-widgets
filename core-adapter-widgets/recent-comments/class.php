@@ -63,14 +63,11 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
-		$schema = $this->get_item_schema();
 		$instance = array_merge( $this->get_default_instance(), $instance );
-
-		$number = max( intval( $instance['number'] ), $schema['number']['minimum'] );
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-recent-comments.php */
 		$comments = get_comments( apply_filters( 'widget_comments_args', array(
-			'number' => $number,
+			'number' => $instance['number'],
 			'status' => 'approve',
 			'post_status' => 'publish',
 		) ) );
@@ -78,7 +75,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 		$item = array_merge(
 			parent::prepare_item_for_response( $instance, $request ),
 			array(
-				'number' => $number,
+				'number' => $instance['number'],
 				'comments' => array_map( 'intval', wp_list_pluck( $comments, 'comment_ID' ) ),
 			)
 		);
@@ -105,18 +102,6 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 			);
 		}
 		return $links;
-	}
-
-	/**
-	 * Get configuration data for the form.
-	 *
-	 * @return array
-	 */
-	public function get_form_args() {
-		$item_schema = $this->get_item_schema();
-		$args = parent::get_form_args();
-		$args['minimum_number'] = $item_schema['number']['minimum'];
-		return $args;
 	}
 
 	/**

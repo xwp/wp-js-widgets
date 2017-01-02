@@ -13,24 +13,7 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	RecentPostsWidgetForm = api.Widgets.Form.extend({
-
-		/**
-		 * Sanitize the instance data.
-		 *
-		 * @param {object} oldInstance Unsanitized instance.
-		 * @returns {object} Sanitized instance.
-		 */
-		sanitize: function( oldInstance ) {
-			var form = this, newInstance;
-			newInstance = api.Widgets.Form.prototype.sanitize.call( form, oldInstance );
-
-			if ( ! newInstance.number || newInstance.number < form.config.minimum_number ) {
-				newInstance.number = form.config.minimum_number;
-			}
-			return newInstance;
-		}
-	});
+	RecentPostsWidgetForm = api.Widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RecentPostsWidgetForm;
