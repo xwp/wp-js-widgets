@@ -59,6 +59,7 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
+		$schema['title']['properties']['raw']['default'] = '';
 		return $schema;
 	}
 
@@ -100,6 +101,14 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
+		if ( empty( $instance['title'] ) ) {
+			if ( 'post_tag' === $instance['taxonomy'] ) {
+				$instance['title'] = __( 'Tags', 'default' );
+			} else {
+				$instance['title'] = get_taxonomy( $instance['taxonomy'] )->labels->name;
+			}
+		}
+
 		$item = parent::prepare_item_for_response( $instance, $request );
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-tag-cloud.php */
