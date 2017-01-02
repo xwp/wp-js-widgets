@@ -212,7 +212,7 @@ class JS_Widgets_Plugin {
 			return;
 		}
 
-		// Gather the id_bases (types) Customize Widgets and their form configs.
+		// Gather the id_bases (types) for JS Widgets and their form configs.
 		$customize_widget_id_bases = array();
 		$form_configs = array();
 		foreach ( $wp_widget_factory->widgets as $widget ) {
@@ -280,7 +280,7 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
-	 * Override core widgets with customize widgets.
+	 * Override core widgets with JS Widgets.
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
@@ -311,7 +311,7 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
-	 * Replace instances of `WP_Widget_Form_Customize_Control` for Customize Widgets to exclude PHP-generated content.
+	 * Replace instances of `WP_Widget_Form_Customize_Control` for JS Widgets to exclude PHP-generated content.
 	 *
 	 * @access public
 	 * @global WP_Customize_Manager $wp_customize
@@ -678,7 +678,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Start capturing all of the extra fields generated when rendering in `in_widget_form` for a Customize Widget.
 	 *
-	 * Using this PHP-based hook is not supported by Customize Widgets.
+	 * Using this PHP-based hook is not supported by JS Widgets.
 	 *
 	 * @param WP_Widget $widget Widget.
 	 */
@@ -691,7 +691,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Stop capturing all of the extra fields generated when rendering in `in_widget_form` for a Customize Widget.
 	 *
-	 * Using this PHP-based hook is not supported by Customize Widgets.
+	 * Using this PHP-based hook is not supported by JS Widgets.
 	 *
 	 * @param WP_Widget $widget Widget.
 	 */

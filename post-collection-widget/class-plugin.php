@@ -62,7 +62,7 @@ class Post_Collection_JS_Widgets_Plugin {
 	}
 
 	/**
-	 * Override core widgets with customize widgets.
+	 * Override core widgets with JS Widgets.
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */

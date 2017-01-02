@@ -107,7 +107,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		initialize: function initializeWidgetControl( id, options ) {
 			var control = this, elementId, elementClass, availableWidget, widgetNumber, widgetControlWrapperMarkup;
 
-			// @todo The arguments supplied via addWidget can just be ignored for Customize Widgets.
+			// @todo The arguments supplied via addWidget can just be ignored for JS Widgets.
 
 			if ( ! options.params.widget_id ) {
 				throw new Error( 'Missing widget_id param.' );
