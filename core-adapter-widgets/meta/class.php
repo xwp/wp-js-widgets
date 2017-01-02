@@ -32,31 +32,9 @@ class WP_JS_Widget_Meta extends WP_Adapter_JS_Widget {
 		$schema = array_merge(
 			parent::get_item_schema(),
 			array(
-				'registration_url' => array(
-					'description' => __( 'URL for registering.', 'js-widgets' ),
-					'type' => 'string',
-					'format' => 'url',
-					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true,
-				),
-				'admin_url' => array(
-					'description' => __( 'URL for admin.', 'js-widgets' ),
-					'type' => 'string',
-					'format' => 'url',
-					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true,
-				),
-				'rss2_url' => array(
-					'description' => __( 'URL for RSS2 posts feed.', 'js-widgets' ),
-					'type' => 'string',
-					'format' => 'url',
-					'context' => array( 'view', 'edit', 'embed' ),
-					'readonly' => true,
-				),
-				'comments_rss2_url' => array(
-					'description' => __( 'URL for RSS2 comments feed.', 'js-widgets' ),
-					'type' => 'string',
-					'format' => 'url',
+				'meta_links' => array(
+					'description' => __( 'Links contained inside of a Meta widget.', 'js-widgets' ),
+					'type' => 'object',
 					'context' => array( 'view', 'edit', 'embed' ),
 					'readonly' => true,
 				),
@@ -70,6 +48,10 @@ class WP_JS_Widget_Meta extends WP_Adapter_JS_Widget {
 	 *
 	 * @inheritdoc
 	 *
+	 * This is adapted from `WP_Widget_Meta::widget()`.
+	 *
+	 * @see WP_Widget_Meta::widget()
+	 *
 	 * @param array           $instance Raw database instance.
 	 * @param WP_REST_Request $request  REST request.
 	 * @return array Widget item.
@@ -77,12 +59,41 @@ class WP_JS_Widget_Meta extends WP_Adapter_JS_Widget {
 	public function prepare_item_for_response( $instance, $request ) {
 		$item = parent::prepare_item_for_response( $instance, $request );
 
-		// @todo What about widget_meta_poweredby and wp_meta()?
-		$item['registration_url'] = wp_registration_url();
-		$item['admin_url'] = current_user_can( 'read' ) ? admin_url() : null;
-		$item['rss2_url'] = get_bloginfo( 'rss2_url' );
-		$item['comments_rss2_url'] = get_bloginfo( 'comments_rss2_url' );
+		$meta_links = array();
+		$meta_links['rss2'] = array(
+			'label' => strip_tags( __( 'Entries <abbr title="Really Simple Syndication">RSS</abbr>', 'default' ) ),
+			'href' => get_bloginfo( 'rss2_url' ),
+		);
+		$meta_links['comments_rss2_url'] = array(
+			'label' => strip_tags( __( 'Comments <abbr title="Really Simple Syndication">RSS</abbr>', 'default' ) ),
+			'href' => get_bloginfo( 'comments_rss2_url' ),
+		);
 
+		if ( get_option( 'users_can_register' ) ) {
+
+			// @todo If has_filter( 'register' ), apply filters on HTML for register link and parse out the URL and label?
+			$meta_links['register'] = array(
+				'label' => __( 'Register', 'default' ),
+				'href' => wp_registration_url(),
+			);
+		}
+		if ( current_user_can( 'read' ) ) {
+			$meta_links['admin'] = array(
+				'label' => __( 'Site Admin', 'default' ),
+				'href' => admin_url(),
+			);
+		}
+
+		// @todo If has_filter( 'widget_meta_poweredby' ), apply filters on HTML parse out the URL and label?
+		$meta_links['poweredby'] = array(
+			'label' => _x( 'WordPress.org', 'meta widget link text', 'default' ),
+			'href' => __( 'https://wordpress.org/', 'default' ),
+			'title' => __( 'Powered by WordPress, state-of-the-art semantic personal publishing platform.', 'default' ),
+		);
+
+		$item['meta_links'] = $meta_links;
+
+		// @todo What about wp_meta()? Should action get done with output buffering to capture any links and parse out via DOMDocument?
 		return $item;
 	}
 }
