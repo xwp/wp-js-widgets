@@ -125,34 +125,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Validate a title request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_title_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( preg_match( '#</?\w+.*?>#', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s cannot contain markup', 'js-widgets' ), $param ) );
-			}
-			if ( trim( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains whitespace padding', 'js-widgets' ), $param ) );
-			}
-			if ( preg_match( '/%[a-f0-9]{2}/i', $value ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal characters (octets)', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Get default instance data.
 	 *
 	 * Note that this should be the _internal_ instance data, not the default
@@ -372,23 +344,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 		unset( $new_instance, $old_instance );
 		_doing_it_wrong( __METHOD__, esc_html__( 'The update method should not be called for WP_JS_Widets. Call sanitize instead.', 'js-widgets' ), '' );
 		return false;
-	}
-
-	/**
-	 * Return whether strict draconian validation should be performed.
-	 *
-	 * When true, the instance data will go through additional validation checks
-	 * before being sent through sanitize which will scrub the data lossily.
-	 *
-	 * This is experimental and is only intended to apply in REST API requests,
-	 * not in normal widget updates as performed through the Customizer.
-	 *
-	 * @param WP_REST_Request $request Request.
-	 * @return bool
-	 */
-	public function should_validate_strictly( $request ) {
-		$query_params = $request->get_query_params();
-		return isset( $query_params['strict'] ) && (int) $query_params['strict'];
 	}
 
 	/**

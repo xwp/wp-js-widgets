@@ -39,9 +39,6 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 							'context' => array( 'edit' ),
 							'required' => true,
 							'default' => '',
-							'arg_options' => array(
-								'validate_callback' => array( $this, 'validate_content_field' ),
-							),
 						),
 						'rendered' => array(
 							'description' => __( 'HTML content for the widget, transformed for display.', 'js-widgets' ),
@@ -95,28 +92,6 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 		);
 
 		return $item;
-	}
-
-	/**
-	 * Validate a content request argument based on details registered to the route.
-	 *
-	 * @param  mixed           $value   Value.
-	 * @param  WP_REST_Request $request Request.
-	 * @param  string          $param   Param.
-	 * @return WP_Error|boolean
-	 */
-	public function validate_content_field( $value, $request, $param ) {
-		$valid = rest_validate_request_arg( $value, $request, $param );
-		if ( is_wp_error( $valid ) ) {
-			return $valid;
-		}
-
-		if ( $this->should_validate_strictly( $request ) ) {
-			if ( ! current_user_can( 'unfiltered_html' ) && wp_kses_post( $value ) !== $value ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s contains illegal markup', 'js-widgets' ), $param ) );
-			}
-		}
-		return true;
 	}
 
 	/**
