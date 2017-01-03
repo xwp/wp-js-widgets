@@ -553,6 +553,12 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array
 	 */
 	public function get_form_args() {
-		return array();
+		return array(
+			'l10n' => array(
+
+				// @todo Move this to the component level.
+				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+			),
+		);
 	}
 }

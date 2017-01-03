@@ -81,24 +81,6 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	}
 
 	/**
-	 * Get configuration data for the form.
-	 *
-	 * @return array
-	 */
-	public function get_form_args() {
-		return array_merge(
-			parent::get_form_args(),
-			array(
-				'l10n' => array(
-
-					// @todo Move this to the component level.
-					'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-				),
-			)
-		);
-	}
-
-	/**
 	 * Sanitize instance data.
 	 *
 	 * @inheritdoc
