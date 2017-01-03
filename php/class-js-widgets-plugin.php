@@ -2,13 +2,13 @@
 /**
  * Class JS_Widgets_Plugin.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class JS_Widgets_Plugin
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class JS_Widgets_Plugin {
 
@@ -65,6 +65,13 @@ class JS_Widgets_Plugin {
 	protected $original_setting_values = array();
 
 	/**
+	 * Script handles.
+	 *
+	 * @var array
+	 */
+	public $script_handles = array();
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -77,8 +84,6 @@ class JS_Widgets_Plugin {
 	/**
 	 * Add hooks.
 	 *
-	 * @todo Add a WP_Customize_Compat_Proxy_Widget which can wrap all recognized core widgets with WP_Customize_Widget implementations.
-	 *
 	 * @access public
 	 */
 	public function init() {
@@ -86,6 +91,8 @@ class JS_Widgets_Plugin {
 			add_action( 'admin_notices', array( $this, 'print_admin_notice_missing_wp_api_dependency' ) );
 			return;
 		}
+
+		require_once __DIR__ . '/class-wp-js-widget.php';
 
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 100, 2 );
 		add_action( 'wp_default_scripts', array( $this, 'register_scripts' ), 20 );
@@ -127,39 +134,27 @@ class JS_Widgets_Plugin {
 	 */
 	public function register_scripts( WP_Scripts $wp_scripts ) {
 		global $wp_widget_factory;
-		$suffix = ( SCRIPT_DEBUG ? '' : '.min' ) . '.js';
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		$handle = 'react';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/react/react' . $suffix;
-			$deps = array();
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
+		$this->script_handles['control-form'] = 'customize-widget-control-form';
+		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
+		$deps = array( 'customize-base', 'wp-util', 'jquery' );
+		$wp_scripts->add( $this->script_handles['control-form'], $src, $deps, $this->version );
 
-		$handle = 'react-dom';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/react/react-dom' . $suffix;
-			$deps = array( 'react' );
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
+		$this->script_handles['js-widgets'] = 'customize-js-widgets';
+		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
+		$deps = array( 'customize-widgets', $this->script_handles['control-form'] );
+		$wp_scripts->add( $this->script_handles['js-widgets'], $src, $deps, $this->version );
 
-		$handle = 'redux';
-		if ( ! $wp_scripts->query( $handle, 'registered' ) ) {
-			$src = $plugin_dir_url . 'bower_components/redux/index.js';
-			$deps = array();
-			$wp_scripts->add( $handle, $src, $deps, $this->version );
-		}
+		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
+		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
+		$deps = array( 'customize-widgets' );
+		$wp_scripts->add( $this->script_handles['trac-39389-controls'], $src, $deps, $this->version );
 
-		$handle = 'customize-widget-control-form';
-		$src = $plugin_dir_url . 'js/customize-widget-control-form' . $suffix;
-		$deps = array( 'customize-base' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
-
-		$handle = 'customize-js-widgets';
-		$src = $plugin_dir_url . 'js/customize-js-widgets' . $suffix;
-		$deps = array( 'customize-widgets', 'customize-widget-control-form' );
-		$wp_scripts->add( $handle, $src, $deps, $this->version );
+		$this->script_handles['trac-39389-preview'] = 'js-widgets-trac-39389-preview';
+		$src = $plugin_dir_url . 'js/trac-39389-preview.js';
+		$deps = array( 'customize-preview-widgets' );
+		$wp_scripts->add( $this->script_handles['trac-39389-preview'], $src, $deps, $this->version );
 
 		// Register scripts for widgets.
 		foreach ( $wp_widget_factory->widgets as $widget ) {
@@ -217,7 +212,7 @@ class JS_Widgets_Plugin {
 			return;
 		}
 
-		// Gather the id_bases (types) Customize Widgets and their form configs.
+		// Gather the id_bases (types) for JS Widgets and their form configs.
 		$customize_widget_id_bases = array();
 		$form_configs = array();
 		foreach ( $wp_widget_factory->widgets as $widget ) {
@@ -246,6 +241,8 @@ class JS_Widgets_Plugin {
 				$widget->enqueue_control_scripts();
 			}
 		}
+
+		wp_enqueue_script( $this->script_handles['trac-39389-controls'] );
 	}
 
 	/**
@@ -260,6 +257,10 @@ class JS_Widgets_Plugin {
 			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
+		}
+
+		if ( is_customize_preview() ) {
+			wp_enqueue_script( $this->script_handles['trac-39389-preview'] );
 		}
 	}
 
@@ -279,14 +280,15 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
-	 * Override core widgets with customize widgets.
+	 * Override core widgets with JS Widgets.
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
 	public function upgrade_core_widgets() {
 		global $wp_widget_factory;
 
-		register_widget( 'WP_JS_Widget_Post_Collection' );
+		require_once dirname( __FILE__ ) . '/class-wp-js-widget.php';
+		require_once dirname( __FILE__ ) . '/class-wp-adapter-js-widget.php';
 
 		$registered_widgets = array();
 		foreach ( $wp_widget_factory->widgets as $key => $widget ) {
@@ -296,22 +298,20 @@ class JS_Widgets_Plugin {
 			);
 		}
 
-		$proxy_core_widgets = array(
-			'text' => 'WP_JS_Widget_Text',
-			'recent-posts' => 'WP_JS_Widget_Recent_Posts',
-		);
-
-		foreach ( $proxy_core_widgets as $id_base => $proxy_core_widget_class ) {
-			if ( isset( $registered_widgets[ $id_base ] ) ) {
-				$key = $registered_widgets[ $id_base ]['key'];
-				$instance = $registered_widgets[ $id_base ]['instance'];
-				$wp_widget_factory->widgets[ $key ] = new $proxy_core_widget_class( $instance );
+		foreach ( glob( dirname( dirname( __FILE__ ) ) . '/core-adapter-widgets/*', GLOB_ONLYDIR ) as $dir ) {
+			$id_base = basename( $dir );
+			if ( ! isset( $registered_widgets[ $id_base ] ) ) {
+				continue;
 			}
+			require_once $dir . '/class.php';
+			$class_name = 'WP_JS_Widget_' . str_replace( '-', '_', $id_base );
+			$widget = new $class_name( $this, $registered_widgets[ $id_base ]['instance'] );
+			$wp_widget_factory->widgets[ $registered_widgets[ $id_base ]['key'] ] = $widget;
 		}
 	}
 
 	/**
-	 * Replace instances of `WP_Widget_Form_Customize_Control` for Customize Widgets to exclude PHP-generated content.
+	 * Replace instances of `WP_Widget_Form_Customize_Control` for JS Widgets to exclude PHP-generated content.
 	 *
 	 * @access public
 	 * @global WP_Customize_Manager $wp_customize
@@ -408,7 +408,6 @@ class JS_Widgets_Plugin {
 			$this->original_customize_sanitize_js_callbacks[ $setting_id ] = $args['sanitize_js_callback'];
 			$args['sanitize_callback'] = array( $this, 'sanitize_widget_instance' );
 			$args['sanitize_js_callback'] = array( $this, 'sanitize_widget_js_instance' );
-			$args['validate_callback'] = array( $this, 'validate_widget_instance' );
 		}
 		return $args;
 	}
@@ -416,7 +415,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Get the REST Request for the PUT to update the widget resource.
 	 *
-	 * The provided instance will be sanitized, filled with defaults.
+	 * The provided instance will be populated with the instance, filled with defaults.
 	 * Applies the same logic as `WP_REST_Server::dispatch()`. Validation is
 	 * done in another method.
 	 *
@@ -427,7 +426,7 @@ class JS_Widgets_Plugin {
 	 * @param WP_JS_Widget $widget   Widget instance.
 	 * @return WP_REST_Request|null Sanitized request on success, or `null` if no schema.
 	 */
-	public function get_sanitized_request( $instance, $widget ) {
+	public function get_put_request( $instance, $widget ) {
 		$instance_schema = $widget->get_item_schema();
 		if ( empty( $instance_schema ) ) {
 			return null;
@@ -446,7 +445,6 @@ class JS_Widgets_Plugin {
 		}
 		$request->set_attributes( $attributes );
 		$request->set_body_params( $instance );
-		$request->sanitize_params();
 		$defaults = array();
 		foreach ( $attributes['args'] as $arg => $options ) {
 			if ( isset( $options['default'] ) ) {
@@ -455,36 +453,6 @@ class JS_Widgets_Plugin {
 		}
 		$request->set_default_params( $defaults );
 		return $request;
-	}
-
-	/**
-	 * Sanitize the instance via the instance schema.
-	 *
-	 * @param array        $instance Widget instance data.
-	 * @param WP_JS_Widget $widget   Widget object.
-	 * @return array Sanitized instance.
-	 */
-	public function sanitize_via_instance_schema( $instance, $widget ) {
-		$request = $this->get_sanitized_request( $instance, $widget );
-		if ( is_null( $request ) ) {
-			return $instance;
-		}
-		return $request->get_body_params();
-	}
-
-	/**
-	 * Validate the instance via the instance schema.
-	 *
-	 * @param array        $instance Widget instance data.
-	 * @param WP_JS_Widget $widget   Widget object.
-	 * @return bool|WP_Error
-	 */
-	public function validate_via_instance_schema( $instance, $widget ) {
-		$request = $this->get_sanitized_request( $instance, $widget );
-		if ( is_null( $request ) ) {
-			return true;
-		}
-		return $request->has_valid_params();
 	}
 
 	/**
@@ -587,7 +555,30 @@ class JS_Widgets_Plugin {
 		} else {
 			$old_instance = array();
 		}
-		$instance = $this->sanitize_via_instance_schema( $new_instance, $widget );
+
+		if ( is_null( $new_instance ) ) {
+			return new WP_Error( 'invalid_value', __( 'Widget invalidated by widget_update_callback filter.', 'js-widgets' ) );
+		}
+
+		$request = $this->get_put_request( $new_instance, $widget );
+		if ( $request ) {
+			$validity = $request->has_valid_params();
+			if ( is_wp_error( $validity ) ) {
+				return $this->augment_error_with_rest_invalid_params( $validity );
+			}
+		}
+
+		$method_validity = $widget->validate( $new_instance );
+		if ( is_wp_error( $method_validity ) ) {
+			return $method_validity;
+		}
+
+		$validity = $request->sanitize_params();
+		if ( is_wp_error( $validity ) ) {
+			return $this->augment_error_with_rest_invalid_params( $validity );
+		}
+
+		$instance = $request->get_body_params();
 
 		if ( is_array( $instance ) ) {
 			$instance = $widget->sanitize( $instance, $old_instance );
@@ -618,6 +609,26 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
+	 * Augment error with REST invalid param errors.
+	 *
+	 * @param WP_Error $error Error.
+	 * @return WP_Error With errors added for rest_invalid_params.
+	 */
+	protected function augment_error_with_rest_invalid_params( WP_Error $error ) {
+		$data = $error->get_error_data( 'rest_invalid_param' );
+		if ( ! empty( $data['params'] ) ) {
+			$error = clone $error;
+			foreach ( $data['params'] as $field => $error_message ) {
+				$error->add(
+					sprintf( 'rest_invalid_param[%s]', $field ),
+					$error_message
+				);
+			}
+		}
+		return $error;
+	}
+
+	/**
 	 * Fallback validate callback.
 	 *
 	 * @param WP_Error         $validity Validity.
@@ -628,52 +639,6 @@ class JS_Widgets_Plugin {
 		if ( ! is_array( $instance ) ) {
 			$validity->add( 'invalid_value', __( 'Invalid value.', 'js-widgets' ) );
 		}
-		return $validity;
-	}
-
-	/**
-	 * Validate widget instance.
-	 *
-	 * @param WP_Error             $validity     Validity.
-	 * @param array|null           $new_instance Widget instance.
-	 * @param WP_Customize_Setting $setting      Widget setting.
-	 * @return true|WP_Error True if valid, or `WP_Error` if invalid.
-	 */
-	public function validate_widget_instance( $validity, $new_instance, $setting ) {
-		if ( isset( $this->original_customize_validate_callbacks[ $setting->id ] ) ) {
-			$original_validate_callback = $this->original_customize_validate_callbacks[ $setting->id ];
-		} else {
-			$original_validate_callback = array( $this, 'fallback_validate_callback' );
-		}
-
-		$parsed_setting_id = $setting->manager->widgets->parse_widget_setting_id( $setting->id );
-		if ( is_wp_error( $parsed_setting_id ) ) {
-			return call_user_func( $original_validate_callback, $validity, $new_instance, $setting );
-		}
-		$widget = $this->get_widget_instance( $parsed_setting_id['id_base'] );
-		if ( ! $widget || ! ( $widget instanceof WP_JS_Widget ) ) {
-			return call_user_func( $original_validate_callback, $validity, $new_instance, $setting );
-		}
-
-		if ( is_null( $new_instance ) ) {
-			$validity->add( 'invalid_value', __( 'Widget invalidated by widget_update_callback filter.', 'js-widgets' ) );
-		} else {
-
-			$schema_validity = $this->validate_via_instance_schema( $new_instance, $widget );
-			if ( is_wp_error( $schema_validity ) ) {
-				foreach ( $schema_validity->errors as $code => $messages ) {
-					$validity->add( $code, join( ' ', $messages ), $schema_validity->get_error_data( $code ) );
-				}
-			}
-
-			$method_validity = $widget->validate( $new_instance );
-			if ( is_wp_error( $method_validity ) ) {
-				foreach ( $method_validity->errors as $code => $messages ) {
-					$validity->add( $code, join( ' ', $messages ), $method_validity->get_error_data( $code ) );
-				}
-			}
-		}
-
 		return $validity;
 	}
 
@@ -713,7 +678,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Start capturing all of the extra fields generated when rendering in `in_widget_form` for a Customize Widget.
 	 *
-	 * Using this PHP-based hook is not supported by Customize Widgets.
+	 * Using this PHP-based hook is not supported by JS Widgets.
 	 *
 	 * @param WP_Widget $widget Widget.
 	 */
@@ -726,7 +691,7 @@ class JS_Widgets_Plugin {
 	/**
 	 * Stop capturing all of the extra fields generated when rendering in `in_widget_form` for a Customize Widget.
 	 *
-	 * Using this PHP-based hook is not supported by Customize Widgets.
+	 * Using this PHP-based hook is not supported by JS Widgets.
 	 *
 	 * @param WP_Widget $widget Widget.
 	 */

@@ -1,14 +1,14 @@
 <?php
 /**
- * Class WP_Customize_Widget.
+ * Class WP_JS_Widget.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
- * Class WP_Customize_Widget.
+ * Class WP_JS_Widget.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 abstract class WP_JS_Widget extends WP_Widget {
 
@@ -93,13 +93,36 @@ abstract class WP_JS_Widget extends WP_Widget {
 	public function enqueue_frontend_scripts() {}
 
 	/**
-	 * Get schema for the widget instance REST resource item.
+	 * Get instance schema properties.
 	 *
 	 * Subclasses are required to implement this method since it is used for sanitization.
 	 *
-	 * @return array
+	 * @return array Schema.
 	 */
-	abstract public function get_item_schema();
+	public function get_item_schema() {
+		$schema = array(
+			'title' => array(
+				'description' => __( 'The title for the widget.', 'js-widgets' ),
+				'type' => array( 'string', 'object' ),
+				'context' => array( 'view', 'edit', 'embed' ),
+				'properties' => array(
+					'raw' => array(
+						'description' => __( 'Title for the widget, as it exists in the database.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'edit' ),
+						'default' => '',
+					),
+					'rendered' => array(
+						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),
+						'type' => 'string',
+						'context' => array( 'view', 'edit', 'embed' ),
+						'readonly' => true,
+					),
+				),
+			),
+		);
+		return $schema;
+	}
 
 	/**
 	 * Get default instance data.
@@ -143,15 +166,72 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * underlying instance data have different structures, or if additional
 	 * dynamic (readonly) fields should be included in the response.
 	 *
-	 * @see WP_JS_Widget::render()
+	 * @inheritdoc
 	 *
-	 * @param array           $instance Raw (legacy) instance.
+	 * @param array           $instance Raw database instance without rendered properties.
 	 * @param WP_REST_Request $request  REST request.
 	 * @return array Widget item.
 	 */
 	public function prepare_item_for_response( $instance, $request ) {
 		unset( $request );
-		return $instance;
+		$schema = $this->get_item_schema();
+		$instance = array_merge( $this->get_default_instance(), $instance );
+
+		$item = array();
+		if ( isset( $schema['title']['properties']['raw'] ) ) {
+			$title_rendered = '';
+			if ( ! empty( $instance['title'] ) ) {
+				$title_rendered = $instance['title'];
+			} elseif ( isset( $schema['title']['properties']['rendered']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['rendered']['default'];
+			} elseif ( isset( $schema['title']['properties']['raw']['default'] ) ) {
+				$title_rendered = $schema['title']['properties']['raw']['default'];
+			}
+
+			/** This filter is documented in src/wp-includes/widgets/class-wp-widget-pages.php */
+			$title_rendered = apply_filters( 'widget_title', $title_rendered, $instance, $this->id_base );
+			$title_rendered = html_entity_decode( $title_rendered, ENT_QUOTES, 'utf-8' );
+
+			$item['title'] = array(
+				'raw' => $instance['title'],
+				'rendered' => $title_rendered,
+			);
+			unset( $schema['title'] );
+		}
+
+		foreach ( $schema as $field_id => $field_attributes ) {
+			$field_value = null;
+			if ( ! isset( $instance[ $field_id ] ) ) {
+				// @todo Add recursive method to compute default value.
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					foreach ( $field_attributes['properties'] as $prop_id => $prop_attributes ) {
+						$prop_value = null;
+						if ( isset( $item[ $field_id ]['default'] ) ) {
+							$prop_value = $item[ $field_id ]['default'];
+						}
+						$field_value[ $prop_id ] = $prop_value;
+					}
+				} elseif ( isset( $field_attributes['default'] ) ) {
+					$field_value = $field_attributes['default'];
+				}
+			} else {
+				if ( isset( $field_attributes['properties'] ) ) {
+					$field_value = array();
+					if ( isset( $field_attributes['properties']['raw'] ) ) {
+						$field_value['raw'] = $instance[ $field_id ];
+					}
+					if ( isset( $field_attributes['properties']['rendered'] ) ) {
+						$field_value['rendered'] = null; // A subclass must render the value.
+					}
+				} else {
+					$field_value = $instance[ $field_id ];
+				}
+			}
+			$item[ $field_id ] = $field_value;
+		}
+
+		return $item;
 	}
 
 	/**
@@ -165,6 +245,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * will be flattened for sending to the DB.
 	 *
 	 * @see WP_JS_Widget::sanitize()
+	 * @see WP_REST_Posts_Controller::prepare_item_for_database()
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_Error|array Error or array data.
@@ -176,8 +257,14 @@ abstract class WP_JS_Widget extends WP_Widget {
 			if ( ! isset( $schema[ $key ] ) || ! empty( $schema[ $key ]['readonly'] ) ) {
 				continue;
 			}
-			if ( isset( $value['raw'] ) && isset( $schema[ $key ]['properties']['raw'] ) ) {
-				$value = $value['raw'];
+			if ( is_array( $value ) && isset( $schema[ $key ]['properties']['raw'] ) ) {
+				if ( isset( $value['raw'] ) ) {
+					$value = $value['raw'];
+				} elseif ( isset( $value['rendered'] ) && isset( $schema[ $key ]['properties']['rendered'] ) ) {
+					$value = $value['rendered'];
+				} else {
+					continue;
+				}
 			}
 			$instance[ $key ] = $value;
 		}
@@ -260,23 +347,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Return whether strict draconian validation should be performed.
-	 *
-	 * When true, the instance data will go through additional validation checks
-	 * before being sent through sanitize which will scrub the data lossily.
-	 *
-	 * This is experimental and is only intended to apply in REST API requests,
-	 * not in normal widget updates as performed through the Customizer.
-	 *
-	 * @param WP_REST_Request $request Request.
-	 * @return bool
-	 */
-	public function should_validate_strictly( $request ) {
-		$query_params = $request->get_query_params();
-		return isset( $query_params['strict'] ) && (int) $query_params['strict'];
-	}
-
-	/**
 	 * Sanitize instance data.
 	 *
 	 * This function should check that `$new_instance` is set correctly. The newly-calculated
@@ -289,14 +359,17 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * `WP_JS_Widget::update()` method is final, deprecated, and returns false.
 	 *
 	 * @see WP_JS_Widget::get_item_schema()
-	 * @see JS_Widgets_Plugin::sanitize_and_validate_via_instance_schema()
 	 *
 	 * @param array $new_instance  New instance.
 	 * @param array $old_instance  Old instance.
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
-		unset( $old_instance, $setting );
+		unset( $old_instance );
+		$new_instance = array_merge( $this->get_default_instance(), $new_instance );
+		if ( isset( $instance['title'] ) ) {
+			$instance['title'] = sanitize_text_field( $instance['title'] );
+		}
 		return $new_instance;
 	}
 
@@ -322,8 +395,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * This method is now deprecated in favor of `WP_Customize_Widget::render()`,
 	 * as `render` is a more accurate name than `widget` for what this method does.
 	 *
-	 * @todo The else condition in this method needs to be eliminated.
-	 *
 	 * @inheritdoc
 	 *
 	 * @access public
@@ -339,22 +410,11 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @param array $instance The settings for the particular instance of the widget.
 	 */
 	final public function widget( $args, $instance ) {
-		ob_start();
-		$data = $this->render( $args, $instance );
-		$rendered = ob_get_clean();
-		if ( $rendered ) {
-			echo $rendered; // XSS OK.
-		} elseif ( ! is_null( $data ) ) {
-			echo $args['before_widget']; // WPCS: XSS OK.
-			echo '<script type="application/json">';
-			echo wp_json_encode( $data );
-			echo '</script>';
-			echo $args['after_widget']; // WPCS: XSS OK.
-		}
+		$this->render( $args, $instance );
 	}
 
 	/**
-	 * Render the widget content or return the data for the widget to render.
+	 * Render the widget content.
 	 *
 	 * @param array $args {
 	 *     Display arguments.
@@ -365,14 +425,122 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *     @type string $after_widget  After widget.
 	 * }
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return void|array Return nothing if rendering, otherwise return data to be rendered on the client via JS template.
+	 * @return void
 	 */
 	abstract public function render( $args, $instance );
 
 	/**
-	 * Render JS template.
+	 * Render title form field.
+	 *
+	 * @param array $input_attrs Input attributes.
 	 */
-	public function form_template() {}
+	protected function render_title_form_field_template( $input_attrs = array() ) {
+		$this->render_form_field_template( array_merge(
+			array(
+				'name' => 'title',
+				'label' => __( 'Title:', 'default' ),
+				'type' => 'text',
+			),
+			$input_attrs
+		) );
+	}
+
+	/**
+	 * Render input attributes.
+	 *
+	 * @param array $input_attrs Input attributes.
+	 */
+	protected function render_input_attrs( $input_attrs ) {
+		$input_attrs_str = '';
+		foreach ( $input_attrs as $key => $value ) {
+			$input_attrs_str .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
+		}
+		echo $input_attrs_str; // WPCS: XSS OK.
+	}
+
+	/**
+	 * Render form field template.
+	 *
+	 * @todo Use a random string for a common name prefix to ensure that radio buttons will work properly.
+	 *
+	 * @param array $args Args.
+	 */
+	protected function render_form_field_template( $args = array() ) {
+		$defaults = array(
+			'name' => '',
+			'label' => '',
+			'type' => 'text',
+			'choices' => array(),
+			'value' => '',
+			'placeholder' => '',
+			'help' => '',
+		);
+		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
+			$defaults['class'] = 'widefat';
+		}
+		$args = wp_parse_args( $args, $defaults );
+
+		$input_attrs = $args;
+		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
+
+		echo '<p>';
+		echo '<# (function( domId ) { #>';
+		if ( 'checkbox' === $args['type'] ) {
+			?>
+			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<?php
+		} elseif ( 'select' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
+			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+				<?php foreach ( $args['choices'] as $value => $text ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>">
+						<?php echo esc_html( $text ); ?>
+					</option>
+				<?php endforeach; ?>
+			</select>
+			<?php
+		} elseif ( 'textarea' === $args['type'] ) {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<?php
+		} else {
+			?>
+			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<?php
+		} // End if().
+
+		if ( $args['help'] ) {
+			?>
+			<br>
+			<small><?php echo esc_html( $args['help'] ); ?></small>
+			<?php
+		}
+
+		echo '<# }( "el" + String( Math.random() ) )); #>';
+		echo '</p>';
+	}
+
+	/**
+	 * Render JS Template.
+	 */
+	public function form_template() {
+		$placeholder = '';
+		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['raw']['default'];
+		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
+			$placeholder = $item_schema['title']['properties']['rendered']['default'];
+		}
+
+		?>
+		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+			<?php $this->render_title_form_field_template( compact( 'placeholder' ) ); ?>
+		</script>
+		<?php
+	}
 
 	/**
 	 * Get data to pass to the JS form.
@@ -385,6 +553,12 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array
 	 */
 	public function get_form_args() {
-		return array();
+		return array(
+			'l10n' => array(
+
+				// @todo Move this to the component level.
+				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
+			),
+		);
 	}
 }

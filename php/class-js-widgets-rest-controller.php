@@ -2,13 +2,13 @@
 /**
  * Class JS_Widgets_REST_Controller.
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 
 /**
  * Class JS_Widgets_REST_Controller
  *
- * @package JSWidgets
+ * @package JS_Widgets
  */
 class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
@@ -69,17 +69,16 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Get a widget object (resource) ID.
 	 *
-	 * This is not great and shouldn't be long for this world.
+	 * This simple re-uses a widget number as a widget ID, which will only be unique
+	 * among the widgets of a given type. Eventually this ID should map to the post ID
+	 * for a given widget_instance post type so that it is truly unique across all
+	 * widget types in a site.
 	 *
-	 * @param int $widget_number Widget number (or widget_instance post ID).
-	 * @return string Widget object ID.
+	 * @param int $widget_number Widget number.
+	 * @return int Widget object ID.
 	 */
 	protected function get_object_id( $widget_number ) {
-		if ( post_type_exists( 'widget_instance' ) ) {
-			$widget_id = intval( $widget_number );
-		} else {
-			$widget_id = $this->widget->id_base . '-' . $widget_number;
-		}
+		$widget_id = intval( $widget_number );
 		return $widget_id;
 	}
 
@@ -89,17 +88,14 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		$has_widget_posts = post_type_exists( 'widget_instance' );
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => $this->get_object_type(),
 			'type'       => 'object',
 			'properties' => array(
-				// @todo change to widget_id containing id_base-widget_number, with an id field only available if Widget Posts are enabled?
 				'id' => array(
-					'description' => $has_widget_posts ? __( 'ID for widget_instance post', 'js-widgets' ) : __( 'Widget ID. Eventually this may be an integer if widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
-					'type'        => $has_widget_posts ? 'integer' : 'string',
+					'description' => __( 'Widget ID. This will only be unique among widgets of a given type until widgets are stored as posts. See WP Trac #35669.', 'js-widgets' ),
+					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
@@ -243,7 +239,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			}
 
 			$endpoint_args[ $field_id ] = array(
-				'validate_callback' => 'rest_validate_request_arg',
+				'validate_callback' => array( $this, 'rest_validate_request_arg' ),
 				'sanitize_callback' => 'rest_sanitize_request_arg',
 			);
 
@@ -259,7 +255,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}
 
-			foreach ( array( 'type', 'format', 'enum' ) as $schema_prop ) {
+			foreach ( array( 'type', 'format', 'enum', 'properties' ) as $schema_prop ) { // @todo Should this not be including everything?
 				if ( isset( $params[ $schema_prop ] ) ) {
 					$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
 				}
@@ -278,6 +274,94 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		}
 
 		return $endpoint_args;
+	}
+
+
+	/**
+	 * Validate a request argument based on details registered to the route.
+	 *
+	 * This is a replacement for `rest_validate_request_arg()` to take advantage of `WP_JS_Widget::rest_validate_value_from_schema()`
+	 *
+	 * @param  mixed           $value   Value.
+	 * @param  WP_REST_Request $request Request.
+	 * @param  string          $param   Param name.
+	 * @return WP_Error|true Error on fail; true on success.
+	 */
+	public function rest_validate_request_arg( $value, $request, $param ) {
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return true;
+		}
+		$args = $attributes['args'][ $param ];
+
+		return $this->rest_validate_value_from_schema( $value, $args, $param );
+	}
+
+	/**
+	 * Validate a value based on a schema, with augmented support for type arrays and object types.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/38583
+	 *
+	 * @param mixed  $value The value to validate.
+	 * @param array  $args  Schema array to use for validation.
+	 * @param string $param The parameter name, used in error messages.
+	 * @return true|WP_Error
+	 */
+	protected function rest_validate_value_from_schema( $value, $args, $param ) {
+
+		if ( ! isset( $args['type'] ) ) {
+			return true;
+		}
+		$validity = rest_validate_value_from_schema( $value, $args, $param );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
+		// Implement validation for multi-type arrays.
+		if ( is_array( $args['type'] ) ) {
+			$has_valid_type = false;
+			$errors = array();
+			foreach ( $args['type'] as $type ) {
+				$validity = $this->rest_validate_value_from_schema( $value, array_merge( $args, compact( 'type' ) ), $param );
+				if ( ! is_wp_error( $validity ) ) {
+					$has_valid_type = true;
+					break;
+				} else {
+					$errors[] = $validity;
+				}
+			}
+			if ( ! $has_valid_type ) {
+				$error_messages = array( sprintf( __( 'Expected %1$s param to be of one types: %2$s', 'js-widgets' ), $param, join( ', ', $args['type'] ) ) );
+				foreach ( $errors as $sub_error ) {
+					foreach ( $sub_error->get_error_messages( 'rest_invalid_param' ) as $error_message ) {
+						$error_messages[] = $error_message;
+					}
+				}
+				return new WP_Error( 'rest_invalid_param', join( '; ', $error_messages ) );
+			}
+			return true;
+		}
+
+		// Validate object types.
+		if ( 'object' === $args['type'] ) {
+			if ( ! is_array( $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( 'Expected object but got %s.', 'js-widgets' ), gettype( $value ) ) );
+			}
+			if ( ! empty( $value ) && wp_is_numeric_array( $value ) ) {
+				return new WP_Error( 'rest_invalid_param', __( 'Expected object but got positional array.', 'js-widgets' ) );
+			}
+
+			foreach ( $value as $sub_key => $sub_value ) {
+				if ( ! isset( $args['properties'][ $sub_key ] ) ) {
+					continue;
+				}
+				$validity = $this->rest_validate_value_from_schema( $sub_value, $args['properties'][ $sub_key ], "$param.$sub_key" );
+				if ( is_wp_error( $validity ) ) {
+					return $validity;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -391,6 +475,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		// Note that $new_instance has gone through the validate and sanitize callbacks defined on the instance schema.
 		$new_instance = $this->widget->prepare_item_for_database( $request );
+		$new_instance = array_merge( $old_instance, $new_instance ); // Allow instances to be patched.
 		$instance = $this->widget->sanitize( $new_instance, $old_instance );
 
 		if ( is_wp_error( $instance ) ) {
