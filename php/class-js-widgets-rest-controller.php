@@ -475,6 +475,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 		// Note that $new_instance has gone through the validate and sanitize callbacks defined on the instance schema.
 		$new_instance = $this->widget->prepare_item_for_database( $request );
+		$new_instance = array_merge( $old_instance, $new_instance ); // Allow instances to be patched.
 		$instance = $this->widget->sanitize( $new_instance, $old_instance );
 
 		if ( is_wp_error( $instance ) ) {
