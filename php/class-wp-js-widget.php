@@ -103,7 +103,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 		$schema = array(
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
-				'type' => 'object',
+				'type' => array( 'string', 'object' ),
 				'context' => array( 'view', 'edit', 'embed' ),
 				'properties' => array(
 					'raw' => array(
@@ -111,9 +111,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 						'type' => 'string',
 						'context' => array( 'edit' ),
 						'default' => '',
-						'arg_options' => array(
-							'validate_callback' => array( $this, 'validate_title_field' ),
-						),
 					),
 					'rendered' => array(
 						'description' => __( 'HTML title for the widget, transformed for display.', 'js-widgets' ),

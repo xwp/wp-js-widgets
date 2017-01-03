@@ -239,7 +239,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			}
 
 			$endpoint_args[ $field_id ] = array(
-				'validate_callback' => 'rest_validate_request_arg',
+				'validate_callback' => array( $this, 'rest_validate_request_arg' ),
 				'sanitize_callback' => 'rest_sanitize_request_arg',
 			);
 
@@ -255,7 +255,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}
 
-			foreach ( array( 'type', 'format', 'enum' ) as $schema_prop ) {
+			foreach ( array( 'type', 'format', 'enum', 'properties' ) as $schema_prop ) { // @todo Should this not be including everything?
 				if ( isset( $params[ $schema_prop ] ) ) {
 					$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
 				}
@@ -274,6 +274,94 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		}
 
 		return $endpoint_args;
+	}
+
+
+	/**
+	 * Validate a request argument based on details registered to the route.
+	 *
+	 * This is a replacement for `rest_validate_request_arg()` to take advantage of `WP_JS_Widget::rest_validate_value_from_schema()`
+	 *
+	 * @param  mixed           $value   Value.
+	 * @param  WP_REST_Request $request Request.
+	 * @param  string          $param   Param name.
+	 * @return WP_Error|true Error on fail; true on success.
+	 */
+	public function rest_validate_request_arg( $value, $request, $param ) {
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return true;
+		}
+		$args = $attributes['args'][ $param ];
+
+		return $this->rest_validate_value_from_schema( $value, $args, $param );
+	}
+
+	/**
+	 * Validate a value based on a schema, with augmented support for type arrays and object types.
+	 *
+	 * @link https://core.trac.wordpress.org/ticket/38583
+	 *
+	 * @param mixed  $value The value to validate.
+	 * @param array  $args  Schema array to use for validation.
+	 * @param string $param The parameter name, used in error messages.
+	 * @return true|WP_Error
+	 */
+	protected function rest_validate_value_from_schema( $value, $args, $param ) {
+
+		if ( ! isset( $args['type'] ) ) {
+			return true;
+		}
+		$validity = rest_validate_value_from_schema( $value, $args, $param );
+		if ( is_wp_error( $validity ) ) {
+			return $validity;
+		}
+
+		// Implement validation for multi-type arrays.
+		if ( is_array( $args['type'] ) ) {
+			$has_valid_type = false;
+			$errors = array();
+			foreach ( $args['type'] as $type ) {
+				$validity = $this->rest_validate_value_from_schema( $value, array_merge( $args, compact( 'type' ) ), $param );
+				if ( ! is_wp_error( $validity ) ) {
+					$has_valid_type = true;
+					break;
+				} else {
+					$errors[] = $validity;
+				}
+			}
+			if ( ! $has_valid_type ) {
+				$error_messages = array( sprintf( __( 'Expected %1$s param to be of one types: %2$s', 'js-widgets' ), $param, join( ', ', $args['type'] ) ) );
+				foreach ( $errors as $sub_error ) {
+					foreach ( $sub_error->get_error_messages( 'rest_invalid_param' ) as $error_message ) {
+						$error_messages[] = $error_message;
+					}
+				}
+				return new WP_Error( 'rest_invalid_param', join( '; ', $error_messages ) );
+			}
+			return true;
+		}
+
+		// Validate object types.
+		if ( 'object' === $args['type'] ) {
+			if ( ! is_array( $value ) ) {
+				return new WP_Error( 'invalid_object', sprintf( __( 'Expected object but got %s.', 'js-widgets' ), gettype( $value ) ) );
+			}
+			if ( ! empty( $value ) && wp_is_numeric_array( $value ) ) {
+				return new WP_Error( 'invalid_object', __( 'Expected object but got positional array.', 'js-widgets' ) );
+			}
+
+			foreach ( $value as $sub_key => $sub_value ) {
+				if ( ! isset( $args['properties'][ $sub_key ] ) ) {
+					continue;
+				}
+				$validity = $this->rest_validate_value_from_schema( $sub_value, $args['properties'][ $sub_key ], "$param.$sub_key" );
+				if ( is_wp_error( $validity ) ) {
+					return $validity;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**

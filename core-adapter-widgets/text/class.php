@@ -30,7 +30,7 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 			array(
 				'text' => array(
 					'description' => __( 'The content for the widget.', 'js-widgets' ),
-					'type' => 'object',
+					'type' => array( 'string', 'object' ),
 					'context' => array( 'view', 'edit', 'embed' ),
 					'properties' => array(
 						'raw' => array(
