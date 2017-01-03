@@ -273,6 +273,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * will be flattened for sending to the DB.
 	 *
 	 * @see WP_JS_Widget::sanitize()
+	 * @see WP_REST_Posts_Controller::prepare_item_for_database()
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_Error|array Error or array data.
@@ -284,8 +285,14 @@ abstract class WP_JS_Widget extends WP_Widget {
 			if ( ! isset( $schema[ $key ] ) || ! empty( $schema[ $key ]['readonly'] ) ) {
 				continue;
 			}
-			if ( isset( $value['raw'] ) && isset( $schema[ $key ]['properties']['raw'] ) ) {
-				$value = $value['raw'];
+			if ( is_array( $value ) && isset( $schema[ $key ]['properties']['raw'] ) ) {
+				if ( isset( $value['raw'] ) ) {
+					$value = $value['raw'];
+				} elseif ( isset( $value['rendered'] ) && isset( $schema[ $key ]['properties']['rendered'] ) ) {
+					$value = $value['rendered'];
+				} else {
+					continue;
+				}
 			}
 			$instance[ $key ] = $value;
 		}
