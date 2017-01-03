@@ -3,8 +3,15 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-/**
- * @todo Call-out the code in customize-widgets.js which can be eliminated in favor of the widget here.
+/*
+ * The logic in the nav_menu form can replace the nav_menu JS that is currently strewn across customize-widgets.js and customize-nav-menus.js
+ *
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-widgets.js#L2192-L2223
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2166-L2192
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2207-L2216
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2355-L2374
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2895-L2906
+ * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2919-L2929
  */
 wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
 	'use strict';

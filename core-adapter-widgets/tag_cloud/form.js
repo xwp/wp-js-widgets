@@ -9,7 +9,7 @@ wp.customize.Widgets.formConstructor.tag_cloud = (function( api ) {
 	var TagCloudWidgetForm;
 
 	/**
-	 * TagCloud Widget Form.
+	 * Tag Cloud Widget Form.
 	 *
 	 * @constructor
 	 */
