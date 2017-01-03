@@ -395,8 +395,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * This method is now deprecated in favor of `WP_Customize_Widget::render()`,
 	 * as `render` is a more accurate name than `widget` for what this method does.
 	 *
-	 * @todo The else condition in this method needs to be eliminated.
-	 *
 	 * @inheritdoc
 	 *
 	 * @access public
@@ -412,22 +410,11 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @param array $instance The settings for the particular instance of the widget.
 	 */
 	final public function widget( $args, $instance ) {
-		ob_start();
-		$data = $this->render( $args, $instance );
-		$rendered = ob_get_clean();
-		if ( $rendered ) {
-			echo $rendered; // XSS OK.
-		} elseif ( ! is_null( $data ) ) {
-			echo $args['before_widget']; // WPCS: XSS OK.
-			echo '<script type="application/json">';
-			echo wp_json_encode( $data );
-			echo '</script>';
-			echo $args['after_widget']; // WPCS: XSS OK.
-		}
+		$this->render( $args, $instance );
 	}
 
 	/**
-	 * Render the widget content or return the data for the widget to render.
+	 * Render the widget content.
 	 *
 	 * @param array $args {
 	 *     Display arguments.
@@ -438,7 +425,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *     @type string $after_widget  After widget.
 	 * }
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return void|array Return nothing if rendering, otherwise return data to be rendered on the client via JS template.
+	 * @return void
 	 */
 	abstract public function render( $args, $instance );
 

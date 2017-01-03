@@ -65,6 +65,7 @@ Limitations/Caveats:
 * Allow widget instances to be patched without providing full instance.
 * Remove prototype strict validity for REST item updates.
 * Add support for validating schemas with type arrays and object types; allow strings or objects with `raw`/`rendered` properties for titles & Text widget's text field.
+* Eliminate returning data from `WP_JS_Widget::render()` for client templates to render until a clear use case and pattern can be derived.
 
 = 0.1.1 - 2016-10-03 =
 
