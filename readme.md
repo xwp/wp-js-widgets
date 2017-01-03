@@ -64,6 +64,9 @@ Limitations/Caveats:
 * Reduce duplication by moving methods to base classes.
 * Add form field template generator helper methods.
 * Implement [WP Core Trac #39389](https://core.trac.wordpress.org/ticket/39389): Scroll widget partial into view when control expanded.
+* Allow widget instances to be patched without providing full instance.
+* Remove prototype strict validity for REST item updates.
+* Add support for validating schemas with type arrays and object types; allow strings or objects with `raw`/`rendered` properties for titles & Text widget's text field.
 
 ### 0.1.1 - 2016-10-03 ###
 * Add 100% width to object-selector.
