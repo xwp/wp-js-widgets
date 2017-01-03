@@ -345,10 +345,10 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		// Validate object types.
 		if ( 'object' === $args['type'] ) {
 			if ( ! is_array( $value ) ) {
-				return new WP_Error( 'invalid_object', sprintf( __( 'Expected object but got %s.', 'js-widgets' ), gettype( $value ) ) );
+				return new WP_Error( 'rest_invalid_param', sprintf( __( 'Expected object but got %s.', 'js-widgets' ), gettype( $value ) ) );
 			}
 			if ( ! empty( $value ) && wp_is_numeric_array( $value ) ) {
-				return new WP_Error( 'invalid_object', __( 'Expected object but got positional array.', 'js-widgets' ) );
+				return new WP_Error( 'rest_invalid_param', __( 'Expected object but got positional array.', 'js-widgets' ) );
 			}
 
 			foreach ( $value as $sub_key => $sub_value ) {
