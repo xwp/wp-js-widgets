@@ -4,7 +4,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
+wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
 	'use strict';
 
 	var PostCollectionWidgetForm;
@@ -90,4 +90,4 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api, $ ) {
 	}
 	return PostCollectionWidgetForm;
 
-})( wp.customize, jQuery );
+})( wp.customize );
