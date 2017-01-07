@@ -71,7 +71,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		$plugin_dir_url = plugin_dir_url( __FILE__ );
 		$handle = 'customize-widget-form-post-collection';
 		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
+		$deps = array( 'js-widget-form' );
 		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 

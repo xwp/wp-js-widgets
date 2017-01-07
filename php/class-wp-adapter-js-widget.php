@@ -67,9 +67,9 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	public function register_scripts( $wp_scripts ) {
 		$reflection_class = new ReflectionClass( get_class( $this ) );
 		$plugin_dir_url = plugin_dir_url( $reflection_class->getFileName() );
-		$handle = "customize-widget-form-{$this->id_base}";
+		$handle = "widget-form-{$this->id_base}";
 		$src = $plugin_dir_url . 'form.js';
-		$deps = array( $this->plugin->script_handles['control-form'] );
+		$deps = array( $this->plugin->script_handles['form'] );
 		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
@@ -77,7 +77,18 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	 * Enqueue scripts needed for the control.s
 	 */
 	public function enqueue_control_scripts() {
-		wp_enqueue_script( "customize-widget-form-{$this->id_base}" );
+		parent::enqueue_control_scripts();
+
+		$handle = "widget-form-{$this->id_base}";
+		wp_enqueue_script( $handle );
+
+		$form_args = array_merge(
+			$this->get_form_args(),
+			array(
+				'default_instance' => $this->get_default_instance(),
+			)
+		);
+		wp_add_inline_script( $handle, sprintf( 'wp.widgets.formConstructor[ %s ].prototype.config = %s;', wp_json_encode( $this->id_base ), wp_json_encode( $form_args ) ) );
 	}
 
 	/**

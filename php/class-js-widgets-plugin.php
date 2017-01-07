@@ -136,15 +136,15 @@ class JS_Widgets_Plugin {
 		global $wp_widget_factory;
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		$this->script_handles['control-form'] = 'customize-widget-control-form';
-		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
+		$this->script_handles['form'] = 'js-widget-form';
+		$src = $plugin_dir_url . 'js/widget-form.js';
 		$deps = array( 'customize-base', 'wp-util', 'jquery' );
-		$wp_scripts->add( $this->script_handles['control-form'], $src, $deps, $this->version );
+		$wp_scripts->add( $this->script_handles['form'], $src, $deps, $this->version );
 
-		$this->script_handles['js-widgets'] = 'customize-js-widgets';
+		$this->script_handles['customize-js-widgets'] = 'customize-js-widgets';
 		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
-		$deps = array( 'customize-widgets', $this->script_handles['control-form'] );
-		$wp_scripts->add( $this->script_handles['js-widgets'], $src, $deps, $this->version );
+		$deps = array( $this->script_handles['form'] );
+		$wp_scripts->add( $this->script_handles['customize-js-widgets'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -214,27 +214,15 @@ class JS_Widgets_Plugin {
 
 		// Gather the id_bases (types) for JS Widgets and their form configs.
 		$customize_widget_id_bases = array();
-		$form_configs = array();
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
 				$customize_widget_id_bases[ $widget->id_base ] = true;
-				$form_configs[ $widget->id_base ] = array_merge(
-					$widget->get_form_args(),
-					array(
-						'default_instance' => $widget->get_default_instance(),
-					)
-				);
 			}
 		}
 
-		$exports = array(
-			'id_bases' => $customize_widget_id_bases,
-			'form_configs' => $form_configs,
-		);
-
 		$handle = 'customize-js-widgets';
 		wp_enqueue_script( $handle );
-		wp_add_inline_script( $handle, sprintf( 'CustomizeJSWidgets.init( %s );', wp_json_encode( $exports ) ) );
+		wp_add_inline_script( $handle, 'wp.customize.JSWidgets.init();' );
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {

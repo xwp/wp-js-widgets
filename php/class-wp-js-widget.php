@@ -559,6 +559,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 				// @todo Move this to the component level.
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 			),
+			'default_instance' => $this->get_default_instance(),
 		);
 	}
 }

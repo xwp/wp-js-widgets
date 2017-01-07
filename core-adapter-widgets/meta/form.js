@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.meta = (function() {
+wp.widgets.formConstructor.meta = (function() {
 	'use strict';
 
 	var MetaWidgetForm;
@@ -13,7 +13,9 @@ wp.customize.Widgets.formConstructor.meta = (function() {
 	 *
 	 * @constructor
 	 */
-	MetaWidgetForm = wp.customize.Widgets.Form.extend( {} );
+	MetaWidgetForm = wp.widgets.Form.extend( {
+		id_base: 'meta'
+	} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = MetaWidgetForm;

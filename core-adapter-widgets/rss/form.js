@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.rss = (function( api ) {
+wp.widgets.formConstructor.rss = (function() {
 	'use strict';
 
 	var RSSWidgetForm;
@@ -13,11 +13,13 @@ wp.customize.Widgets.formConstructor.rss = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	RSSWidgetForm = api.Widgets.Form.extend( {} );
+	RSSWidgetForm = wp.widgets.Form.extend( {
+		id_base: 'rss'
+	} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RSSWidgetForm;
 	}
 	return RSSWidgetForm;
 
-})( wp.customize );
+})();

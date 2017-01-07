@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.pages = (function( api ) {
+wp.widgets.formConstructor.pages = (function( api ) {
 	'use strict';
 
 	var PagesWidgetForm;
@@ -13,24 +13,22 @@ wp.customize.Widgets.formConstructor.pages = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	PagesWidgetForm = wp.customize.Widgets.Form.extend( {
+	PagesWidgetForm = wp.widgets.Form.extend( {
+
+		id_base: 'pages',
 
 		/**
 		 * Initialize.
 		 *
-		 * @param {object}                             properties         Properties.
-		 * @param {wp.customize.Widgets.WidgetControl} properties.control Customize control.
-		 * @param {object}                             properties.config  Form config.
+		 * @param {object} properties Properties.
 		 * @return {void}
 		 */
 		initialize: function initializePagesWidgetForm( properties ) {
-			var form = this, props;
+			var form = this;
 
-			props = _.clone( properties );
-			props.config = _.clone( props.config );
-			props.config.exclude_select_id = 'select' + String( Math.random() );
+			wp.widgets.Form.prototype.initialize.call( form, properties );
 
-			api.Widgets.Form.prototype.initialize.call( form, props );
+			form.config.exclude_select_id = 'select' + String( Math.random() );
 		},
 
 		/**
@@ -41,7 +39,7 @@ wp.customize.Widgets.formConstructor.pages = (function( api ) {
 		 */
 		render: function render() {
 			var form = this, selectorContainer;
-			api.Widgets.Form.prototype.render.call( form );
+			wp.widgets.Form.prototype.render.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
 				form.postObjectSelector = new api.ObjectSelectorComponent({
@@ -69,7 +67,7 @@ wp.customize.Widgets.formConstructor.pages = (function( api ) {
 		linkPropertyElements: function linkPropertyElements() {
 			var form = this, excludeIds;
 
-			api.Widgets.Form.prototype.linkPropertyElements.call( form );
+			wp.widgets.Form.prototype.linkPropertyElements.call( form );
 			if ( api.ObjectSelectorComponent ) {
 
 				// Quietly convert the exclude property from comma-separated list string to ID array, as required by Customize Object Selector.

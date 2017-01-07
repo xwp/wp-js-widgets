@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.tag_cloud = (function( api ) {
+wp.widgets.formConstructor.tag_cloud = (function() {
 	'use strict';
 
 	var TagCloudWidgetForm;
@@ -13,11 +13,13 @@ wp.customize.Widgets.formConstructor.tag_cloud = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	TagCloudWidgetForm = api.Widgets.Form.extend( {} );
+	TagCloudWidgetForm = wp.widgets.Form.extend( {
+		id_base: 'tag_cloud'
+	} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = TagCloudWidgetForm;
 	}
 	return TagCloudWidgetForm;
 
-})( wp.customize );
+})();

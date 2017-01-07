@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
+wp.widgets.formConstructor.text = (function( api, $ ) {
 	'use strict';
 
 	var TextWidgetForm;
@@ -13,18 +13,21 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 	 *
 	 * @constructor
 	 */
-	TextWidgetForm = api.Widgets.Form.extend({
+	TextWidgetForm = wp.widgets.Form.extend({
+
+		id_base: 'text',
 
 		/**
 		 * Sanitize the instance data.
 		 *
-		 * @param {object} oldInstance Unsanitized instance.
+		 * @param {object} newInstance Unsanitized instance.
+		 * @param {object} oldInstance Previous instance.
 		 * @returns {object} Sanitized instance.
 		 */
 		sanitize: function( newInstance, oldInstance ) {
 			var form = this, instance, code, notification;
 
-			instance = api.Widgets.Form.prototype.sanitize.call( form, newInstance, oldInstance );
+			instance = wp.widgets.Form.prototype.sanitize.call( form, newInstance, oldInstance );
 
 			if ( ! instance.text ) {
 				instance.text = '';
@@ -38,9 +41,9 @@ wp.customize.Widgets.formConstructor.text = (function( api, $ ) {
 						message: form.config.l10n.text_unfiltered_html_invalid,
 						type: 'warning'
 					} );
-					form.setting.notifications.add( code, notification );
+					form.notifications.add( code, notification );
 				} else {
-					form.setting.notifications.remove( code );
+					form.notifications.remove( code );
 				}
 			}
 

@@ -3,23 +3,45 @@
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.Form = (function( api, $ ) {
+if ( ! wp.widgets ) {
+	wp.widgets = {};
+}
+if ( ! wp.widgets.formConstructor ) {
+	wp.widgets.formConstructor = {};
+}
+
+wp.widgets.Form = (function( api, $ ) {
 	'use strict';
 
 	/**
 	 * Customize Widget Form.
 	 *
 	 * @constructor
-	 * @augments wp.customize.Widgets.WidgetControl
 	 */
 	return api.Class.extend({
 
 		/**
+		 * ID base (type).
+		 *
+		 * @var string
+		 */
+		id_base: '',
+
+		/**
+		 * Form config.
+		 *
+		 * @var object
+		 */
+		config: {},
+
+		/**
 		 * Initialize.
 		 *
-		 * @param {object}                             properties         Properties.
-		 * @param {wp.customize.Widgets.WidgetControl} properties.control Customize control.
-		 * @param {object}                             properties.config  Form config.
+		 * @param {object}             properties           Properties.
+		 * @param {string}             properties.id_base   The widget ID base (aka type).
+		 * @param {wp.customize.Value} properties.model     The Value or Setting instance containing the widget instance data object.
+		 * @param {Element|jQuery}     properties.container The Value or Setting instance containing the widget instance data object.
+		 * @param {object}             properties.config    Form config.
 		 * @return {void}
 		 */
 		initialize: function initialize( properties ) {
@@ -27,8 +49,10 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 
 			args = _.extend(
 				{
-					control: null,
-					config: {
+					model: null,
+					container: null,
+					id_base: form.id_base,
+					config: ! _.isEmpty( form.config ) ? _.clone( form.config ) : {
 						l10n: {},
 						default_instance: {}
 					}
@@ -36,18 +60,28 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 				properties
 			);
 
-			if ( ! args.control || ! args.control.extended( wp.customize.Widgets.WidgetControl ) ) {
-				throw new Error( 'Missing control param.' );
+			if ( ! args.model || ! args.model.extended || ! args.model.extended( api.Value ) ) {
+				throw new Error( 'Missing model property which must be a Value or Setting instance.' );
 			}
-			form.control = args.control;
-			form.setting = form.control.setting;
-			form.config = args.config;
-			form.container = args.container;
-			if ( ! form.container ) {
-				throw new Error( 'No container' );
+			if ( 'string' !== typeof args.id_base ) {
+				throw new Error( 'Missing id_base property.' );
 			}
 
-			previousValidate = form.setting.validate;
+			_.extend( form, args );
+			form.setting = args.model; // @todo Deprecate 'setting' name in favor of 'model'?
+
+			if ( form.model.notifications ) {
+				form.notifications = form.model.notifications;
+			} else {
+				form.notifications = new api.Values({ defaultConstructor: api.Notification });
+			}
+
+			form.container = $( form.container );
+			if ( 0 === form.container.length ) {
+				throw new Error( 'Missing container property as Element or jQuery.' );
+			}
+
+			previousValidate = form.model.validate;
 
 			/**
 			 * Validate the instance data.
@@ -57,7 +91,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 			 * @param {object} value Instance value.
 			 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
 			 */
-			form.setting.validate = function validate( value ) {
+			form.model.validate = function validate( value ) {
 				var setting = this, newValue, oldValue, error, code, notification; // eslint-disable-line consistent-this
 				newValue = _.extend( {}, form.config.default_instance, value );
 				oldValue = _.extend( {}, setting() );
@@ -81,21 +115,17 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 					newValue = null;
 				}
 
-				// Sync the notification into the setting's notifications collection.
-				if ( form.setting.notifications ) {
-
-					// Remove all existing notifications added via sanitization since only one can be returned.
-					form.setting.notifications.each( function iterateNotifications( iteratedNotification ) {
-						if ( iteratedNotification.viaWidgetFormSanitizeReturn && ( ! notification || notification.code !== iteratedNotification.code ) ) {
-							form.setting.notifications.remove( iteratedNotification.code );
-						}
-					} );
-
-					// Add the new notification.
-					if ( notification ) {
-						notification.viaWidgetFormSanitizeReturn = true;
-						form.setting.notifications.add( notification.code, notification );
+				// Remove all existing notifications added via sanitization since only one can be returned.
+				form.notifications.each( function iterateNotifications( iteratedNotification ) {
+					if ( iteratedNotification.viaWidgetFormSanitizeReturn && ( ! notification || notification.code !== iteratedNotification.code ) ) {
+						form.notifications.remove( iteratedNotification.code );
 					}
+				} );
+
+				// Add the new notification.
+				if ( notification ) {
+					notification.viaWidgetFormSanitizeReturn = true;
+					form.notifications.add( notification.code, notification );
 				}
 
 				return newValue;
@@ -127,9 +157,9 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 					message: form.config.l10n.title_tags_invalid,
 					type: 'warning'
 				} );
-				form.setting.notifications.add( code, notification );
+				form.notifications.add( code, notification );
 			} else {
-				form.setting.notifications.remove( code );
+				form.notifications.remove( code );
 			}
 
 			/*
@@ -153,7 +183,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 			return _.extend(
 				{},
 				form.config.default_instance,
-				form.setting() || {}
+				form.model() || {}
 			);
 		},
 
@@ -168,7 +198,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		setState: function setState( props ) {
 			var form = this, value;
 			value = _.extend( form.getValue(), props || {} );
-			form.setting.set( value );
+			form.model.set( value );
 		},
 
 		/**
@@ -227,7 +257,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 					return;
 				}
 
-				syncedProperty = form.createSyncedPropertyValue( form.setting, name );
+				syncedProperty = form.createSyncedPropertyValue( form.model, name );
 				syncedProperty.element = new api.Element( input );
 				syncedProperty.element.set( initialInstanceData[ name ] );
 				syncedProperty.element.sync( syncedProperty.value );
@@ -244,7 +274,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 			var form = this;
 			_.each( form.syncedProperties, function( syncedProperty ) {
 				syncedProperty.element.unsync( syncedProperty.value );
-				form.setting.unbind( syncedProperty.rootChangeListener );
+				form.model.unbind( syncedProperty.rootChangeListener );
 				syncedProperty.value.callbacks.remove();
 			} );
 			form.syncedProperties = {};
@@ -258,7 +288,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		getTemplate: function getTemplate() {
 			var form = this;
 			if ( ! form._template ) {
-				form._template = wp.template( 'customize-widget-form-' + form.control.params.widget_id_base );
+				form._template = wp.template( 'customize-widget-form-' + form.id_base );
 			}
 			return form._template;
 		},
@@ -271,7 +301,7 @@ wp.customize.Widgets.Form = (function( api, $ ) {
 		 */
 		embed: function embed() {
 			if ( 'undefined' !== typeof console ) {
-				console.warn( 'wp.customize.Widgets.Form#embed is deprecated.' );
+				console.warn( 'wp.widgets.Form#embed is deprecated.' );
 			}
 			this.render();
 		},

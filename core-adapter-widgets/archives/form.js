@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.archives = (function( api ) {
+wp.widgets.formConstructor.archives = (function() {
 	'use strict';
 
 	var ArchivesWidgetForm;
@@ -13,11 +13,13 @@ wp.customize.Widgets.formConstructor.archives = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	ArchivesWidgetForm = api.Widgets.Form.extend( {} );
+	ArchivesWidgetForm = wp.widgets.Form.extend( {
+		id_base: 'archives'
+	} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = ArchivesWidgetForm;
 	}
 	return ArchivesWidgetForm;
 
-})( wp.customize );
+})();

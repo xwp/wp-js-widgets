@@ -13,7 +13,7 @@
  * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2895-L2906
  * https://github.com/xwp/wordpress-develop/blob/1aec30fba8201b6d8a76cc64b16c96f2f4d6fe4f/src/wp-admin/js/customize-nav-menus.js#L2919-L2929
  */
-wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
+wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 	'use strict';
 
 	var NavMenuWidgetForm, classProps = {};
@@ -89,7 +89,9 @@ wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
 	 *
 	 * @constructor
 	 */
-	NavMenuWidgetForm = api.Widgets.Form.extend( {
+	NavMenuWidgetForm = wp.widgets.Form.extend( {
+
+		id_base: 'nav_menu',
 
 		/**
 		 * Initialize.
@@ -99,7 +101,7 @@ wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
 		 */
 		initialize: function initialize( properties ) {
 			var form = this;
-			api.Widgets.Form.prototype.initialize.call( form, properties );
+			wp.widgets.Form.prototype.initialize.call( form, properties );
 			_.bindAll( form, 'updateForm', 'handleEditButtonClick' );
 		},
 
@@ -110,7 +112,7 @@ wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
 		 */
 		render: function render() {
 			var form = this;
-			api.Widgets.Form.prototype.render.call( form );
+			wp.widgets.Form.prototype.render.call( form );
 			NavMenuWidgetForm.navMenuCollection.on( 'update change', form.updateForm );
 			form.container.find( 'button.edit' ).on( 'click', form.handleEditButtonClick );
 			form.noMenusMessage = form.container.find( '.no-menus-message' );
@@ -129,7 +131,7 @@ wp.customize.Widgets.formConstructor.nav_menu = (function( api, $ ) {
 			NavMenuWidgetForm.navMenuCollection.off( 'update change', form.updateForm );
 			form.noMenusMessage = null;
 			form.menuSelection = null;
-			api.Widgets.Form.prototype.destruct.call( form );
+			wp.widgets.Form.prototype.destruct.call( form );
 		},
 
 		/**
