@@ -101,7 +101,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 	function validate_feed_url( $url, $request, $param ) {
 		$validity = rest_validate_request_arg( $url, $request, $param );
 		if ( true === $validity ) {
-			if ( ! esc_url_raw( $url, array( 'http', 'https' ) ) ) {
+			if ( ! empty( $url ) && ! esc_url_raw( $url, array( 'http', 'https' ) ) ) {
 				return new WP_Error( 'invalid_url_protocol', __( 'Invalid URL protocol. Expected HTTP or HTTPS.', 'js-widgets' ) );
 			}
 		}
