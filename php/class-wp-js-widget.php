@@ -85,7 +85,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * A.K.A. enqueue_form_scripts, enqueue_backend_scripts.
 	 */
-	public function enqueue_control_scripts() {}
+	public function enqueue_control_scripts() {
+		wp_enqueue_style( 'js-widget-form' );
+	}
 
 	/**
 	 * Enqueue scripts needed for the frontend.
@@ -308,7 +310,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 			?>
 			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>"  name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
 			<p>
-				<?php echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok. ?>
+				<?php
+				/* translators: %s is the URL to the customizer. */
+				echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok.
+				?>
 			</p>
 			<?php
 			return 'noform';
@@ -525,21 +530,67 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Get template ID for form.
+	 *
+	 * @return string Template ID.
 	 */
-	public function form_template() {
+	protected function get_form_template_id() {
+		return 'js-widget-form-' . $this->id_base;
+	}
+
+	/**
+	 * Whether form template scripts have been rendered.
+	 *
+	 * @var bool
+	 */
+	protected $form_template_scripts_rendered = false;
+
+	/**
+	 * Render form template scripts.
+	 *
+	 * This method normally need not be overridden by a subclass, as it is just a
+	 * wrapper for `WP_JS_Widget::form_template_contents()`, which is the method
+	 * that subclasses should override.
+	 *
+	 * @see WP_JS_Widget::render_form_template()
+	 */
+	public function render_form_template_scripts() {
+		if ( $this->form_template_scripts_rendered ) {
+			return;
+		}
+		$this->form_template_scripts_rendered = true;
+		?>
+
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() . '-notifications' ) ?>" type="text/template">
+			<ul>
+				<# _.each( data.notifications, function( notification ) { #>
+					<li class="notice notice-{{ notification.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }}" data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{{ notification.message || notification.code }}}</li>
+				<# } ); #>
+			</ul>
+		</script>
+
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() ) ?>" type="text/template">
+			<div class="js-widget-form-notifications-container customize-control-notifications-container"></div>
+			<?php $this->render_form_template(); ?>
+		</script>
+		<?php
+	}
+
+	/**
+	 * Render contents of JS template.
+	 *
+	 * Note that the text/template script tag wrapper is output by `WP_JS_Widget::render_form_template_scripts()`.
+	 *
+	 * @see WP_JS_Widget::render_form_template_scripts()
+	 */
+	public function render_form_template() {
 		$placeholder = '';
 		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['raw']['default'];
 		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['rendered']['default'];
 		}
-
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php $this->render_title_form_field_template( compact( 'placeholder' ) ); ?>
-		</script>
-		<?php
+		$this->render_title_form_field_template( compact( 'placeholder' ) );
 	}
 
 	/**
@@ -555,10 +606,11 @@ abstract class WP_JS_Widget extends WP_Widget {
 	public function get_form_args() {
 		return array(
 			'l10n' => array(
-
-				// @todo Move this to the component level.
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 			),
+			'default_instance' => $this->get_default_instance(),
+			'form_template_id' => $this->get_form_template_id(),
+			'notifications_template_id' => $this->get_form_template_id() . '-notifications',
 		);
 	}
 }

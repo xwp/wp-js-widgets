@@ -4,7 +4,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
+wp.widgets.formConstructor['post-collection'] = (function( api ) {
 	'use strict';
 
 	var PostCollectionWidgetForm;
@@ -14,7 +14,9 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	PostCollectionWidgetForm = api.Widgets.Form.extend({
+	PostCollectionWidgetForm = wp.widgets.Form.extend({
+
+		id_base: 'post-collection',
 
 		/**
 		 * Initialize.
@@ -31,7 +33,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
 			props.config = _.clone( props.config );
 			props.config.select_id = 'select' + String( Math.random() );
 
-			api.Widgets.Form.prototype.initialize.call( form, props );
+			wp.widgets.Form.prototype.initialize.call( form, props );
 		},
 
 		/**
@@ -42,7 +44,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
 		 */
 		render: function render() {
 			var form = this, selectorContainer;
-			api.Widgets.Form.prototype.render.call( form );
+			wp.widgets.Form.prototype.render.call( form );
 
 			if ( api.ObjectSelectorComponent ) {
 
@@ -78,7 +80,7 @@ wp.customize.Widgets.formConstructor['post-collection'] = (function( api ) {
 		linkPropertyElements: function linkPropertyElements() {
 			var form = this;
 
-			api.Widgets.Form.prototype.linkPropertyElements.call( form );
+			wp.widgets.Form.prototype.linkPropertyElements.call( form );
 			if ( api.ObjectSelectorComponent ) {
 				form.syncedProperties.posts = form.createSyncedPropertyValue( form.setting, 'posts' );
 			}

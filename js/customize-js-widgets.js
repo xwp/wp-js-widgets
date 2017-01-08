@@ -1,31 +1,21 @@
 /* global wp, module */
-/* exported CustomizeJSWidgets */
 /* eslint-disable strict */
 /* eslint-disable complexity */
 /* eslint consistent-this: [ "error", "control" ] */
 
-var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-vars
+wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-vars
 	'use strict';
 
-	var component, originalInitialize;
+	var component = {}, originalInitialize;
 
-	component = {
-		data: {
-			id_bases: {},
-			form_configs: {}
-		}
-	};
 	originalInitialize = api.Widgets.WidgetControl.prototype.initialize;
 
 	/**
 	 * Initialize component.
 	 *
-	 * @param {object} data
+	 * @returns {void}
 	 */
-	component.init = function initComponent( data ) {
-		if ( data ) {
-			_.extend( component.data, data );
-		}
+	component.init = function initComponent() {
 		component.extendWidgetControl();
 
 		// Handle (re-)adding a (previously-removed) control.
@@ -50,7 +40,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 	 * @returns {boolean} Whether the control is a JS widget.
 	 */
 	component.isJsWidgetControl = function isJsWidgetControl( widgetControl ) {
-		return widgetControl.extended( api.Widgets.WidgetControl ) && component.data.id_bases[ widgetControl.params.widget_id_base ];
+		return widgetControl.extended( api.Widgets.WidgetControl ) && 'undefined' !== typeof wp.widgets.formConstructor[ widgetControl.params.widget_id_base ];
 	};
 
 	/**
@@ -69,7 +59,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 */
 		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
 			var control = this, isJsWidget;
-			isJsWidget = options.params.widget_id_base && component.data.id_bases[ options.params.widget_id_base ];
+			isJsWidget = options.params.widget_id_base && 'undefined' !== typeof wp.widgets.formConstructor[ options.params.widget_id_base ];
 			if ( isJsWidget ) {
 				_.extend( control, component.WidgetControl.prototype );
 				component.WidgetControl.prototype.initialize.call( control, id, options );
@@ -154,6 +144,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 			} );
 			options.params.widget_control = widgetControlWrapperMarkup;
 
+			// No-op renderNotifications in favor of letting Form handle it.
+			control.renderNotifications = function() {};
+
 			originalInitialize.call( control, id, options );
 		},
 
@@ -178,9 +171,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 
 			// @todo This should actually set up the template and not wait until render. The container should be guaranteed.
 			control.form = new Form( {
-				control: control,
-				container: formContainer,
-				config: component.data.form_configs[ control.params.widget_id_base ]
+				model: control.setting,
+				id_base: control.params.widget_id_base,
+				container: formContainer
 			} );
 			control.form.render();
 
@@ -197,7 +190,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * Handle changes to the setting.
 		 *
 		 * This mostly removes code located in `wp.customize.Widgets.WidgetControl.prototype._setupModel`,
-		 * as most of the code there is made obsolete by `wp.customize.Widgets.Form` which is responsible
+		 * as most of the code there is made obsolete by `wp.widgets.Form` which is responsible
 		 * for re-rendering the form when when the setting changes.
 		 *
 		 * @returns {void}
@@ -219,7 +212,7 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		/**
 		 * Override WidgetControl logic for setting up event handlers for widget updating.
 		 *
-		 * This is now handled entirely in the wp.customize.Widgets.Form instance.
+		 * This is now handled entirely in the wp.widgets.Form instance.
 		 *
 		 * @returns {void}
 		 */
@@ -309,7 +302,9 @@ var CustomizeJSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		}
 	});
 
-	api.Widgets.formConstructor = {};
+	api.Widgets.formConstructor = wp.widgets.formConstructor || {}; // @todo Eliminate the wp.widgets.formConstructor alias.
+	api.Widgets.Form = wp.widgets.Form; // @todo Eliminate alias.
+
 	if ( 'undefined' !== typeof module ) {
 		module.exports = component;
 	}

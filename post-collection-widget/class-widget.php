@@ -71,7 +71,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		$plugin_dir_url = plugin_dir_url( __FILE__ );
 		$handle = 'customize-widget-form-post-collection';
 		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
+		$deps = array( 'js-widget-form' );
 		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
@@ -98,6 +98,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * Enqueue scripts needed for the controls.
 	 */
 	public function enqueue_control_scripts() {
+		parent::enqueue_control_scripts();
 
 		// Gracefully handle the customize-object-selector plugin not being active.
 		$handle = 'customize-widget-form-post-collection';
@@ -304,6 +305,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 							<address class="author">
 								<?php
 								echo sprintf(
+									/* translators: %s is the author display name */
 									esc_html__( 'By %s', 'js-widgets' ),
 									esc_html( get_the_author_meta( 'display_name', $query->post->post_author ) )
 								);
@@ -344,13 +346,14 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 *
 	 * This template is intended to be agnostic to the JS template technology used.
 	 */
-	public function form_template() {
+	public function render_form_template_scripts() {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php if ( ! wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
 				<p><em>
 					<?php
 					echo wp_kses_post( sprintf(
+						/* translators: %s is the link to the Customize Object Selector plugin */
 						__( 'This widget depends on the %s plugin. Please install and activate.', 'js-widgets' ),
 						sprintf(
 							'<a target="_blank" href="%1$s">%2$s</a>',

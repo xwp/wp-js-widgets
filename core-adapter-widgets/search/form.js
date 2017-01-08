@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.search = (function() {
+wp.widgets.formConstructor.search = (function() {
 	'use strict';
 
 	var SearchWidgetForm;
@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.search = (function() {
 	 *
 	 * @constructor
 	 */
-	SearchWidgetForm = wp.customize.Widgets.Form.extend( {} );
+	SearchWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = SearchWidgetForm;

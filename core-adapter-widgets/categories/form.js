@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.categories = (function( api ) {
+wp.widgets.formConstructor.categories = (function() {
 	'use strict';
 
 	var CategoriesWidgetForm;
@@ -13,11 +13,13 @@ wp.customize.Widgets.formConstructor.categories = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	CategoriesWidgetForm = api.Widgets.Form.extend( {} );
+	CategoriesWidgetForm = wp.widgets.Form.extend( {
+		id_base: 'categories'
+	} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CategoriesWidgetForm;
 	}
 	return CategoriesWidgetForm;
 
-})( wp.customize );
+})();

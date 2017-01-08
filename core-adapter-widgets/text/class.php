@@ -95,30 +95,22 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
-	 *
-	 * This template is intended to be agnostic to the JS template technology used.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template();
-			$this->render_form_field_template( array(
-				'name' => 'text',
-				'label' => __( 'Content:', 'default' ),
-				'type' => 'textarea',
-				'rows' => 16,
-				'cols' => 20,
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'filter',
-				'label' => __( 'Automatically add paragraphs', 'default' ),
-				'type' => 'checkbox',
-			) );
-			?>
-		</script>
-		<?php
+	public function render_form_template() {
+		$this->render_title_form_field_template();
+		$this->render_form_field_template( array(
+			'name' => 'text',
+			'label' => __( 'Content:', 'default' ),
+			'type' => 'textarea',
+			'rows' => 16,
+			'cols' => 20,
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'filter',
+			'label' => __( 'Automatically add paragraphs', 'default' ),
+			'type' => 'checkbox',
+		) );
 	}
 
 	/**

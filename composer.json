@@ -1,7 +1,7 @@
 {
 	"name": "xwp/wp-js-widgets",
 	"description": "The next generation of widgets in Core (Widgets 3.0), embracing JS for UI and powering the Widgets REST API.",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"type": "wordpress-plugin",
 	"keywords": [ "customizer", "widgets", "rest-api" ],
 	"homepage": "https://github.com/xwp/wp-js-widgets/",

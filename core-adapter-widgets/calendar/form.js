@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor.calendar = (function() {
+wp.widgets.formConstructor.calendar = (function() {
 	'use strict';
 
 	var CalendarWidgetForm;
@@ -13,7 +13,7 @@ wp.customize.Widgets.formConstructor.calendar = (function() {
 	 *
 	 * @constructor
 	 */
-	CalendarWidgetForm = wp.customize.Widgets.Form.extend( {} );
+	CalendarWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CalendarWidgetForm;

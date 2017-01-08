@@ -101,7 +101,7 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 	function validate_feed_url( $url, $request, $param ) {
 		$validity = rest_validate_request_arg( $url, $request, $param );
 		if ( true === $validity ) {
-			if ( ! esc_url_raw( $url, array( 'http', 'https' ) ) ) {
+			if ( ! empty( $url ) && ! esc_url_raw( $url, array( 'http', 'https' ) ) ) {
 				return new WP_Error( 'invalid_url_protocol', __( 'Invalid URL protocol. Expected HTTP or HTTPS.', 'js-widgets' ) );
 			}
 		}
@@ -232,45 +232,39 @@ class WP_JS_Widget_RSS extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
 		$item_schema = $this->get_item_schema();
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_form_field_template( array(
-				'name' => 'url',
-				'label' => __( 'Enter the RSS feed URL here:', 'default' ),
-				'type' => 'url',
-			) );
-			$this->render_title_form_field_template( array(
-				'label' => __( 'Give the feed a title (optional)', 'default' ),
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'items',
-				'label' => __( 'How many items would you like to display?', 'default' ),
-				'type' => 'number',
-				'min' => $item_schema['items']['minimum'],
-				'max' => $item_schema['items']['maximum'],
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'show_summary',
-				'label' => __( 'Display item content?', 'default' ),
-				'type' => 'checkbox',
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'show_author',
-				'label' => __( 'Display item author if available?', 'default' ),
-				'type' => 'checkbox',
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'show_date',
-				'label' => __( 'Display item date?', 'default' ),
-				'type' => 'checkbox',
-			) );
-			?>
-		</script>
-		<?php
+		$this->render_form_field_template( array(
+			'name' => 'url',
+			'label' => __( 'Enter the RSS feed URL here:', 'default' ),
+			'type' => 'url',
+		) );
+		$this->render_title_form_field_template( array(
+			'label' => __( 'Give the feed a title (optional)', 'default' ),
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'items',
+			'label' => __( 'How many items would you like to display?', 'default' ),
+			'type' => 'number',
+			'min' => $item_schema['items']['minimum'],
+			'max' => $item_schema['items']['maximum'],
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'show_summary',
+			'label' => __( 'Display item content?', 'default' ),
+			'type' => 'checkbox',
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'show_author',
+			'label' => __( 'Display item author if available?', 'default' ),
+			'type' => 'checkbox',
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'show_date',
+			'label' => __( 'Display item date?', 'default' ),
+			'type' => 'checkbox',
+		) );
 	}
 }

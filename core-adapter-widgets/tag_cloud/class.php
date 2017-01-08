@@ -167,34 +167,28 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
 		$item_schema = $this->get_item_schema();
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template( array(
-				'placeholder' => $item_schema['title']['properties']['raw']['default'],
+		$this->render_title_form_field_template( array(
+			'placeholder' => $item_schema['title']['properties']['raw']['default'],
+		) );
+		$taxonomies = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
+		if ( ! get_option( 'link_manager_enabled' ) ) {
+			unset( $taxonomies['link_category'] );
+		}
+		if ( count( $taxonomies ) > 1 ) {
+			$taxonomy_choices = array();
+			foreach ( $taxonomies as $taxonomy ) {
+				$taxonomy_choices[ $taxonomy->name ] = $taxonomy->label;
+			}
+			$this->render_form_field_template( array(
+				'name' => 'taxonomy',
+				'label' => __( 'Taxonomy:', 'default' ),
+				'type' => 'select',
+				'choices' => $taxonomy_choices,
 			) );
-			$taxonomies = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
-			if ( ! get_option( 'link_manager_enabled' ) ) {
-				unset( $taxonomies['link_category'] );
-			}
-			if ( count( $taxonomies ) > 1 ) {
-				$taxonomy_choices = array();
-				foreach ( $taxonomies as $taxonomy ) {
-					$taxonomy_choices[ $taxonomy->name ] = $taxonomy->label;
-				}
-				$this->render_form_field_template( array(
-					'name' => 'taxonomy',
-					'label' => __( 'Taxonomy:', 'default' ),
-					'type' => 'select',
-					'choices' => $taxonomy_choices,
-				) );
-			}
-			?>
-		</script>
-		<?php
+		}
 	}
 }
