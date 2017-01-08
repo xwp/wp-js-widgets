@@ -13,9 +13,7 @@ wp.widgets.formConstructor['recent-posts'] = (function() {
 	 *
 	 * @constructor
 	 */
-	RecentPostsWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'recent-posts'
-	} );
+	RecentPostsWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RecentPostsWidgetForm;

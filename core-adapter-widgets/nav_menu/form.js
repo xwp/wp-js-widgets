@@ -91,8 +91,6 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 	 */
 	NavMenuWidgetForm = wp.widgets.Form.extend( {
 
-		id_base: 'nav_menu',
-
 		/**
 		 * Initialize.
 		 *

@@ -201,43 +201,38 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
 		$item_schema = $this->get_item_schema();
+		$this->render_title_form_field_template( array(
+			'placeholder' => $item_schema['title']['properties']['raw']['default'],
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'sortby',
+			'label' => __( 'Sort by:', 'default' ),
+			'type' => 'select',
+			'choices' => array(
+				'post_title' => __( 'Page title', 'default' ),
+				'menu_order' => __( 'Page order', 'default' ),
+				'ID' => __( 'Page ID', 'default' ),
+			),
+		) );
 		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template( array(
-				'placeholder' => $item_schema['title']['properties']['raw']['default'],
-			) );
+		<?php if ( wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
+			<p class="exclude-pages-selector">
+				<label for="{{ data.config.exclude_select_id }}"><?php esc_html_e( 'Exclude:', 'default' ) ?></label>
+				<span class="customize-object-selector-container"></span>
+			</p>
+		<?php else :
 			$this->render_form_field_template( array(
-				'name' => 'sortby',
-				'label' => __( 'Sort by:', 'default' ),
-				'type' => 'select',
-				'choices' => array(
-					'post_title' => __( 'Page title', 'default' ),
-					'menu_order' => __( 'Page order', 'default' ),
-					'ID' => __( 'Page ID', 'default' ),
-				),
+				'name' => 'exclude',
+				'label' => __( 'Exclude:', 'default' ),
+				'type' => 'text',
+				'pattern' => self::ID_LIST_PATTERN,
+				'title' => __( 'Page IDs, separated by commas.', 'default' ),
+				'help' => __( 'Page IDs, separated by commas.', 'default' ),
 			) );
-			?>
-			<?php if ( wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
-				<p class="exclude-pages-selector">
-					<label for="{{ data.config.exclude_select_id }}"><?php esc_html_e( 'Exclude:', 'default' ) ?></label>
-					<span class="customize-object-selector-container"></span>
-				</p>
-			<?php else :
-				$this->render_form_field_template( array(
-					'name' => 'exclude',
-					'label' => __( 'Exclude:', 'default' ),
-					'type' => 'text',
-					'pattern' => self::ID_LIST_PATTERN,
-					'title' => __( 'Page IDs, separated by commas.', 'default' ),
-					'help' => __( 'Page IDs, separated by commas.', 'default' ),
-				) );
-			endif; ?>
-		</script>
-		<?php
+		endif;
 	}
 }

@@ -15,8 +15,6 @@ wp.widgets.formConstructor.text = (function( api, $ ) {
 	 */
 	TextWidgetForm = wp.widgets.Form.extend({
 
-		id_base: 'text',
-
 		/**
 		 * Sanitize the instance data.
 		 *

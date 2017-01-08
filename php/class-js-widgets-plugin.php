@@ -100,7 +100,7 @@ class JS_Widgets_Plugin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
 		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
@@ -255,14 +255,14 @@ class JS_Widgets_Plugin {
 	/**
 	 * Print widget form templates.
 	 *
-	 * @see WP_Customize_Widget::form_template()
+	 * @see WP_Customize_Widget::render_form_template_scripts()
 	 */
-	function print_widget_form_templates() {
+	function render_widget_form_template_scripts() {
 		global $wp_widget_factory;
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
-				$widget->form_template();
+				$widget->render_form_template_scripts();
 			}
 		}
 	}

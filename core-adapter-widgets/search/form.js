@@ -13,9 +13,7 @@ wp.widgets.formConstructor.search = (function() {
 	 *
 	 * @constructor
 	 */
-	SearchWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'search'
-	} );
+	SearchWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = SearchWidgetForm;

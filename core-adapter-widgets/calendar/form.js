@@ -13,9 +13,7 @@ wp.widgets.formConstructor.calendar = (function() {
 	 *
 	 * @constructor
 	 */
-	CalendarWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'calendar'
-	} );
+	CalendarWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CalendarWidgetForm;

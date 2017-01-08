@@ -45,34 +45,29 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
+		$this->render_title_form_field_template();
 		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
+		<div class="no-menus-message">
+			<p><?php echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) ); ?></p>
+		</div>
+		<div class="menu-selection">
 			<?php
-			$this->render_title_form_field_template();
+			$this->render_form_field_template( array(
+				'name' => 'nav_menu',
+				'label' => __( 'Select Menu:', 'default' ),
+				'type' => 'select',
+				'choices' => array(
+					'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
+				),
+			) );
 			?>
-
-			<div class="no-menus-message">
-				<p><?php echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) ); ?></p>
-			</div>
-			<div class="menu-selection">
-				<?php
-				$this->render_form_field_template( array(
-					'name' => 'nav_menu',
-					'label' => __( 'Select Menu:', 'default' ),
-					'type' => 'select',
-					'choices' => array(
-						'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
-					),
-				) );
-				?>
-				<p>
-					<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
-				</p>
-			</div>
-		</script>
+			<p>
+				<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
+			</p>
+		</div>
 		<?php
 	}
 }

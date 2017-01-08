@@ -525,21 +525,46 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Get template ID for form.
+	 *
+	 * @return string Template ID.
 	 */
-	public function form_template() {
+	protected function get_form_template_id() {
+		return 'js-widget-form-' . $this->id_base;
+	}
+
+	/**
+	 * Render JS template.
+	 *
+	 * This method normally need not be overridden by a subclass, as it is just a
+	 * wrapper for `WP_JS_Widget::form_template_contents()`, which is the method
+	 * that subclasses should override.
+	 *
+	 * @see WP_JS_Widget::render_form_template()
+	 */
+	public function render_form_template_scripts() {
+		?>
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() ) ?>" type="text/template">
+			<?php $this->render_form_template(); ?>
+		</script>
+		<?php
+	}
+
+	/**
+	 * Render contents of JS template.
+	 *
+	 * Note that the text/template script tag wrapper is output by `WP_JS_Widget::render_form_template_scripts()`.
+	 *
+	 * @see WP_JS_Widget::render_form_template_scripts()
+	 */
+	public function render_form_template() {
 		$placeholder = '';
 		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['raw']['default'];
 		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['rendered']['default'];
 		}
-
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php $this->render_title_form_field_template( compact( 'placeholder' ) ); ?>
-		</script>
-		<?php
+		$this->render_title_form_field_template( compact( 'placeholder' ) );
 	}
 
 	/**
@@ -555,11 +580,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 	public function get_form_args() {
 		return array(
 			'l10n' => array(
-
-				// @todo Move this to the component level.
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 			),
 			'default_instance' => $this->get_default_instance(),
+			'template_id' => $this->get_form_template_id(),
 		);
 	}
 }

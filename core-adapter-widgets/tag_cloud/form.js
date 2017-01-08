@@ -13,9 +13,7 @@ wp.widgets.formConstructor.tag_cloud = (function() {
 	 *
 	 * @constructor
 	 */
-	TagCloudWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'tag_cloud'
-	} );
+	TagCloudWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = TagCloudWidgetForm;

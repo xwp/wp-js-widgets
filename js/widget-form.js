@@ -21,13 +21,6 @@ wp.widgets.Form = (function( api, $ ) {
 	return api.Class.extend({
 
 		/**
-		 * ID base (type).
-		 *
-		 * @var string
-		 */
-		id_base: '',
-
-		/**
 		 * Form config.
 		 *
 		 * @var object
@@ -51,8 +44,8 @@ wp.widgets.Form = (function( api, $ ) {
 				{
 					model: null,
 					container: null,
-					id_base: form.id_base,
 					config: ! _.isEmpty( form.config ) ? _.clone( form.config ) : {
+						template_id: '',
 						l10n: {},
 						default_instance: {}
 					}
@@ -62,9 +55,6 @@ wp.widgets.Form = (function( api, $ ) {
 
 			if ( ! args.model || ! args.model.extended || ! args.model.extended( api.Value ) ) {
 				throw new Error( 'Missing model property which must be a Value or Setting instance.' );
-			}
-			if ( 'string' !== typeof args.id_base ) {
-				throw new Error( 'Missing id_base property.' );
 			}
 
 			_.extend( form, args );
@@ -288,7 +278,10 @@ wp.widgets.Form = (function( api, $ ) {
 		getTemplate: function getTemplate() {
 			var form = this;
 			if ( ! form._template ) {
-				form._template = wp.template( 'customize-widget-form-' + form.id_base );
+				if ( ! $( '#tmpl-' + form.config.template_id ).is( 'script[type="text/template"]' ) ) {
+					throw new Error( 'Missing script[type="text/template"]#' + form.config.template_id + ' script for widget form.' );
+				}
+				form._template = wp.template( form.config.template_id );
 			}
 			return form._template;
 		},

@@ -344,7 +344,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 *
 	 * This template is intended to be agnostic to the JS template technology used.
 	 */
-	public function form_template() {
+	public function render_form_template_scripts() {
 		?>
 		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
 			<?php if ( ! wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>

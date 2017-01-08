@@ -13,9 +13,7 @@ wp.widgets.formConstructor.rss = (function() {
 	 *
 	 * @constructor
 	 */
-	RSSWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'rss'
-	} );
+	RSSWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RSSWidgetForm;

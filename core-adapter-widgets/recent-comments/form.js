@@ -13,9 +13,7 @@ wp.widgets.formConstructor['recent-comments'] = (function() {
 	 *
 	 * @constructor
 	 */
-	RecentCommentsWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'recent-comments'
-	} );
+	RecentCommentsWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RecentCommentsWidgetForm;

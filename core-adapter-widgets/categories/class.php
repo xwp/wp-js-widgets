@@ -188,33 +188,27 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
 		$item_schema = $this->get_item_schema();
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template( array(
-				'placeholder' => $item_schema['title']['properties']['raw']['default'],
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'dropdown',
-				'label' => __( 'Display as dropdown', 'default' ),
-				'type' => 'checkbox',
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'count',
-				'label' => __( 'Show post counts', 'default' ),
-				'type' => 'checkbox',
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'hierarchical',
-				'label' => __( 'Show hierarchy', 'default' ),
-				'type' => 'checkbox',
-			) );
-			?>
-		</script>
-		<?php
+		$this->render_title_form_field_template( array(
+			'placeholder' => $item_schema['title']['properties']['raw']['default'],
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'dropdown',
+			'label' => __( 'Display as dropdown', 'default' ),
+			'type' => 'checkbox',
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'count',
+			'label' => __( 'Show post counts', 'default' ),
+			'type' => 'checkbox',
+		) );
+		$this->render_form_field_template( array(
+			'name' => 'hierarchical',
+			'label' => __( 'Show hierarchy', 'default' ),
+			'type' => 'checkbox',
+		) );
 	}
 }

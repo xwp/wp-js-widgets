@@ -15,8 +15,6 @@ wp.widgets.formConstructor.pages = (function( api ) {
 	 */
 	PagesWidgetForm = wp.widgets.Form.extend( {
 
-		id_base: 'pages',
-
 		/**
 		 * Initialize.
 		 *
