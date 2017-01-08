@@ -1,0 +1,62 @@
+.js-widget-form-notifications-container {
+	margin: 4px 0 8px 0;
+	padding: 0;
+	display: none;
+	cursor: default;
+}
+
+.js-widget-form-notifications-container li.notice {
+	list-style: none;
+	margin: 0 0 6px 0;
+	padding: 4px 8px;
+}
+
+.js-widget-form-notifications-container li.notice:last-child {
+	margin-bottom: 0;
+}
+
+.js-widget-form-notifications-container .notice {
+	background: #fff;
+	border-left: 4px solid #fff;
+	-webkit-box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	margin: 5px 15px 2px;
+	padding: 1px 12px;
+}
+
+.js-widget-form-notifications-container .notice p {
+	margin: 0.5em 0;
+	padding: 2px;
+}
+
+.js-widget-form-notifications-container .notice-alt {
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+.js-widget-form-notifications-container .notice-error {
+	border-left-color: #dc3232;
+}
+.js-widget-form-notifications-container .notice-error.notice-alt {
+	background-color: #fbeaea;
+}
+
+.js-widget-form-notifications-container .notice-info {
+	border-left-color: #00a0d2;
+}
+.js-widget-form-notifications-container .notice-info.notice-alt {
+	background-color: #e5f5fa;
+}
+
+.js-widget-form-notifications-container .notice-success{
+	border-left-color: #46b450;
+}
+.js-widget-form-notifications-container .notice-success.notice-alt {
+	background-color: #ecf7ed;
+}
+
+.js-widget-form-notifications-container .notice-warning {
+	border-left-color: #ffb900;
+}
+.js-widget-form-notifications-container .notice-warning.notice-alt {
+	background-color: #fff8e5;
+}

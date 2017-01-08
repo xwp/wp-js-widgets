@@ -98,6 +98,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * Enqueue scripts needed for the controls.
 	 */
 	public function enqueue_control_scripts() {
+		parent::enqueue_control_scripts();
 
 		// Gracefully handle the customize-object-selector plugin not being active.
 		$handle = 'customize-widget-form-post-collection';

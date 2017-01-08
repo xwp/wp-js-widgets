@@ -144,6 +144,9 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 			} );
 			options.params.widget_control = widgetControlWrapperMarkup;
 
+			// No-op renderNotifications in favor of letting Form handle it.
+			control.renderNotifications = function() {};
+
 			originalInitialize.call( control, id, options );
 		},
 

@@ -138,7 +138,7 @@ class JS_Widgets_Plugin {
 
 		$this->script_handles['form'] = 'js-widget-form';
 		$src = $plugin_dir_url . 'js/widget-form.js';
-		$deps = array( 'customize-base', 'wp-util', 'jquery' );
+		$deps = array( 'customize-base', 'wp-util', 'jquery', 'wp-a11y' );
 		$wp_scripts->add( $this->script_handles['form'], $src, $deps, $this->version );
 
 		$this->script_handles['customize-js-widgets'] = 'customize-js-widgets';
@@ -171,6 +171,11 @@ class JS_Widgets_Plugin {
 	 */
 	public function register_styles( WP_Styles $wp_styles ) {
 		global $wp_widget_factory;
+		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
+
+		$src = $plugin_dir_url . 'css/widget-form.css';
+		$deps = array();
+		$wp_styles->add( 'js-widget-form', $src, $deps, $this->version );
 
 		// Register scripts for widgets.
 		foreach ( $wp_widget_factory->widgets as $widget ) {

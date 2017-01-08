@@ -45,7 +45,8 @@ wp.widgets.Form = (function( api, $ ) {
 					model: null,
 					container: null,
 					config: ! _.isEmpty( form.config ) ? _.clone( form.config ) : {
-						template_id: '',
+						form_template_id: '',
+						notifications_template_id: '',
 						l10n: {},
 						default_instance: {}
 					}
@@ -65,6 +66,7 @@ wp.widgets.Form = (function( api, $ ) {
 			} else {
 				form.notifications = new api.Values({ defaultConstructor: api.Notification });
 			}
+			form.renderNotifications = _.bind( form.renderNotifications, form );
 
 			form.container = $( form.container );
 			if ( 0 === form.container.length ) {
@@ -120,6 +122,71 @@ wp.widgets.Form = (function( api, $ ) {
 
 				return newValue;
 			};
+		},
+
+		/**
+		 * Render notifications.
+		 *
+		 * Renders the `form.notifications` into the control's container.
+		 * Control subclasses may override this method to do their own handling
+		 * of rendering notifications.
+		 *
+		 * Note that this debounced/deferred rendering is needed for two reasons:
+		 * 1) The 'remove' event is triggered just _before_ the notification is actually removed.
+		 * 2) Improve performance when adding/removing multiple notifications at a time.
+		 *
+		 * @returns {void}
+		 */
+		renderNotifications: _.debounce( function renderNotifications() {
+			var form = this, container, notifications, hasError = false;
+			container = form.getNotificationsContainerElement();
+			if ( ! container || ! container.length ) {
+				return;
+			}
+			notifications = [];
+			form.notifications.each( function( notification ) {
+				notifications.push( notification );
+				if ( 'error' === notification.type ) {
+					hasError = true;
+				}
+
+				if ( ! notification.hasA11ySpoken ) {
+
+					// @todo In the context of the Customizer, this presently will end up getting spoken twice due to wp.customize.Control also rendering it.
+					wp.a11y.speak( notification.message, 'assertive' );
+					notification.hasA11ySpoken = true;
+				}
+			} );
+
+			if ( 0 === notifications.length ) {
+				container.stop().slideUp( 'fast' );
+			} else {
+				container.stop().slideDown( 'fast', null, function() {
+					$( this ).css( 'height', 'auto' );
+				} );
+			}
+
+			if ( ! form._notificationsTemplate ) {
+				form._notificationsTemplate = wp.template( form.config.notifications_template_id );
+			}
+
+			form.container.toggleClass( 'has-notifications', 0 !== notifications.length );
+			form.container.toggleClass( 'has-error', hasError );
+			container.empty().append( $.trim(
+				form._notificationsTemplate( { notifications: notifications, altNotice: Boolean( form.altNotice ) } )
+			) );
+		} ),
+
+		/**
+		 * Get the element inside of a form's container that contains the notifications.
+		 *
+		 * Control subclasses may override this to return the proper container to render notifications into.
+		 *
+		 * @returns {jQuery} Notifications container element.
+		 */
+		getNotificationsContainerElement: function getNotificationsContainerElement() {
+			var form = this;
+			return form.container.find( '.js-widget-form-notifications-container:first' );
 		},
 
 		/**
@@ -278,10 +345,10 @@ wp.widgets.Form = (function( api, $ ) {
 		getTemplate: function getTemplate() {
 			var form = this;
 			if ( ! form._template ) {
-				if ( ! $( '#tmpl-' + form.config.template_id ).is( 'script[type="text/template"]' ) ) {
-					throw new Error( 'Missing script[type="text/template"]#' + form.config.template_id + ' script for widget form.' );
+				if ( ! $( '#tmpl-' + form.config.form_template_id ).is( 'script[type="text/template"]' ) ) {
+					throw new Error( 'Missing script[type="text/template"]#' + form.config.form_template_id + ' script for widget form.' );
 				}
-				form._template = wp.template( form.config.template_id );
+				form._template = wp.template( form.config.form_template_id );
 			}
 			return form._template;
 		},
@@ -308,6 +375,8 @@ wp.widgets.Form = (function( api, $ ) {
 			var form = this, template = form.getTemplate();
 			form.container.html( template( form ) );
 			form.linkPropertyElements();
+			form.notifications.bind( 'add', form.renderNotifications );
+			form.notifications.bind( 'remove', form.renderNotifications );
 		},
 
 		/**
@@ -321,6 +390,8 @@ wp.widgets.Form = (function( api, $ ) {
 			var form = this;
 			form.container.empty();
 			form.unlinkPropertyElements();
+			form.notifications.unbind( 'add', form.renderNotifications );
+			form.notifications.unbind( 'remove', form.renderNotifications );
 		}
 	});
 

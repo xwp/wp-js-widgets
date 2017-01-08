@@ -85,7 +85,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * A.K.A. enqueue_form_scripts, enqueue_backend_scripts.
 	 */
-	public function enqueue_control_scripts() {}
+	public function enqueue_control_scripts() {
+		wp_enqueue_style( 'js-widget-form' );
+	}
 
 	/**
 	 * Enqueue scripts needed for the frontend.
@@ -537,7 +539,14 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Render JS template.
+	 * Whether form template scripts have been rendered.
+	 *
+	 * @var bool
+	 */
+	protected $form_template_scripts_rendered = false;
+
+	/**
+	 * Render form template scripts.
 	 *
 	 * This method normally need not be overridden by a subclass, as it is just a
 	 * wrapper for `WP_JS_Widget::form_template_contents()`, which is the method
@@ -546,8 +555,22 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @see WP_JS_Widget::render_form_template()
 	 */
 	public function render_form_template_scripts() {
+		if ( $this->form_template_scripts_rendered ) {
+			return;
+		}
+		$this->form_template_scripts_rendered = true;
 		?>
+
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() . '-notifications' ) ?>" type="text/template">
+			<ul>
+				<# _.each( data.notifications, function( notification ) { #>
+					<li class="notice notice-{{ notification.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }}" data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{{ notification.message || notification.code }}}</li>
+				<# } ); #>
+			</ul>
+		</script>
+
 		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() ) ?>" type="text/template">
+			<div class="js-widget-form-notifications-container customize-control-notifications-container"></div>
 			<?php $this->render_form_template(); ?>
 		</script>
 		<?php
@@ -586,7 +609,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 			),
 			'default_instance' => $this->get_default_instance(),
-			'template_id' => $this->get_form_template_id(),
+			'form_template_id' => $this->get_form_template_id(),
+			'notifications_template_id' => $this->get_form_template_id() . '-notifications',
 		);
 	}
 }
