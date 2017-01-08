@@ -114,6 +114,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 			// Prevent clobbering reserved fields.
 			if ( in_array( $field_id, $reserved_field_ids, true ) ) {
+				/* translators: %s is field ID */
 				_doing_it_wrong( get_class( $this->widget ) . '::get_item_schema', sprintf( __( 'The field "%s" is reserved.', 'js-widgets' ), esc_html( $field_id ) ), '' ); // WPCS: xss ok.
 				continue;
 			}
@@ -271,7 +272,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
 			}
-		}
+		} // End foreach().
 
 		return $endpoint_args;
 	}
@@ -331,6 +332,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				}
 			}
 			if ( ! $has_valid_type ) {
+				/* translators: 1 is param name, 2 is param types */
 				$error_messages = array( sprintf( __( 'Expected %1$s param to be of one types: %2$s', 'js-widgets' ), $param, join( ', ', $args['type'] ) ) );
 				foreach ( $errors as $sub_error ) {
 					foreach ( $sub_error->get_error_messages( 'rest_invalid_param' ) as $error_message ) {
@@ -345,6 +347,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 		// Validate object types.
 		if ( 'object' === $args['type'] ) {
 			if ( ! is_array( $value ) ) {
+				/* translators: %s is the type of the value */
 				return new WP_Error( 'rest_invalid_param', sprintf( __( 'Expected object but got %s.', 'js-widgets' ), gettype( $value ) ) );
 			}
 			if ( ! empty( $value ) && wp_is_numeric_array( $value ) ) {

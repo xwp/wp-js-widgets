@@ -180,7 +180,7 @@ wp.widgets.Form = (function( api, $ ) {
 		/**
 		 * Merge the props into the current value.
 		 *
-		 * @todo Rename this update? Rename this set? Or setExtend?
+		 * @todo Rename this update? Rename this set? Or setExtend? Or setValue()?
 		 *
 		 * @param {object} props Instance props.
 		 * @returns {void}
@@ -317,7 +317,7 @@ wp.widgets.Form = (function( api, $ ) {
 		 *
 		 * @returns {void}
 		 */
-		destruct: function destroy() {
+		destruct: function destruct() {
 			var form = this;
 			form.container.empty();
 			form.unlinkPropertyElements();

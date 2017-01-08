@@ -51,7 +51,10 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 		$this->render_title_form_field_template();
 		?>
 		<div class="no-menus-message">
-			<p><?php echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) ); ?></p>
+			<p><?php
+			/* translators: %s is javascript link to nav_menus panel */
+			echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) );
+			?></p>
 		</div>
 		<div class="menu-selection">
 			<?php
