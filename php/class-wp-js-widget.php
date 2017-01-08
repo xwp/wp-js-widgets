@@ -303,20 +303,26 @@ abstract class WP_JS_Widget extends WP_Widget {
 	final public function form( $instance ) {
 		global $wp_customize;
 
+		// Output fields needed by form on the widgets admin page.
 		if ( empty( $wp_customize ) ) {
-			// Note that %s used instead of %d for number because widget "template" sets $this->number to __i__.
-			$customize_id = sprintf( 'widget_%s[%s]', $this->id_base, $this->number );
-			$customize_url = add_query_arg( array( 'autofocus[control]' => $customize_id ), wp_customize_url() );
+			if ( ! is_numeric( $this->number ) ) {
+				$instance = $this->get_default_instance();
+			}
 			?>
-			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>"  name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
-			<p>
-				<?php
-				/* translators: %s is the URL to the customizer. */
-				echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok.
+			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
+			<input type="hidden" name="<?php echo esc_attr( $this->get_field_name( 'js_widget_instance_data' ) ) ?>" class="js_widget_instance_data" value="<?php echo esc_attr( wp_json_encode( $instance ) ); ?>" >
+			<?php if ( $this->last_validity_error ) :
+				$notifications = array();
+				foreach ( $this->last_validity_error->errors as $error_code => $error_messages ) {
+					$notifications[ $error_code ] = array(
+						'message' => join( ' ', $error_messages ),
+						'data' => $this->last_validity_error->get_error_data( $error_code ),
+					);
+				}
+				$this->last_validity_error = null;
 				?>
-			</p>
-			<?php
-			return 'noform';
+				<input type="hidden" class="js_widget_notifications" value="<?php echo esc_attr( wp_json_encode( $notifications ) ) ?>">
+			<?php endif;
 		}
 		return '';
 	}
@@ -330,11 +336,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * by `WP_Customize_Setting::update()`. The `WP_Widget::update()` method merely
 	 * sanitizes and should not have any side-effects.
 	 *
-	 * This method also returns false to prevent it from being used outside a
-	 * Customizer context, since only for the Customizer setting callback will
-	 * ensure that the instance JSON schema validation and sanitization applies
-	 * before being passed into the `WP_JS_Widget::sanitize()` callback.
-	 *
 	 * @deprecated
 	 * @see JS_Widgets_Plugin::sanitize_widget_instance()
 	 * @see WP_Customize_Setting::update()
@@ -346,10 +347,40 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array|false Settings to save or bool false to cancel saving.
 	 */
 	final public function update( $new_instance, $old_instance = array() ) {
-		unset( $new_instance, $old_instance );
-		_doing_it_wrong( __METHOD__, esc_html__( 'The update method should not be called for WP_JS_Widets. Call sanitize instead.', 'js-widgets' ), '' );
-		return false;
+		if ( ! isset( $new_instance['js_widget_instance_data'] ) ) {
+			$this->last_validity_error = new WP_Error( 'js_widget_instance_data_missing', __( 'Missing js_widget_instance_data.', 'js-widgets' ) );
+			return false;
+		}
+		$new_instance_data = json_decode( $new_instance['js_widget_instance_data'], true );
+		if ( ! is_array( $new_instance_data ) ) {
+			$this->last_validity_error = new WP_Error( 'json_parse_error', __( 'JSON parse error in js_widget_instance_data.', 'js-widgets' ) );
+			return false;
+		}
+
+		$validity = $this->validate( $new_instance_data );
+		if ( is_wp_error( $validity ) ) {
+			$this->last_validity_error = $validity;
+			return false;
+		}
+
+		$new_instance_data = $this->sanitize( $new_instance_data, $old_instance );
+		if ( is_wp_error( $new_instance_data ) ) {
+			$this->last_validity_error = $new_instance_data;
+			return false;
+		}
+
+		return $new_instance_data;
 	}
+
+	/**
+	 * Last validity error.
+	 *
+	 * This is only used when updating a widget via the widgets admin screen.
+	 *
+	 * @see WP_JS_Widget::update()
+	 * @var WP_Error
+	 */
+	protected $last_validity_error;
 
 	/**
 	 * Sanitize instance data.

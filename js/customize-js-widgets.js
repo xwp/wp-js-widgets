@@ -172,7 +172,6 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 			// @todo This should actually set up the template and not wait until render. The container should be guaranteed.
 			control.form = new Form( {
 				model: control.setting,
-				id_base: control.params.widget_id_base,
 				container: formContainer
 			} );
 			control.form.render();
