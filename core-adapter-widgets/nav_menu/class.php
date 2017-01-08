@@ -25,6 +25,18 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 	}
 
 	/**
+	 * Register scripts.
+	 *
+	 * @param WP_Scripts $wp_scripts Scripts.
+	 */
+	public function register_scripts( $wp_scripts ) {
+		parent::register_scripts( $wp_scripts );
+
+		$handle = "widget-form-{$this->id_base}";
+		$wp_scripts->registered[ $handle ]->deps[] = 'backbone';
+	}
+
+	/**
 	 * Get instance schema properties.
 	 *
 	 * @return array Schema.
