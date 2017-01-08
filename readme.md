@@ -48,6 +48,26 @@ Limitations/Caveats:
 
 ## Changelog ##
 
+### 0.3.0 - 2017-01-?? (Unreleased) ###
+* *Remove forms dependency on customize-widgets; allow standalone forms to allow for Shortcake or frontend integrations* (PR [#26](https://github.com/xwp/wp-js-widgets/pull/26))
+* Remove forms dependency on `customize-widgets.js` to allow standalone forms to allow for Shortcake or frontend integrations.
+* Remove the passing of the `WidgetControl` as a property when constructing a Form; instead pass the model
+  (which can be a Setting or a Value) and id_base directly, the latter of which should already be located
+  on the Form prototype along with the config.
+* Replace `wp.customize.Widgets.formConstructor` with `wp.widgets.formConstructor`
+* Replace `wp.customize.Widgets.Form` with `wp.widgets.Form`
+* Eliminate exporting all form configs to CustomizeJSWidgets.data.form_configs and instead attach to From prototypes.
+* Fix initialization of Pages widget in how it amends the default config.
+* Add Form.notifications
+* Rename script handles to be more appropriate.
+* Fix PHP warning for array to string conversion in Pages widget.
+* Prevent RSS widget from showing error when feed URL is empty.
+* Reduce duplicated code for rendering form templates.
+* *Breaking change:* Converts/renames WP_JS_Widget::form_template() into wrapper method `WP_JS_Widget::render_form_template_scripts()` which outputs the script tags.
+* Splits out form template contents into `WP_JS_Widget::render_form_template()`.
+* Eliminates extraneous `id_base` property for JS Form class, adding `template_id` form config which is then sourced from a new `WP_JS_Widget::get_form_template_id()`, which in turn is used by `WP_JS_Widget::render_form_template_scripts()` and is used in the JS `Form#getTemplate` method.
+* Ensure that notifications for the setting (model) render even when the form is embedded outside the customizer.
+
 ### 0.2.0 - 2017-01-02 ###
 * Important: Update minimum WordPress core version to 4.7.0.
 * Eliminate `Form#embed` JS method in favor of just `Form#render`. Introduce `Form#destruct` to handle unmounting a rendered form.
