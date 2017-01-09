@@ -7,7 +7,7 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
 **Requires at least:** 4.7.0  
 **Tested up to:** 4.7.0  
-**Stable tag:** 0.2.0  
+**Stable tag:** 0.3.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-js-widgets.svg?branch=master)](https://travis-ci.org/xwp/wp-js-widgets) [![Coverage Status](https://coveralls.io/repos/xwp/wp-js-widgets/badge.svg?branch=master)](https://coveralls.io/github/xwp/wp-js-widgets) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) [![devDependency Status](https://david-dm.org/xwp/wp-js-widgets/dev-status.svg)](https://david-dm.org/xwp/wp-js-widgets#info=devDependencies) 
@@ -50,25 +50,38 @@ Limitations/Caveats:
 
 ## Changelog ##
 
-### 0.3.0 - 2017-01-?? (Unreleased) ###
-* *Remove forms dependency on customize-widgets; allow standalone forms to allow for Shortcake or frontend integrations* (PR [#26](https://github.com/xwp/wp-js-widgets/pull/26))
-* Remove forms dependency on `customize-widgets.js` to allow standalone forms to allow for Shortcake or frontend integrations.
-* Remove the passing of the `WidgetControl` as a property when constructing a Form; instead pass the model
-  (which can be a Setting or a Value) and id_base directly, the latter of which should already be located
-  on the Form prototype along with the config.
-* Replace `wp.customize.Widgets.formConstructor` with `wp.widgets.formConstructor`
-* Replace `wp.customize.Widgets.Form` with `wp.widgets.Form`
-* Eliminate exporting all form configs to CustomizeJSWidgets.data.form_configs and instead attach to From prototypes.
-* Fix initialization of Pages widget in how it amends the default config.
-* Add Form.notifications
+### 0.3.0 - 2017-01-09 ###
+Added:
+
+* Allow widget forms to be constructed standalone, outside the customizer. This allows forms to appear on widgets admin screen, and will allow Shortcake (See [#11](https://github.com/xwp/wp-js-widgets/issue/11)) and frontend integrations. Removes forms dependency on `customize-widgets.js`. PR [#26](https://github.com/xwp/wp-js-widgets/pull/26).
+* Render widget forms on widgets admin screen instead of directing the widgets to be edited in the customizer. PR [#27](https://github.com/xwp/wp-js-widgets/pull/27).
+* Improve UX of Save button on for a widget on the widgets admin screen to show as disabled and “Saved” if setting is not dirty. See [wpcore#23120](https://core.trac.wordpress.org/ticket/23120#comment:46) (There should be indication that widget settings have been saved).
+* Introduce `field` arg for `WP_JS_Widget::render_form_field_template()` which connects a rendered field template to the field in the item schema, allowing the field attributes to be automatically derived from the schema. PR [#28](https://github.com/xwp/wp-js-widgets/pull/28).
+* Add `Form.notifications`, copying from `props.model.notifications` if it exists.
+
+Changed (*Breaking!*):
+
+* Remove the passing of the `WidgetControl` as a `control` property when constructing a `Form`; instead pass the `model`
+  which can be a `Setting` or a plain `Value`.
+* Replace `wp.customize.Widgets.formConstructor` with `wp.widgets.formConstructor`.
+* Replace `wp.customize.Widgets.Form` with `wp.widgets.Form`.
+* Eliminate exporting all form configs to `CustomizeJSWidgets.data.form_configs` and instead attach to `From` prototypes on `wp.widgets.formConstructor`.
 * Rename script handles to be more appropriate.
+* Reduce duplicated code for rendering form templates; converts/renames `WP_JS_Widget::form_template()` into wrapper method `WP_JS_Widget::render_form_template_scripts()` which outputs the script tags. Splits out form template contents into `WP_JS_Widget::render_form_template()`.
+* Eliminates extraneous `id_base` property for JS `Form` class, adding `template_id` form config which is then sourced from a new `WP_JS_Widget::get_form_template_id()`, which in turn is used by `WP_JS_Widget::render_form_template_scripts()` and is used in the JS `Form#getTemplate` method.
+* Replace `name` arg with `field` arg in calls to `WP_JS_Widget::render_form_field_template()`. Ensure that rendered field templates use a random `name` for each `input` to prevent collisions with other widgets. Store `field` in `data-field` attribute.
+* Deprecated `WP_JS_Widget::get_form_args()` in favor of `WP_JS_Widget::get_form_config()`.
+
+Fixed:
+
+* Fix initialization of Pages widget in how it amends the default config.
 * Fix PHP warning for array to string conversion in Pages widget.
 * Prevent RSS widget from showing error when feed URL is empty.
-* Reduce duplicated code for rendering form templates.
-* *Breaking change:* Converts/renames WP_JS_Widget::form_template() into wrapper method `WP_JS_Widget::render_form_template_scripts()` which outputs the script tags.
-* Splits out form template contents into `WP_JS_Widget::render_form_template()`.
-* Eliminates extraneous `id_base` property for JS Form class, adding `template_id` form config which is then sourced from a new `WP_JS_Widget::get_form_template_id()`, which in turn is used by `WP_JS_Widget::render_form_template_scripts()` and is used in the JS `Form#getTemplate` method.
-* Ensure that notifications for the setting (model) render even when the form is embedded outside the customizer.
+* Ensure exclude object selector is initialized with array for Pages widgets.
+
+See [issues and PRs in milestone](https://github.com/xwp/wp-js-widgets/milestone/1?closed=1) and [full release commit log](https://github.com/xwp/wp-js-widgets/compare/0.2.0...0.3.0).
+
+See also updated [Customizer Object Selector](https://wordpress.org/plugins/customize-object-selector/) and [Next Recent Posts Widget](https://github.com/xwp/wp-next-recent-posts-widget) plugins.
 
 ### 0.2.0 - 2017-01-02 ###
 * Important: Update minimum WordPress core version to 4.7.0.
