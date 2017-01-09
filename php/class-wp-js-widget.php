@@ -473,9 +473,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 	protected function render_title_form_field_template( $input_attrs = array() ) {
 		$this->render_form_field_template( array_merge(
 			array(
-				'name' => 'title',
+				'field' => 'title',
 				'label' => __( 'Title:', 'default' ),
-				'type' => 'text',
 			),
 			$input_attrs
 		) );
@@ -502,22 +501,68 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @param array $args Args.
 	 */
 	protected function render_form_field_template( $args = array() ) {
+		$item_schema = $this->get_item_schema();
 		$defaults = array(
-			'name' => '',
 			'label' => '',
 			'type' => 'text',
 			'choices' => array(),
 			'value' => '',
 			'placeholder' => '',
 			'help' => '',
+			'class' => '',
 		);
+
+		$field_name = ! empty( $args['field'] ) ? $args['field'] : null;
+		if ( $field_name && ! empty( $item_schema[ $field_name ] ) ) {
+			$field_schema = $item_schema[ $field_name ];
+			$schema_to_input_attrs_mapping = array(
+				'description' => 'label',
+				'minimum' => 'min',
+				'maximum' => 'max',
+				// @todo Use default as placeholder?
+			);
+			foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
+				if ( isset( $field_schema[ $schema_key ] ) ) {
+					$defaults[ $input_attr_key ] = $field_schema[ $schema_key ];
+				}
+			}
+
+			if ( isset( $field_schema['type'] ) ) {
+				if ( 'boolean' === $field_schema['type'] ) {
+					$defaults['type'] = 'checkbox';
+				} elseif ( 'integer' === $field_schema['type'] || 'number' === $field_schema['type'] ) {
+					$defaults['type'] = 'number';
+				} elseif ( 'string' === $field_schema['type'] && isset( $field_schema['format'] ) ) {
+					if ( 'uri' === $field_schema['format'] ) {
+						$defaults['type'] = 'url';
+					} elseif ( 'email' === $field_schema['format'] ) {
+						$defaults['type'] = 'email';
+					}
+					// @todo Support date-time format.
+				}
+
+				if ( 'integer' === $field_schema['type'] ) {
+					$defaults['step'] = '1';
+				}
+			}
+
+			if ( isset( $field_schema['enum'] ) ) {
+				$defaults['choices'] = array_combine( $field_schema['enum'], $field_schema['enum'] );
+			}
+		} // End if().
+
 		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
-			$defaults['class'] = 'widefat';
+			$defaults['class'] .= ' widefat';
 		}
 		$args = wp_parse_args( $args, $defaults );
 
 		$input_attrs = $args;
-		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
+		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'], $input_attrs['name'], $input_attrs['field'], $input_attrs['data-field'] );
+
+		if ( $field_name ) {
+			$input_attrs['data-field'] = $field_name;
+			$input_attrs['name'] = '{{ domId }}-' . $field_name;
+		}
 
 		echo '<p>';
 		echo '<# (function( domId ) { #>';
@@ -525,6 +570,12 @@ abstract class WP_JS_Widget extends WP_Widget {
 			?>
 			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
+			<?php
+		} elseif ( 'radio' === $args['type'] ) {
+			?>
+			<p>
+				<em><?php esc_html_e( 'Radio buttons are not supported yet.', 'js-widgets' ); ?></em>
+			</p>
 			<?php
 		} elseif ( 'select' === $args['type'] ) {
 			?>
@@ -556,7 +607,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 			<?php
 		}
 
-		echo '<# }( "el" + String( Math.random() ) )); #>';
+		echo '<# }( "el-" + String( Math.random() ) )); #>';
 		echo '</p>';
 	}
 
@@ -636,10 +687,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Get data to pass to the JS form.
+	 * Get form config data to pass to the JS Form constructor.
 	 *
 	 * This can include information such as whether the user can do `unfiltered_html`.
-	 * The `default_instance` will be amended to this when exported to JS.
 	 *
 	 * @return array
 	 */

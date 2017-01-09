@@ -97,6 +97,9 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 		if ( is_array( $default_instance['exclude'] ) ) {
 			$default_instance['exclude'] = join( ',', $default_instance['exclude'] );
 		}
+		if ( is_array( $new_instance['exclude'] ) ) {
+			$new_instance['exclude'] = join( ',', $new_instance['exclude'] );
+		}
 		$new_instance = array_merge( $default_instance, $new_instance );
 		$old_instance = array_merge( $default_instance, $old_instance );
 		return parent::sanitize( $new_instance, $old_instance );
@@ -209,7 +212,7 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 			'placeholder' => $item_schema['title']['properties']['raw']['default'],
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'sortby',
+			'field' => 'sortby',
 			'label' => __( 'Sort by:', 'default' ),
 			'type' => 'select',
 			'choices' => array(
@@ -226,9 +229,8 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 			</p>
 		<?php else :
 			$this->render_form_field_template( array(
-				'name' => 'exclude',
+				'field' => 'exclude',
 				'label' => __( 'Exclude:', 'default' ),
-				'type' => 'text',
 				'pattern' => self::ID_LIST_PATTERN,
 				'title' => __( 'Page IDs, separated by commas.', 'default' ),
 				'help' => __( 'Page IDs, separated by commas.', 'default' ),

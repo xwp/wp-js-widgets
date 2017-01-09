@@ -7,7 +7,12 @@
 wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 	'use strict';
 
-	var component = {};
+	var component = {
+		l10n: {
+			save: '',
+			saved: ''
+		}
+	};
 
 	/**
 	 * Initialize component.
@@ -29,7 +34,7 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 	 * @returns {void}
 	 */
 	component.handleWidgetInitClick = function handleWidgetInitClick( event ) {
-		var widgetElement = $( event.currentTarget ), idBase, FormConstructor, form, instanceData, formContainer, widgetContentElement;
+		var widgetElement = $( event.currentTarget ), idBase, FormConstructor, form, instanceData, formContainer, widgetContentElement, saveBtn;
 		if ( ! widgetElement.hasClass( 'open' ) || widgetElement.data( 'js-widget-form' ) ) {
 			return;
 		}
@@ -50,8 +55,11 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 		} );
 		form.render();
 
+		saveBtn = widgetElement.find( '.widget-control-actions:last input[name=savewidget]' );
+
 		form.model.bind( function( newInstanceData ) {
 			widgetContentElement.find( '> input.js_widget_instance_data:first' ).val( JSON.stringify( newInstanceData ) );
+			saveBtn.prop( 'disabled', false ).val( component.l10n.save );
 		} );
 
 		widgetElement.find( '.widget-control-remove:last' ).on( 'click', function() {
@@ -61,6 +69,8 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 				widgetElement.removeData( 'js-widget-form' );
 			}, delay );
 		} );
+
+		saveBtn.prop( 'disabled', true ).val( component.l10n.saved );
 
 		widgetElement.data( 'js-widget-form', form );
 	};
@@ -73,7 +83,8 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 	 * @returns {void}
 	 */
 	component.handleWidgetUpdate = function handleWidgetUpdate( event, widgetElement ) {
-		var updatedInstanceData, updateNotificationsData, form = widgetElement.data( 'js-widget-form' ), instanceDataElement, errorCount = 0;
+		var updatedInstanceData, updateNotificationsData, form, instanceDataElement, errorCount, saveBtn;
+		form = widgetElement.data( 'js-widget-form' );
 		if ( ! form ) {
 			return;
 		}
@@ -92,6 +103,7 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 			}
 		} );
 
+		errorCount = 0;
 		_.each( updateNotificationsData, function( params, code ) {
 			var notification = new wp.customize.Notification( code, _.extend( { fromServer: true }, params ) );
 			form.notifications.add( code, notification );
@@ -105,6 +117,9 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 		if ( 0 === errorCount ) {
 			updatedInstanceData = JSON.parse( instanceDataElement.val() );
 			widgetElement.data( 'js-widget-form' ).model.set( updatedInstanceData );
+			saveBtn = widgetElement.find( '.widget-control-actions:last input[name=savewidget]' );
+			saveBtn.prop( 'disabled', true );
+			saveBtn.val( component.l10n.saved );
 		} else {
 			instanceDataElement.val( JSON.stringify( widgetElement.data( 'js-widget-form' ).model.get() ) );
 		}

@@ -100,16 +100,15 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	public function render_form_template() {
 		$this->render_title_form_field_template();
 		$this->render_form_field_template( array(
-			'name' => 'text',
+			'field' => 'text',
 			'label' => __( 'Content:', 'default' ),
 			'type' => 'textarea',
 			'rows' => 16,
 			'cols' => 20,
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'filter',
+			'field' => 'filter',
 			'label' => __( 'Automatically add paragraphs', 'default' ),
-			'type' => 'checkbox',
 		) );
 	}
 
