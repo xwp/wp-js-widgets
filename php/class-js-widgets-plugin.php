@@ -261,7 +261,11 @@ class JS_Widgets_Plugin {
 
 		$handle = 'admin-js-widgets';
 		wp_enqueue_script( $handle );
-		wp_add_inline_script( $handle, 'wpWidgets.JSWidgets.init();' );
+		$l10n = array(
+			'save' => __( 'Save', 'default' ),
+			'saved' => __( 'Saved', 'default' ),
+		);
+		wp_add_inline_script( $handle, sprintf( 'wpWidgets.JSWidgets.l10n = %s; wpWidgets.JSWidgets.init();', wp_json_encode( $l10n ) ) );
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
