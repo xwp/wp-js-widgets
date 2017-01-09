@@ -308,17 +308,17 @@ wp.widgets.Form = (function( api, $ ) {
 			var form = this, initialInstanceData;
 			initialInstanceData = form.getValue();
 			form.syncedProperties = {};
-			form.container.find( ':input[name]' ).each( function() {
-				var input = $( this ), name = input.prop( 'name' ), syncedProperty;
-				if ( _.isUndefined( initialInstanceData[ name ] ) ) {
+			form.container.find( ':input[data-field]' ).each( function() {
+				var input = $( this ), field = input.data( 'field' ), syncedProperty;
+				if ( _.isUndefined( initialInstanceData[ field ] ) ) {
 					return;
 				}
 
-				syncedProperty = form.createSyncedPropertyValue( form.model, name );
+				syncedProperty = form.createSyncedPropertyValue( form.model, field );
 				syncedProperty.element = new api.Element( input );
-				syncedProperty.element.set( initialInstanceData[ name ] );
+				syncedProperty.element.set( initialInstanceData[ field ] );
 				syncedProperty.element.sync( syncedProperty.value );
-				form.syncedProperties[ name ] = syncedProperty;
+				form.syncedProperties[ field ] = syncedProperty;
 			} );
 		},
 

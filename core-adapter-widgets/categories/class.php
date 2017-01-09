@@ -196,19 +196,16 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 			'placeholder' => $item_schema['title']['properties']['raw']['default'],
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'dropdown',
+			'field' => 'dropdown',
 			'label' => __( 'Display as dropdown', 'default' ),
-			'type' => 'checkbox',
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'count',
+			'field' => 'count',
 			'label' => __( 'Show post counts', 'default' ),
-			'type' => 'checkbox',
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'hierarchical',
+			'field' => 'hierarchical',
 			'label' => __( 'Show hierarchy', 'default' ),
-			'type' => 'checkbox',
 		) );
 	}
 }

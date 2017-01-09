@@ -55,14 +55,12 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 	public function render_form_template() {
 		$this->render_title_form_field_template();
 		$this->render_form_field_template( array(
-			'name' => 'dropdown',
+			'field' => 'dropdown',
 			'label' => __( 'Display as dropdown', 'default' ),
-			'type' => 'checkbox',
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'count',
+			'field' => 'count',
 			'label' => __( 'Show post counts', 'default' ),
-			'type' => 'checkbox',
 		) );
 	}
 }

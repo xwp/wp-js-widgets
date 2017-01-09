@@ -113,10 +113,8 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 			'placeholder' => $item_schema['title']['properties']['raw']['default'],
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'number',
+			'field' => 'number',
 			'label' => __( 'Number of comments to show:', 'default' ),
-			'type' => 'number',
-			'min' => $item_schema['number']['minimum'],
 		) );
 	}
 }

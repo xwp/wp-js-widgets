@@ -420,19 +420,16 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 			</p>
 			<?php
 			$this->render_form_field_template( array(
-				'name' => 'show_date',
+				'field' => 'show_date',
 				'label' => __( 'Show date', 'js-widgets' ),
-				'type' => 'checkbox',
 			) );
 			$this->render_form_field_template( array(
-				'name' => 'show_author',
+				'field' => 'show_author',
 				'label' => __( 'Show author', 'js-widgets' ),
-				'type' => 'checkbox',
 			) );
 			$this->render_form_field_template( array(
-				'name' => 'show_featured_image',
+				'field' => 'show_featured_image',
 				'label' => __( 'Show featured image', 'js-widgets' ),
-				'type' => 'checkbox',
 			) );
 			?>
 		<?php endif;

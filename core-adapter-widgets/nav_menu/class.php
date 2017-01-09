@@ -71,7 +71,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 		<div class="menu-selection">
 			<?php
 			$this->render_form_field_template( array(
-				'name' => 'nav_menu',
+				'field' => 'nav_menu',
 				'label' => __( 'Select Menu:', 'default' ),
 				'type' => 'select',
 				'choices' => array(

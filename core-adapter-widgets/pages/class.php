@@ -209,7 +209,7 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 			'placeholder' => $item_schema['title']['properties']['raw']['default'],
 		) );
 		$this->render_form_field_template( array(
-			'name' => 'sortby',
+			'field' => 'sortby',
 			'label' => __( 'Sort by:', 'default' ),
 			'type' => 'select',
 			'choices' => array(
@@ -226,9 +226,8 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 			</p>
 		<?php else :
 			$this->render_form_field_template( array(
-				'name' => 'exclude',
+				'field' => 'exclude',
 				'label' => __( 'Exclude:', 'default' ),
-				'type' => 'text',
 				'pattern' => self::ID_LIST_PATTERN,
 				'title' => __( 'Page IDs, separated by commas.', 'default' ),
 				'help' => __( 'Page IDs, separated by commas.', 'default' ),
