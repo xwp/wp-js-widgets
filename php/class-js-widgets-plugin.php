@@ -99,8 +99,10 @@ class JS_Widgets_Plugin {
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
-		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
+		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_customize_controls_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_widgets_admin_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
+		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
 		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
@@ -143,8 +145,13 @@ class JS_Widgets_Plugin {
 
 		$this->script_handles['customize-js-widgets'] = 'customize-js-widgets';
 		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
-		$deps = array( $this->script_handles['form'] );
+		$deps = array( 'customize-widgets', $this->script_handles['form'] );
 		$wp_scripts->add( $this->script_handles['customize-js-widgets'], $src, $deps, $this->version );
+
+		$this->script_handles['admin-js-widgets'] = 'admin-js-widgets';
+		$src = $plugin_dir_url . 'js/admin-js-widgets.js';
+		$deps = array( 'admin-widgets', $this->script_handles['form'] );
+		$wp_scripts->add( $this->script_handles['admin-js-widgets'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -209,20 +216,12 @@ class JS_Widgets_Plugin {
 	 * @global WP_Customize_Manager $wp_customize
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
-	function enqueue_pane_scripts() {
+	function enqueue_customize_controls_scripts() {
 		global $wp_customize, $wp_widget_factory;
 
 		// Abort if the widgets component has been disabled.
 		if ( empty( $wp_customize->widgets ) || ! current_user_can( 'edit_theme_options' ) ) {
 			return;
-		}
-
-		// Gather the id_bases (types) for JS Widgets and their form configs.
-		$customize_widget_id_bases = array();
-		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
-				$customize_widget_id_bases[ $widget->id_base ] = true;
-			}
 		}
 
 		$handle = 'customize-js-widgets';
@@ -236,6 +235,39 @@ class JS_Widgets_Plugin {
 		}
 
 		wp_enqueue_script( $this->script_handles['trac-39389-controls'] );
+	}
+
+	/**
+	 * Enqueue scripts for the widgets admin screen.
+	 *
+	 * @access public
+	 *
+	 * @param string $hook_suffix The current admin page.
+	 * @global string $pagenow
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function enqueue_widgets_admin_scripts( $hook_suffix ) {
+		global $pagenow, $wp_widget_factory;
+
+		/*
+		 * Note that the widgets component for the customizer will do the admin_enqueue_scripts
+		 * action for widgets.php to enqueue widget scripts. This is why there is a test for
+		 * customize.php being $pagenow.
+		 */
+		$is_widgets_admin_page = ( 'widgets.php' === $hook_suffix && 'customize.php' !== $pagenow );
+		if ( ! $is_widgets_admin_page ) {
+			return;
+		}
+
+		$handle = 'admin-js-widgets';
+		wp_enqueue_script( $handle );
+		wp_add_inline_script( $handle, 'wpWidgets.JSWidgets.init();' );
+
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->enqueue_control_scripts();
+			}
+		}
 	}
 
 	/**

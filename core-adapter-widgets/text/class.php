@@ -118,8 +118,8 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	 *
 	 * @return array
 	 */
-	public function get_form_args() {
-		$args = parent::get_form_args();
+	public function get_form_config() {
+		$args = parent::get_form_config();
 		$args['can_unfiltered_html'] = current_user_can( 'unfiltered_html' );
 		$args['l10n'] = array_merge(
 			$args['l10n'],
