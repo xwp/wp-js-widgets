@@ -68,19 +68,23 @@ wp.widgets.formConstructor.pages = (function( api ) {
 			wp.widgets.Form.prototype.linkPropertyElements.call( form );
 			if ( api.ObjectSelectorComponent ) {
 
-				// Quietly convert the exclude property from comma-separated list string to ID array, as required by Customize Object Selector.
+				/*
+				 * Quietly convert the exclude property from comma-separated list
+				 * string to ID array, as required by Customize Object Selector.
+				 * This prevents the setting from being marked as dirty upon init.
+				 */
 				excludeIds = [];
-				if ( form.setting._value.exclude ) {
-					_.each( form.setting._value.exclude.split( /\s*,\s*/ ), function( value ) {
+				if ( form.model._value.exclude && _.isString( form.model._value.exclude ) ) {
+					_.each( form.model._value.exclude.split( /\s*,\s*/ ), function( value ) {
 						var id = parseInt( value, 10 );
 						if ( ! isNaN( id ) ) {
 							excludeIds.push( id );
 						}
 					} );
 				}
-				form.setting._value.exclude = excludeIds;
+				form.model._value.exclude = excludeIds;
 
-				form.syncedProperties.exclude = form.createSyncedPropertyValue( form.setting, 'exclude' );
+				form.syncedProperties.exclude = form.createSyncedPropertyValue( form.model, 'exclude' );
 			}
 		}
 	} );
