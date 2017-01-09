@@ -687,10 +687,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
-	 * Get data to pass to the JS form.
+	 * Get form config data to pass to the JS Form constructor.
 	 *
 	 * This can include information such as whether the user can do `unfiltered_html`.
-	 * The `default_instance` will be amended to this when exported to JS.
 	 *
 	 * @return array
 	 */

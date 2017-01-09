@@ -57,15 +57,36 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 	}
 
 	/**
+	 * Get data to pass to the JS form.
+	 *
+	 * @return array
+	 */
+	public function get_form_config() {
+		$config = parent::get_form_config();
+		$config['nav_menus'] = array();
+		foreach ( wp_get_nav_menus() as $nav_menu ) {
+			$config['nav_menus'][ $nav_menu->term_id ] = $nav_menu->name;
+		}
+		$config['nav_menu_edit_url'] = admin_url( 'nav-menus.php?action=edit&menu=%d' );
+		return $config;
+	}
+
+	/**
 	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
 	public function render_form_template() {
+		global $pagenow;
 		$this->render_title_form_field_template();
 		?>
 		<div class="no-menus-message">
 			<p><?php
+			if ( isset( $pagenow ) && 'customize.php' === $pagenow ) {
+				$url = 'javascript: wp.customize.panel( "nav_menus" ).focus();';
+			} else {
+				$url = admin_url( 'nav-menus.php' );
+			}
 			/* translators: %s is javascript link to nav_menus panel */
-			echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) );
+			echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( $url ) );
 			?></p>
 		</div>
 		<div class="menu-selection">

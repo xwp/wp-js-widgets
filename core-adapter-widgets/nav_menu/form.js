@@ -2,6 +2,7 @@
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable strict */
 /* eslint-disable complexity */
+/* eslint no-magic-numbers: [ "error", {"ignore":[0,1]} ] */
 
 /*
  * The logic in the nav_menu form can replace the nav_menu JS that is currently strewn across customize-widgets.js and customize-nav-menus.js
@@ -101,6 +102,13 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 			var form = this;
 			wp.widgets.Form.prototype.initialize.call( form, properties );
 			_.bindAll( form, 'updateForm', 'handleEditButtonClick' );
+
+			if ( _.isObject( form.config.nav_menus ) && 0 === classProps.navMenuCollection.length ) {
+				_.each( form.config.nav_menus, function( name, id ) {
+					var navMenu = new classProps.NavMenuModel( { id: id, name: name } );
+					classProps.navMenuCollection.add( navMenu );
+				} );
+			}
 		},
 
 		/**
@@ -142,9 +150,16 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 		handleEditButtonClick: function handleEditButtonClick() {
 			var form = this, navMenuId, section;
 			navMenuId = form.getValue().nav_menu;
-			section = api.section( 'nav_menu[' + String( navMenuId ) + ']' );
-			if ( section ) {
-				section.focus();
+			if ( ! navMenuId || navMenuId < 1 ) {
+				return;
+			}
+			if ( api.section ) {
+				section = api.section( 'nav_menu[' + String( navMenuId ) + ']' );
+				if ( section ) {
+					section.focus();
+				}
+			} else {
+				window.open( form.config.nav_menu_edit_url.replace( '%d', String( navMenuId ) ) );
 			}
 		},
 
