@@ -496,8 +496,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	/**
 	 * Render form field template.
 	 *
-	 * @todo Use a random string for a common name prefix to ensure that radio buttons will work properly.
-	 *
 	 * @param array $args Args.
 	 */
 	protected function render_form_field_template( $args = array() ) {
@@ -511,6 +509,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 			'help' => '',
 			'class' => '',
 		);
+
+		if ( ! empty( $args['name'] ) ) {
+			_deprecated_argument( __FUNCTION__, '0.3.0', __( 'The args[name] param is deprecated in favor of args[field].', 'js-widgets' ) );
+		}
+		if ( empty( $args['field'] ) && ! empty( $args['name'] ) && ! empty( $item_schema[ $args['name'] ] ) ) {
+			$args['field'] = $args['name'];
+		}
 
 		$field_name = ! empty( $args['field'] ) ? $args['field'] : null;
 		if ( $field_name && ! empty( $item_schema[ $field_name ] ) ) {
