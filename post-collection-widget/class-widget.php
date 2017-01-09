@@ -126,7 +126,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		wp_add_inline_script( $handle, sprintf(
 			'wp.widgets.formConstructor[ %s ].prototype.config = %s;',
 			wp_json_encode( $this->id_base ),
-			wp_json_encode( $this->get_form_args() )
+			wp_json_encode( $this->get_form_config() )
 		) );
 
 		$handle = 'customize-widget-form-post-collection';
@@ -356,9 +356,9 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 *
 	 * @return array
 	 */
-	public function get_form_args() {
+	public function get_form_config() {
 		return array_merge(
-			parent::get_form_args(),
+			parent::get_form_config(),
 			array(
 				'post_query_args' => $this->post_query_vars,
 				'select2_options' => $this->select2_options,

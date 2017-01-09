@@ -16,6 +16,8 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 
 Also could be known as Widget Customizer 2.0, Widgets 3.0, or Widgets Next Generation.
 
+*Warning:* The APIs provided by this plugin are still in flux. If creating new widgets that extend the `WP_JS_Widget` class, please look at the changelog and ensure compatibility with your extended widgets before deploying.
+
 This plugin implements:
 
 * [WP-CORE#33507](https://core.trac.wordpress.org/ticket/33507): Allow widget controls to be JS-driven.

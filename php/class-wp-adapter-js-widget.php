@@ -85,7 +85,7 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 		wp_add_inline_script( $handle, sprintf(
 			'wp.widgets.formConstructor[ %s ].prototype.config = %s;',
 			wp_json_encode( $this->id_base ),
-			wp_json_encode( $this->get_form_args() )
+			wp_json_encode( $this->get_form_config() )
 		) );
 	}
 

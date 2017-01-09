@@ -625,16 +625,25 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Get form args (config).
+	 *
+	 * @deprecated
+	 * @return array
+	 */
+	public function get_form_args() {
+		_deprecated_function( __FUNCTION__, '0.3.0', __CLASS__ . '::get_form_config()' );
+		return $this->get_form_config();
+	}
+
+	/**
 	 * Get data to pass to the JS form.
 	 *
 	 * This can include information such as whether the user can do `unfiltered_html`.
 	 * The `default_instance` will be amended to this when exported to JS.
 	 *
-	 * @todo Rename this to get_form_config?
-	 *
 	 * @return array
 	 */
-	public function get_form_args() {
+	public function get_form_config() {
 		return array(
 			'l10n' => array(
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
