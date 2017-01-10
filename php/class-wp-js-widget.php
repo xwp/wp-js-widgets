@@ -723,6 +723,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @see WP_JS_Widget::render_form_template_scripts()
 	 */
 	public function render_form_template() {
+		$item_schema = $this->get_item_schema();
 		$placeholder = '';
 		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['raw']['default'];
