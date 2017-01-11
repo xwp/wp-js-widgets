@@ -494,13 +494,59 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Attributes that are recognized for input, select, and textarea elements.
+	 *
+	 * @var array
+	 */
+	protected $form_field_html_attribute_whitelist = array(
+		'accept',
+		'accesskey',
+		'accesskey',
+		'autocapitalize',
+		'autocomplete',
+		'autocorrect',
+		'autofocus',
+		'checked',
+		'class',
+		'cols',
+		'dir',
+		'disabled',
+		'height',
+		'incremental',
+		'inputmode',
+		'lang',
+		'list',
+		'max',
+		'maxlength',
+		'min',
+		'minlength',
+		'multiple',
+		'name',
+		'pattern',
+		'placeholder',
+		'readonly',
+		'required',
+		'results',
+		'rows',
+		'size',
+		'spellcheck',
+		'step',
+		'style',
+		'tabindex',
+		'title',
+		'type',
+		'width',
+		'wrap',
+	);
+
+	/**
 	 * Render form field template.
 	 *
 	 * @param array $args Args.
 	 */
 	protected function render_form_field_template( $args = array() ) {
 		$item_schema = $this->get_item_schema();
-		$defaults = array(
+		$default_input_attrs = array(
 			'label' => '',
 			'type' => 'text',
 			'choices' => array(),
@@ -512,9 +558,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 
 		if ( ! empty( $args['name'] ) ) {
 			_deprecated_argument( __FUNCTION__, '0.3.0', __( 'The args[name] param is deprecated in favor of args[field].', 'js-widgets' ) );
-		}
-		if ( empty( $args['field'] ) && ! empty( $args['name'] ) && ! empty( $item_schema[ $args['name'] ] ) ) {
-			$args['field'] = $args['name'];
+
+			if ( empty( $args['field'] ) && ! empty( $item_schema[ $args['name'] ] ) ) {
+				$args['field'] = $args['name'];
+			}
 		}
 
 		$field_name = ! empty( $args['field'] ) ? $args['field'] : null;
@@ -528,41 +575,46 @@ abstract class WP_JS_Widget extends WP_Widget {
 			);
 			foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
 				if ( isset( $field_schema[ $schema_key ] ) ) {
-					$defaults[ $input_attr_key ] = $field_schema[ $schema_key ];
+					$default_input_attrs[ $input_attr_key ] = $field_schema[ $schema_key ];
 				}
 			}
 
 			if ( isset( $field_schema['type'] ) ) {
-				if ( 'boolean' === $field_schema['type'] ) {
-					$defaults['type'] = 'checkbox';
-				} elseif ( 'integer' === $field_schema['type'] || 'number' === $field_schema['type'] ) {
-					$defaults['type'] = 'number';
-				} elseif ( 'string' === $field_schema['type'] && isset( $field_schema['format'] ) ) {
+				$schema_type = $field_schema['type'];
+
+				if ( 'boolean' === $schema_type ) {
+					$default_input_attrs['type'] = 'checkbox';
+				} elseif ( 'integer' === $schema_type || 'number' === $schema_type ) {
+					$default_input_attrs['type'] = 'number';
+				} elseif ( 'string' === $schema_type && isset( $field_schema['format'] ) ) {
 					if ( 'uri' === $field_schema['format'] ) {
-						$defaults['type'] = 'url';
+						$default_input_attrs['type'] = 'url';
 					} elseif ( 'email' === $field_schema['format'] ) {
-						$defaults['type'] = 'email';
+						$default_input_attrs['type'] = 'email';
 					}
 					// @todo Support date-time format.
 				}
 
-				if ( 'integer' === $field_schema['type'] ) {
-					$defaults['step'] = '1';
+				if ( 'integer' === $schema_type ) {
+					$default_input_attrs['step'] = '1';
 				}
 			}
 
 			if ( isset( $field_schema['enum'] ) ) {
-				$defaults['choices'] = array_combine( $field_schema['enum'], $field_schema['enum'] );
+				$default_input_attrs['choices'] = array_combine( $field_schema['enum'], $field_schema['enum'] );
 			}
 		} // End if().
 
 		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
-			$defaults['class'] .= ' widefat';
+			$default_input_attrs['class'] .= ' widefat';
 		}
-		$args = wp_parse_args( $args, $defaults );
-
-		$input_attrs = $args;
-		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'], $input_attrs['name'], $input_attrs['field'], $input_attrs['data-field'] );
+		$args = wp_parse_args( $args, $default_input_attrs );
+		$input_attrs = array();
+		foreach ( $args as $arg_name => $arg_value ) {
+			if ( 'data-' === substr( $arg_name, 0, 5 ) || in_array( $arg_name, $this->form_field_html_attribute_whitelist, true ) ) {
+				$input_attrs[ $arg_name ] = $arg_value;
+			}
+		}
 
 		if ( $field_name ) {
 			$input_attrs['data-field'] = $field_name;
@@ -571,18 +623,18 @@ abstract class WP_JS_Widget extends WP_Widget {
 
 		echo '<p>';
 		echo '<# (function( domId ) { #>';
-		if ( 'checkbox' === $args['type'] ) {
+		if ( 'checkbox' === $input_attrs['type'] ) {
 			?>
 			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
 			<?php
-		} elseif ( 'radio' === $args['type'] ) {
+		} elseif ( 'radio' === $input_attrs['type'] ) {
 			?>
 			<p>
 				<em><?php esc_html_e( 'Radio buttons are not supported yet.', 'js-widgets' ); ?></em>
 			</p>
 			<?php
-		} elseif ( 'select' === $args['type'] ) {
+		} elseif ( 'select' === $input_attrs['type'] ) {
 			?>
 			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
 			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
@@ -593,7 +645,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 				<?php endforeach; ?>
 			</select>
 			<?php
-		} elseif ( 'textarea' === $args['type'] ) {
+		} elseif ( 'textarea' === $input_attrs['type'] ) {
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
 			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
@@ -601,7 +653,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 		} else {
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<input type="<?php echo esc_attr( $input_attrs['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<?php
 		} // End if().
 
@@ -671,6 +723,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @see WP_JS_Widget::render_form_template_scripts()
 	 */
 	public function render_form_template() {
+		$item_schema = $this->get_item_schema();
 		$placeholder = '';
 		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
 			$placeholder = $item_schema['title']['properties']['raw']['default'];
