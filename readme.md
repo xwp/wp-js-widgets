@@ -50,13 +50,13 @@ Limitations/Caveats:
 
 ## Changelog ##
 
-### 0.3.0 - 2017-01-09 ###
+### 0.3.0 - 2017-01-11 ###
 Added:
 
 * Allow widget forms to be constructed standalone, outside the customizer. This allows forms to appear on widgets admin screen, and will allow Shortcake (see [#11](https://github.com/xwp/wp-js-widgets/issue/11)) and frontend integrations. Removes forms dependency on `customize-widgets.js`. PR [#26](https://github.com/xwp/wp-js-widgets/pull/26).
 * Render widget forms on widgets admin screen instead of directing the widgets to be edited in the customizer. PR [#27](https://github.com/xwp/wp-js-widgets/pull/27).
 * Improve UX of Save button on for a widget on the widgets admin screen to show as disabled and “Saved” if setting is not dirty. See [wpcore#23120](https://core.trac.wordpress.org/ticket/23120#comment:46) (There should be indication that widget settings have been saved).
-* Introduce `field` arg for `WP_JS_Widget::render_form_field_template()` which connects a rendered field template to the field in the item schema, allowing the field attributes to be automatically derived from the schema. PR [#28](https://github.com/xwp/wp-js-widgets/pull/28).
+* Introduce `field` arg for `WP_JS_Widget::render_form_field_template()` which connects a rendered field template to the field in the item schema, allowing the field attributes to be automatically derived from the schema. PR [#28](https://github.com/xwp/wp-js-widgets/pull/28) and [#31](https://github.com/xwp/wp-js-widgets/pull/31).
 * Add `Form.notifications`, copying from `props.model.notifications` if it exists.
 
 Changed (*Breaking!*):
