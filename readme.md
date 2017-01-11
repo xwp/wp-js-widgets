@@ -28,6 +28,7 @@ Features:
 
 * Widget instance settings in the Customizer are exported from PHP as regular JSON without any PHP-serialized base64-encoded `encoded_serialized_instance` anywhere to be seen.
 * Widgets control forms use JS content templates instead of PHP to render the markup for each control, reducing the weight of the customizer load, especially when there are a lot of widgets in use.
+* Widgets that extend `WP_JS_Widget` will editable from both the customizer and the widgets admin page using the same `Form` JS interface. This `Form` is also able to be embedded in other contexts, like on the frontend and as a Shortcake (Shortcode UI) form. See [#11](https://github.com/xwp/wp-js-widgets/issues/11).
 * Widgets employ the JSON Schema from the REST API to define an instance with validation and sanitization of the instance properties, beyond also providing `validate` and `sanitize` methods that work on the instance array as a whole.
 * A widget instance can be blocked from being saved by returning a `WP_Error` from its `validate` or `sanitize` method. For example, the RSS widget will show an error message if the feed URL provided is invalid and the widget will block from saving until the URL is corrected.
 * Widgets are exposed under the `js-widgets/v1` namespace, for example to list all Recent Posts widgets via the `/js-widgets/v1/widgets/recent-posts` or to get the Text widget with the “ID” (number) of 6, `/js-widgets/v1/widgets/text/6`.
@@ -45,7 +46,6 @@ This plugin doesn't yet implement any widgets that use JS templating for _fronte
 
 Limitations/Caveats:
 
-* Widgets that extend `WP_JS_Widget` will not be editable from widgets admin page. A link to edit the widget in the Customizer will be displayed instead.
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 ## Changelog ##
