@@ -42,7 +42,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'nav_menu' => array(
@@ -53,7 +53,8 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		return $schema;
+		$item_schema['title']['properties']['raw']['default'] = '';
+		return $item_schema;
 	}
 
 	/**

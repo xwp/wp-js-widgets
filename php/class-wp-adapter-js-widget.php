@@ -54,9 +54,9 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = parent::get_item_schema();
-		$schema['title']['properties']['raw']['default'] = $this->name;
-		return $schema;
+		$item_schema = parent::get_item_schema();
+		$item_schema['title']['properties']['raw']['default'] = $this->name;
+		return $item_schema;
 	}
 
 	/**
