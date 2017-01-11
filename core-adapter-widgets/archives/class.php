@@ -28,7 +28,7 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'dropdown' => array(
@@ -46,29 +46,21 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 				// @todo There needs to be raw data returned such that a client can construct an archive view as get_archives() does on the server.
 			)
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template();
-			$this->render_form_field_template( array(
-				'name' => 'dropdown',
-				'label' => __( 'Display as dropdown', 'default' ),
-				'type' => 'checkbox',
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'count',
-				'label' => __( 'Show post counts', 'default' ),
-				'type' => 'checkbox',
-			) );
-			?>
-		</script>
-		<?php
+	public function render_form_template() {
+		$this->render_title_form_field_template();
+		$this->render_form_field_template( array(
+			'field' => 'dropdown',
+			'label' => __( 'Display as dropdown', 'default' ),
+		) );
+		$this->render_form_field_template( array(
+			'field' => 'count',
+			'label' => __( 'Show post counts', 'default' ),
+		) );
 	}
 }

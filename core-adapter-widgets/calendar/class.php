@@ -28,18 +28,18 @@ class WP_JS_Widget_Calendar extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = parent::get_item_schema();
-		$schema['title']['properties']['raw']['default'] = '';
+		$item_schema = parent::get_item_schema();
+		$item_schema['title']['properties']['raw']['default'] = '';
 
 		// @todo The underlying data that get_calendar() uses to render the calendar should be included instead.
-		$schema['rendered'] = array(
+		$item_schema['rendered'] = array(
 			'description' => __( 'The rendered HTML for the post calendar.', 'js-widgets' ),
 			'type' => 'string',
 			'context' => array( 'view', 'edit', 'embed' ),
 			'readonly' => true,
 			'default' => '',
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**

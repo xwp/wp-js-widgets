@@ -63,6 +63,21 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	}
 
 	/**
+	 * Get Customize Object Selector Plugin.
+	 *
+	 * @global \CustomizeObjectSelector\Plugin $customize_object_selector_plugin
+	 * @return \CustomizeObjectSelector\Plugin|null Plugin or null if not active.
+	 */
+	public function get_customize_object_selector_plugin() {
+		global $customize_object_selector_plugin;
+		if ( ! empty( $customize_object_selector_plugin ) && 'CustomizeObjectSelector\Plugin' === get_class( $customize_object_selector_plugin ) ) {
+			return $customize_object_selector_plugin;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Register scripts.
 	 *
 	 * @param WP_Scripts $wp_scripts Scripts.
@@ -71,7 +86,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		$plugin_dir_url = plugin_dir_url( __FILE__ );
 		$handle = 'customize-widget-form-post-collection';
 		$src = $plugin_dir_url . 'form.js';
-		$deps = array( 'customize-js-widgets' );
+		$deps = array( 'js-widget-form' );
 		$wp_scripts->add( $handle, $src, $deps, $this->plugin->version );
 	}
 
@@ -98,16 +113,27 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * Enqueue scripts needed for the controls.
 	 */
 	public function enqueue_control_scripts() {
+		parent::enqueue_control_scripts();
+
+		$has_customize_object_selector_plugin = ! is_null( $this->get_customize_object_selector_plugin() );
 
 		// Gracefully handle the customize-object-selector plugin not being active.
 		$handle = 'customize-widget-form-post-collection';
-		$external_dep_handle = 'customize-object-selector-component';
-		if ( wp_scripts()->query( $external_dep_handle ) ) {
-			wp_scripts()->query( $handle )->deps[] = $external_dep_handle;
+		if ( $has_customize_object_selector_plugin ) {
+			wp_scripts()->query( $handle )->deps[] = 'customize-object-selector-component';
 		}
 		wp_enqueue_script( $handle );
+		wp_add_inline_script( $handle, sprintf(
+			'wp.widgets.formConstructor[ %s ].prototype.config = %s;',
+			wp_json_encode( $this->id_base ),
+			wp_json_encode( $this->get_form_config() )
+		) );
 
-		wp_enqueue_style( 'customize-widget-form-post-collection' );
+		$handle = 'customize-widget-form-post-collection';
+		wp_enqueue_style( $handle );
+		if ( $has_customize_object_selector_plugin ) {
+			wp_styles()->query( $handle )->deps[] = 'customize-object-selector';
+		}
 	}
 
 	/**
@@ -123,7 +149,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'show_date' => array(
@@ -164,7 +190,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 				),
 			)
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**
@@ -258,7 +284,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		}
 
 		if ( empty( $instance['title'] ) ) {
-			$instance['title'] = __( 'Post Collection', 'js-widgets' );
+			$instance['title'] = $this->name;
 		}
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
@@ -304,6 +330,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 							<address class="author">
 								<?php
 								echo sprintf(
+									/* translators: %s is the author display name */
 									esc_html__( 'By %s', 'js-widgets' ),
 									esc_html( get_the_author_meta( 'display_name', $query->post->post_author ) )
 								);
@@ -329,65 +356,25 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 *
 	 * @return array
 	 */
-	public function get_form_args() {
-		return array(
-			'l10n' => array(
-				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
-			),
-			'post_query_args' => $this->post_query_vars,
-			'select2_options' => $this->select2_options,
+	public function get_form_config() {
+		return array_merge(
+			parent::get_form_config(),
+			array(
+				'post_query_args' => $this->post_query_vars,
+				'select2_options' => $this->select2_options,
+			)
 		);
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render form template scripts.
 	 *
-	 * This template is intended to be agnostic to the JS template technology used.
+	 * @inheritdoc
 	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php if ( ! wp_scripts()->query( 'customize-object-selector-component' ) ) : ?>
-				<p><em>
-					<?php
-					echo wp_kses_post( sprintf(
-						__( 'This widget depends on the %s plugin. Please install and activate.', 'js-widgets' ),
-						sprintf(
-							'<a target="_blank" href="%1$s">%2$s</a>',
-							'https://github.com/xwp/wp-customize-object-selector',
-							__( 'Customize Object Selector', 'js-widgets' )
-						)
-					) );
-					?>
-				</em></p>
-			<?php else : ?>
-				<?php
-				$this->render_title_form_field_template();
-				?>
-				<p class="posts-selector">
-					<label for="{{ data.config.select_id }}"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
-					<span class="customize-object-selector-container"></span>
-				</p>
-				<?php
-				$this->render_form_field_template( array(
-					'name' => 'show_date',
-					'label' => __( 'Show date', 'js-widgets' ),
-					'type' => 'checkbox',
-				) );
-				$this->render_form_field_template( array(
-					'name' => 'show_author',
-					'label' => __( 'Show author', 'js-widgets' ),
-					'type' => 'checkbox',
-				) );
-				$this->render_form_field_template( array(
-					'name' => 'show_featured_image',
-					'label' => __( 'Show featured image', 'js-widgets' ),
-					'type' => 'checkbox',
-				) );
-				?>
-			<?php endif; ?>
-		</script>
+	public function render_form_template_scripts() {
+		parent::render_form_template_scripts();
 
+		?>
 		<script id="tmpl-customize-widget-post-collection-select2-option" type="text/template">
 			<# if ( data.featured_image && data.featured_image.sizes && data.featured_image.sizes.thumbnail && data.featured_image.sizes.thumbnail.url ) { #>
 				<span class="select2-thumbnail-wrapper">
@@ -399,5 +386,52 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 			<# } #>
 		</script>
 		<?php
+	}
+
+	/**
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
+	 *
+	 * This is called in `WP_JS_Widget::render_form_template_scripts()`.
+	 *
+	 * @see WP_JS_Widget::render_form_template_scripts()
+	 */
+	public function render_form_template() {
+		if ( ! wp_script_is( 'customize-object-selector-component' ) ) : ?>
+			<p><em>
+				<?php
+				echo wp_kses_post( sprintf(
+					/* translators: %s is the link to the Customize Object Selector plugin */
+					__( 'This widget depends on the %s plugin. Please install and activate.', 'js-widgets' ),
+					sprintf(
+						'<a target="_blank" href="%1$s">%2$s</a>',
+						'https://github.com/xwp/wp-customize-object-selector',
+						__( 'Customize Object Selector', 'js-widgets' )
+					)
+				) );
+				?>
+			</em></p>
+		<?php else : ?>
+			<?php
+			$this->render_title_form_field_template();
+			?>
+			<p class="posts-selector">
+				<label for="{{ data.config.select_id }}"><?php esc_html_e( 'Posts:', 'js-widgets' ) ?></label>
+				<span class="customize-object-selector-container"></span>
+			</p>
+			<?php
+			$this->render_form_field_template( array(
+				'field' => 'show_date',
+				'label' => __( 'Show date', 'js-widgets' ),
+			) );
+			$this->render_form_field_template( array(
+				'field' => 'show_author',
+				'label' => __( 'Show author', 'js-widgets' ),
+			) );
+			$this->render_form_field_template( array(
+				'field' => 'show_featured_image',
+				'label' => __( 'Show featured image', 'js-widgets' ),
+			) );
+			?>
+		<?php endif;
 	}
 }

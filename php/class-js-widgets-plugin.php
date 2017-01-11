@@ -99,8 +99,10 @@ class JS_Widgets_Plugin {
 		add_action( 'wp_default_styles', array( $this, 'register_styles' ), 20 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
-		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_pane_scripts' ) );
-		add_action( 'customize_controls_print_footer_scripts', array( $this, 'print_widget_form_templates' ) );
+		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_customize_controls_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_widgets_admin_scripts' ) );
+		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
+		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
 		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
@@ -136,15 +138,20 @@ class JS_Widgets_Plugin {
 		global $wp_widget_factory;
 		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
 
-		$this->script_handles['control-form'] = 'customize-widget-control-form';
-		$src = $plugin_dir_url . 'js/customize-widget-control-form.js';
-		$deps = array( 'customize-base', 'wp-util', 'jquery' );
-		$wp_scripts->add( $this->script_handles['control-form'], $src, $deps, $this->version );
+		$this->script_handles['form'] = 'js-widget-form';
+		$src = $plugin_dir_url . 'js/widget-form.js';
+		$deps = array( 'customize-base', 'wp-util', 'jquery', 'wp-a11y' );
+		$wp_scripts->add( $this->script_handles['form'], $src, $deps, $this->version );
 
-		$this->script_handles['js-widgets'] = 'customize-js-widgets';
+		$this->script_handles['customize-js-widgets'] = 'customize-js-widgets';
 		$src = $plugin_dir_url . 'js/customize-js-widgets.js';
-		$deps = array( 'customize-widgets', $this->script_handles['control-form'] );
-		$wp_scripts->add( $this->script_handles['js-widgets'], $src, $deps, $this->version );
+		$deps = array( 'customize-widgets', $this->script_handles['form'] );
+		$wp_scripts->add( $this->script_handles['customize-js-widgets'], $src, $deps, $this->version );
+
+		$this->script_handles['admin-js-widgets'] = 'admin-js-widgets';
+		$src = $plugin_dir_url . 'js/admin-js-widgets.js';
+		$deps = array( 'admin-widgets', $this->script_handles['form'] );
+		$wp_scripts->add( $this->script_handles['admin-js-widgets'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -171,6 +178,11 @@ class JS_Widgets_Plugin {
 	 */
 	public function register_styles( WP_Styles $wp_styles ) {
 		global $wp_widget_factory;
+		$plugin_dir_url = plugin_dir_url( dirname( __FILE__ ) );
+
+		$src = $plugin_dir_url . 'css/widget-form.css';
+		$deps = array();
+		$wp_styles->add( 'js-widget-form', $src, $deps, $this->version );
 
 		// Register scripts for widgets.
 		foreach ( $wp_widget_factory->widgets as $widget ) {
@@ -204,7 +216,7 @@ class JS_Widgets_Plugin {
 	 * @global WP_Customize_Manager $wp_customize
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
-	function enqueue_pane_scripts() {
+	function enqueue_customize_controls_scripts() {
 		global $wp_customize, $wp_widget_factory;
 
 		// Abort if the widgets component has been disabled.
@@ -212,29 +224,9 @@ class JS_Widgets_Plugin {
 			return;
 		}
 
-		// Gather the id_bases (types) for JS Widgets and their form configs.
-		$customize_widget_id_bases = array();
-		$form_configs = array();
-		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
-				$customize_widget_id_bases[ $widget->id_base ] = true;
-				$form_configs[ $widget->id_base ] = array_merge(
-					$widget->get_form_args(),
-					array(
-						'default_instance' => $widget->get_default_instance(),
-					)
-				);
-			}
-		}
-
-		$exports = array(
-			'id_bases' => $customize_widget_id_bases,
-			'form_configs' => $form_configs,
-		);
-
 		$handle = 'customize-js-widgets';
 		wp_enqueue_script( $handle );
-		wp_add_inline_script( $handle, sprintf( 'CustomizeJSWidgets.init( %s );', wp_json_encode( $exports ) ) );
+		wp_add_inline_script( $handle, 'wp.customize.JSWidgets.init();' );
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
@@ -243,6 +235,43 @@ class JS_Widgets_Plugin {
 		}
 
 		wp_enqueue_script( $this->script_handles['trac-39389-controls'] );
+	}
+
+	/**
+	 * Enqueue scripts for the widgets admin screen.
+	 *
+	 * @access public
+	 *
+	 * @param string $hook_suffix The current admin page.
+	 * @global string $pagenow
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function enqueue_widgets_admin_scripts( $hook_suffix ) {
+		global $pagenow, $wp_widget_factory;
+
+		/*
+		 * Note that the widgets component for the customizer will do the admin_enqueue_scripts
+		 * action for widgets.php to enqueue widget scripts. This is why there is a test for
+		 * customize.php being $pagenow.
+		 */
+		$is_widgets_admin_page = ( 'widgets.php' === $hook_suffix && 'customize.php' !== $pagenow );
+		if ( ! $is_widgets_admin_page ) {
+			return;
+		}
+
+		$handle = 'admin-js-widgets';
+		wp_enqueue_script( $handle );
+		$l10n = array(
+			'save' => __( 'Save', 'default' ),
+			'saved' => __( 'Saved', 'default' ),
+		);
+		wp_add_inline_script( $handle, sprintf( 'wpWidgets.JSWidgets.l10n = %s; wpWidgets.JSWidgets.init();', wp_json_encode( $l10n ) ) );
+
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->enqueue_control_scripts();
+			}
+		}
 	}
 
 	/**
@@ -267,14 +296,14 @@ class JS_Widgets_Plugin {
 	/**
 	 * Print widget form templates.
 	 *
-	 * @see WP_Customize_Widget::form_template()
+	 * @see WP_Customize_Widget::render_form_template_scripts()
 	 */
-	function print_widget_form_templates() {
+	function render_widget_form_template_scripts() {
 		global $wp_widget_factory;
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
-				$widget->form_template();
+				$widget->render_form_template_scripts();
 			}
 		}
 	}

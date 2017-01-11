@@ -30,8 +30,8 @@ class WP_JS_Widget_Search extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = parent::get_item_schema();
+		$item_schema = parent::get_item_schema();
 		$item_schema['title']['properties']['raw']['default'] = '';
-		return $schema;
+		return $item_schema;
 	}
 }

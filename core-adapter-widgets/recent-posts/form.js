@@ -3,7 +3,7 @@
 /* eslint-disable strict */
 /* eslint-disable complexity */
 
-wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
+wp.widgets.formConstructor['recent-posts'] = (function() {
 	'use strict';
 
 	var RecentPostsWidgetForm;
@@ -13,11 +13,11 @@ wp.customize.Widgets.formConstructor['recent-posts'] = (function( api ) {
 	 *
 	 * @constructor
 	 */
-	RecentPostsWidgetForm = api.Widgets.Form.extend( {} );
+	RecentPostsWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = RecentPostsWidgetForm;
 	}
 	return RecentPostsWidgetForm;
 
-})( wp.customize );
+})();

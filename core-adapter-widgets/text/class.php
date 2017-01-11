@@ -25,7 +25,7 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'text' => array(
@@ -56,8 +56,8 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		$schema['title']['properties']['raw']['default'] = '';
-		return $schema;
+		$item_schema['title']['properties']['raw']['default'] = '';
+		return $item_schema;
 	}
 
 	/**
@@ -95,30 +95,21 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
-	 *
-	 * This template is intended to be agnostic to the JS template technology used.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template();
-			$this->render_form_field_template( array(
-				'name' => 'text',
-				'label' => __( 'Content:', 'default' ),
-				'type' => 'textarea',
-				'rows' => 16,
-				'cols' => 20,
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'filter',
-				'label' => __( 'Automatically add paragraphs', 'default' ),
-				'type' => 'checkbox',
-			) );
-			?>
-		</script>
-		<?php
+	public function render_form_template() {
+		$this->render_title_form_field_template();
+		$this->render_form_field_template( array(
+			'field' => 'text',
+			'label' => __( 'Content:', 'default' ),
+			'type' => 'textarea',
+			'rows' => 16,
+			'cols' => 20,
+		) );
+		$this->render_form_field_template( array(
+			'field' => 'filter',
+			'label' => __( 'Automatically add paragraphs', 'default' ),
+		) );
 	}
 
 	/**
@@ -126,8 +117,8 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	 *
 	 * @return array
 	 */
-	public function get_form_args() {
-		$args = parent::get_form_args();
+	public function get_form_config() {
+		$args = parent::get_form_config();
 		$args['can_unfiltered_html'] = current_user_can( 'unfiltered_html' );
 		$args['l10n'] = array_merge(
 			$args['l10n'],

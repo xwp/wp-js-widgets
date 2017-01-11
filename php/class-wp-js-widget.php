@@ -85,7 +85,9 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 *
 	 * A.K.A. enqueue_form_scripts, enqueue_backend_scripts.
 	 */
-	public function enqueue_control_scripts() {}
+	public function enqueue_control_scripts() {
+		wp_enqueue_style( 'js-widget-form' );
+	}
 
 	/**
 	 * Enqueue scripts needed for the frontend.
@@ -100,7 +102,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
+		$item_schema = array(
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
 				'type' => array( 'string', 'object' ),
@@ -121,7 +123,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 				),
 			),
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**
@@ -301,17 +303,26 @@ abstract class WP_JS_Widget extends WP_Widget {
 	final public function form( $instance ) {
 		global $wp_customize;
 
+		// Output fields needed by form on the widgets admin page.
 		if ( empty( $wp_customize ) ) {
-			// Note that %s used instead of %d for number because widget "template" sets $this->number to __i__.
-			$customize_id = sprintf( 'widget_%s[%s]', $this->id_base, $this->number );
-			$customize_url = add_query_arg( array( 'autofocus[control]' => $customize_id ), wp_customize_url() );
+			if ( ! is_numeric( $this->number ) ) {
+				$instance = $this->get_default_instance();
+			}
 			?>
-			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>"  name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
-			<p>
-				<?php echo sprintf( __( 'This widget can only be <a href="%s">edited in the Customizer</a>.', 'js-widgets' ), esc_url( $customize_url ) ); // WPCS: xss ok. ?>
-			</p>
-			<?php
-			return 'noform';
+			<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ) ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ) ?>" value="<?php echo esc_attr( isset( $instance['title'] ) ? $instance['title'] : '' ) ?>">
+			<input type="hidden" name="<?php echo esc_attr( $this->get_field_name( 'js_widget_instance_data' ) ) ?>" class="js_widget_instance_data" value="<?php echo esc_attr( wp_json_encode( $instance ) ); ?>" >
+			<?php if ( $this->last_validity_error ) :
+				$notifications = array();
+				foreach ( $this->last_validity_error->errors as $error_code => $error_messages ) {
+					$notifications[ $error_code ] = array(
+						'message' => join( ' ', $error_messages ),
+						'data' => $this->last_validity_error->get_error_data( $error_code ),
+					);
+				}
+				$this->last_validity_error = null;
+				?>
+				<input type="hidden" class="js_widget_notifications" value="<?php echo esc_attr( wp_json_encode( $notifications ) ) ?>">
+			<?php endif;
 		}
 		return '';
 	}
@@ -325,11 +336,6 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * by `WP_Customize_Setting::update()`. The `WP_Widget::update()` method merely
 	 * sanitizes and should not have any side-effects.
 	 *
-	 * This method also returns false to prevent it from being used outside a
-	 * Customizer context, since only for the Customizer setting callback will
-	 * ensure that the instance JSON schema validation and sanitization applies
-	 * before being passed into the `WP_JS_Widget::sanitize()` callback.
-	 *
 	 * @deprecated
 	 * @see JS_Widgets_Plugin::sanitize_widget_instance()
 	 * @see WP_Customize_Setting::update()
@@ -341,10 +347,40 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array|false Settings to save or bool false to cancel saving.
 	 */
 	final public function update( $new_instance, $old_instance = array() ) {
-		unset( $new_instance, $old_instance );
-		_doing_it_wrong( __METHOD__, esc_html__( 'The update method should not be called for WP_JS_Widets. Call sanitize instead.', 'js-widgets' ), '' );
-		return false;
+		if ( ! isset( $new_instance['js_widget_instance_data'] ) ) {
+			$this->last_validity_error = new WP_Error( 'js_widget_instance_data_missing', __( 'Missing js_widget_instance_data.', 'js-widgets' ) );
+			return false;
+		}
+		$new_instance_data = json_decode( $new_instance['js_widget_instance_data'], true );
+		if ( ! is_array( $new_instance_data ) ) {
+			$this->last_validity_error = new WP_Error( 'json_parse_error', __( 'JSON parse error in js_widget_instance_data.', 'js-widgets' ) );
+			return false;
+		}
+
+		$validity = $this->validate( $new_instance_data );
+		if ( is_wp_error( $validity ) ) {
+			$this->last_validity_error = $validity;
+			return false;
+		}
+
+		$new_instance_data = $this->sanitize( $new_instance_data, $old_instance );
+		if ( is_wp_error( $new_instance_data ) ) {
+			$this->last_validity_error = $new_instance_data;
+			return false;
+		}
+
+		return $new_instance_data;
 	}
+
+	/**
+	 * Last validity error.
+	 *
+	 * This is only used when updating a widget via the widgets admin screen.
+	 *
+	 * @see WP_JS_Widget::update()
+	 * @var WP_Error
+	 */
+	protected $last_validity_error;
 
 	/**
 	 * Sanitize instance data.
@@ -437,9 +473,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 	protected function render_title_form_field_template( $input_attrs = array() ) {
 		$this->render_form_field_template( array_merge(
 			array(
-				'name' => 'title',
+				'field' => 'title',
 				'label' => __( 'Title:', 'default' ),
-				'type' => 'text',
 			),
 			$input_attrs
 		) );
@@ -459,38 +494,167 @@ abstract class WP_JS_Widget extends WP_Widget {
 	}
 
 	/**
+	 * Attributes that are recognized for input, select, and textarea elements.
+	 *
+	 * @var array
+	 */
+	protected $form_field_html_attribute_whitelist = array(
+		'accept',
+		'accesskey',
+		'accesskey',
+		'autocapitalize',
+		'autocomplete',
+		'autocorrect',
+		'autofocus',
+		'checked',
+		'class',
+		'cols',
+		'dir',
+		'disabled',
+		'height',
+		'incremental',
+		'inputmode',
+		'lang',
+		'list',
+		'max',
+		'maxlength',
+		'min',
+		'minlength',
+		'multiple',
+		'name',
+		'pattern',
+		'placeholder',
+		'readonly',
+		'required',
+		'results',
+		'rows',
+		'size',
+		'spellcheck',
+		'step',
+		'style',
+		'tabindex',
+		'title',
+		'type',
+		'width',
+		'wrap',
+	);
+
+	/**
 	 * Render form field template.
 	 *
-	 * @todo Use a random string for a common name prefix to ensure that radio buttons will work properly.
+	 * The supplied `$args` are used as the input/textarea/select attributes.
+	 * When `$args[field]` is present, default args will be fetched from any
+	 * corresponding field definition in the item schema.
 	 *
-	 * @param array $args Args.
+	 * @param array $args {
+	 *     Form field args. Any args not explicitly listed here will be mapped to
+	 *     HTML input attributes if whitelisted, in addition to data-* attributes.
+	 *     Note that `name` will be dynamically computed.
+	 *
+	 *     @type string $field       Schema field ID. When present, a `data-field` HTML attribute will be added for `wp.customize.Element` to sync the input with the property in the `model`. Optional.
+	 *     @type string $type        Form field type, including the values for `input[type]` as well as 'select' and 'textarea'. Optional, defaults to 'text'.
+	 *     @type string $label       Field label, uses schema field `description` by default.
+	 *     @type string $class       Class name. Optional.
+	 *     @type string $placeholder Input placeholder, uses schema field `default` by default. Optional.
+	 *     @type string $min         Minimum, uses schema field `minimum` by default. Optional.
+	 *     @type string $max         Maximum, uses schema field `maximum` by default. Optional.
+	 *     @type string $help        Optional help text that appears below the input.
+	 * }
 	 */
 	protected function render_form_field_template( $args = array() ) {
-		$defaults = array(
-			'name' => '',
-			'label' => '',
+		$item_schema = $this->get_item_schema();
+		$default_input_attrs = array(
 			'type' => 'text',
-			'choices' => array(),
-			'value' => '',
-			'placeholder' => '',
-			'help' => '',
+			'class' => '',
 		);
-		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
-			$defaults['class'] = 'widefat';
-		}
-		$args = wp_parse_args( $args, $defaults );
 
-		$input_attrs = $args;
-		unset( $input_attrs['label'], $input_attrs['choices'], $input_attrs['type'] );
+		if ( ! empty( $args['name'] ) ) {
+			_deprecated_argument( __FUNCTION__, '0.3.0', __( 'The args[name] param is deprecated in favor of args[field].', 'js-widgets' ) );
+
+			if ( empty( $args['field'] ) && ! empty( $item_schema[ $args['name'] ] ) ) {
+				$args['field'] = $args['name'];
+			}
+		}
+
+		$field_name = ! empty( $args['field'] ) ? $args['field'] : null;
+		if ( $field_name && ! empty( $item_schema[ $field_name ] ) ) {
+			$field_schema = $item_schema[ $field_name ];
+			$schema_to_input_attrs_mapping = array(
+				'description' => 'label',
+				'minimum' => 'min',
+				'maximum' => 'max',
+				'default' => 'placeholder',
+			);
+			foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
+				if ( isset( $field_schema[ $schema_key ] ) ) {
+					$default_input_attrs[ $input_attr_key ] = $field_schema[ $schema_key ];
+				}
+			}
+			if ( isset( $field_schema['properties']['raw'] ) ) {
+				foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
+					if ( isset( $field_schema['properties']['raw'][ $schema_key ] ) ) {
+						$default_input_attrs[ $input_attr_key ] = $field_schema['properties']['raw'][ $schema_key ];
+					}
+				}
+			}
+
+			if ( isset( $field_schema['type'] ) && is_string( $field_schema['type'] ) ) {
+				$schema_type = $field_schema['type'];
+
+				if ( 'boolean' === $schema_type ) {
+					$default_input_attrs['type'] = 'checkbox';
+				} elseif ( 'integer' === $schema_type || 'number' === $schema_type ) {
+					$default_input_attrs['type'] = 'number';
+				} elseif ( 'string' === $schema_type && isset( $field_schema['format'] ) ) {
+					if ( 'uri' === $field_schema['format'] ) {
+						$default_input_attrs['type'] = 'url';
+					} elseif ( 'email' === $field_schema['format'] ) {
+						$default_input_attrs['type'] = 'email';
+					}
+					// @todo Support date-time format.
+				}
+
+				if ( 'integer' === $schema_type ) {
+					$default_input_attrs['step'] = '1';
+				}
+			}
+
+			if ( isset( $field_schema['enum'] ) ) {
+				$default_input_attrs['choices'] = array_combine( $field_schema['enum'], $field_schema['enum'] );
+			}
+		} // End if().
+
+		if ( ! isset( $args['type'] ) || ( 'checkbox' !== $args['type'] && 'radio' !== $args['type'] ) ) {
+			$default_input_attrs['class'] .= ' widefat';
+		}
+		$args = wp_parse_args( $args, $default_input_attrs );
+		$input_attrs = array();
+		foreach ( $args as $arg_name => $arg_value ) {
+			if ( 'data-' === substr( $arg_name, 0, 5 ) || in_array( $arg_name, $this->form_field_html_attribute_whitelist, true ) ) {
+				$input_attrs[ $arg_name ] = $arg_value;
+			}
+		}
+
+		if ( $field_name ) {
+			$input_attrs['data-field'] = $field_name;
+			$input_attrs['name'] = '{{ domId }}-' . $field_name;
+		}
 
 		echo '<p>';
 		echo '<# (function( domId ) { #>';
-		if ( 'checkbox' === $args['type'] ) {
+		if ( 'checkbox' === $input_attrs['type'] ) {
 			?>
 			<input type="checkbox" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
 			<?php
-		} elseif ( 'select' === $args['type'] ) {
+		} elseif ( 'radio' === $input_attrs['type'] ) {
+			?>
+			<p>
+				<em><?php esc_html_e( 'Radio buttons are not supported yet.', 'js-widgets' ); ?></em>
+			</p>
+			<?php
+		} elseif ( 'select' === $input_attrs['type'] ) {
+			unset( $input_attrs['type'] );
 			?>
 			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
 			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
@@ -501,64 +665,113 @@ abstract class WP_JS_Widget extends WP_Widget {
 				<?php endforeach; ?>
 			</select>
 			<?php
-		} elseif ( 'textarea' === $args['type'] ) {
+		} elseif ( 'textarea' === $input_attrs['type'] ) {
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<textarea id="{{ domId }}" <?php unset( $input_attrs['type'] ); $this->render_input_attrs( $input_attrs ); ?> ></textarea>
 			<?php
 		} else {
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<input type="<?php echo esc_attr( $args['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
+			<input type="<?php echo esc_attr( $input_attrs['type'] ) ?>" id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
 			<?php
 		} // End if().
 
-		if ( $args['help'] ) {
+		if ( ! empty( $args['help'] ) ) {
 			?>
 			<br>
-			<small><?php echo esc_html( $args['help'] ); ?></small>
+			<small><?php echo wp_kses_post( $args['help'] ); ?></small>
 			<?php
 		}
 
-		echo '<# }( "el" + String( Math.random() ) )); #>';
+		echo '<# }( "el-" + String( Math.random() ) )); #>';
 		echo '</p>';
 	}
 
 	/**
-	 * Render JS Template.
+	 * Get template ID for form.
+	 *
+	 * @return string Template ID.
 	 */
-	public function form_template() {
-		$placeholder = '';
-		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['raw']['default'];
-		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['rendered']['default'];
-		}
+	protected function get_form_template_id() {
+		return 'js-widget-form-' . $this->id_base;
+	}
 
+	/**
+	 * Whether form template scripts have been rendered.
+	 *
+	 * @var bool
+	 */
+	protected $form_template_scripts_rendered = false;
+
+	/**
+	 * Render form template scripts.
+	 *
+	 * This method normally need not be overridden by a subclass, as it is just a
+	 * wrapper for `WP_JS_Widget::form_template_contents()`, which is the method
+	 * that subclasses should override.
+	 *
+	 * @see WP_JS_Widget::render_form_template()
+	 */
+	public function render_form_template_scripts() {
+		if ( $this->form_template_scripts_rendered ) {
+			return;
+		}
+		$this->form_template_scripts_rendered = true;
 		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php $this->render_title_form_field_template( compact( 'placeholder' ) ); ?>
+
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() . '-notifications' ) ?>" type="text/template">
+			<ul>
+				<# _.each( data.notifications, function( notification ) { #>
+					<li class="notice notice-{{ notification.type || 'info' }} {{ data.altNotice ? 'notice-alt' : '' }}" data-code="{{ notification.code }}" data-type="{{ notification.type }}">{{{ notification.message || notification.code }}}</li>
+				<# } ); #>
+			</ul>
+		</script>
+
+		<script id="tmpl-<?php echo esc_attr( $this->get_form_template_id() ) ?>" type="text/template">
+			<div class="js-widget-form-notifications-container customize-control-notifications-container"></div>
+			<?php $this->render_form_template(); ?>
 		</script>
 		<?php
 	}
 
 	/**
-	 * Get data to pass to the JS form.
+	 * Render contents of JS template.
 	 *
-	 * This can include information such as whether the user can do `unfiltered_html`.
-	 * The `default_instance` will be amended to this when exported to JS.
+	 * Note that the text/template script tag wrapper is output by `WP_JS_Widget::render_form_template_scripts()`.
 	 *
-	 * @todo Rename this to get_form_config?
+	 * @see WP_JS_Widget::render_form_template_scripts()
+	 */
+	public function render_form_template() {
+		$this->render_title_form_field_template();
+	}
+
+	/**
+	 * Get form args (config).
 	 *
+	 * @deprecated
 	 * @return array
 	 */
 	public function get_form_args() {
+		_deprecated_function( __FUNCTION__, '0.3.0', __CLASS__ . '::get_form_config()' );
+		return $this->get_form_config();
+	}
+
+	/**
+	 * Get form config data to pass to the JS Form constructor.
+	 *
+	 * This can include information such as whether the user can do `unfiltered_html`.
+	 *
+	 * @return array
+	 */
+	public function get_form_config() {
 		return array(
 			'l10n' => array(
-
-				// @todo Move this to the component level.
 				'title_tags_invalid' => __( 'Tags will be stripped from the title.', 'js-widgets' ),
 			),
+			'default_instance' => $this->get_default_instance(),
+			'form_template_id' => $this->get_form_template_id(),
+			'notifications_template_id' => $this->get_form_template_id() . '-notifications',
 		);
 	}
 }

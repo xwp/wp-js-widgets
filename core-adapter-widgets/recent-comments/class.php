@@ -28,7 +28,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'number' => array(
@@ -50,7 +50,7 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**
@@ -105,24 +105,16 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 	}
 
 	/**
-	 * Render JS Template.
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
 	 */
-	public function form_template() {
+	public function render_form_template() {
 		$item_schema = $this->get_item_schema();
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template( array(
-				'placeholder' => $item_schema['title']['properties']['raw']['default'],
-			) );
-			$this->render_form_field_template( array(
-				'name' => 'number',
-				'label' => __( 'Number of comments to show:', 'default' ),
-				'type' => 'number',
-				'min' => $item_schema['number']['minimum'],
-			) );
-			?>
-		</script>
-		<?php
+		$this->render_title_form_field_template( array(
+			'placeholder' => $item_schema['title']['properties']['raw']['default'],
+		) );
+		$this->render_form_field_template( array(
+			'field' => 'number',
+			'label' => __( 'Number of comments to show:', 'default' ),
+		) );
 	}
 }

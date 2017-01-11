@@ -25,12 +25,24 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 	}
 
 	/**
+	 * Register scripts.
+	 *
+	 * @param WP_Scripts $wp_scripts Scripts.
+	 */
+	public function register_scripts( $wp_scripts ) {
+		parent::register_scripts( $wp_scripts );
+
+		$handle = "widget-form-{$this->id_base}";
+		$wp_scripts->registered[ $handle ]->deps[] = 'backbone';
+	}
+
+	/**
 	 * Get instance schema properties.
 	 *
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'nav_menu' => array(
@@ -41,38 +53,58 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		return $schema;
+		$item_schema['title']['properties']['raw']['default'] = '';
+		return $item_schema;
 	}
 
 	/**
-	 * Render JS Template.
+	 * Get data to pass to the JS form.
+	 *
+	 * @return array
 	 */
-	public function form_template() {
-		?>
-		<script id="tmpl-customize-widget-form-<?php echo esc_attr( $this->id_base ) ?>" type="text/template">
-			<?php
-			$this->render_title_form_field_template();
-			?>
+	public function get_form_config() {
+		$config = parent::get_form_config();
+		$config['nav_menus'] = array();
+		foreach ( wp_get_nav_menus() as $nav_menu ) {
+			$config['nav_menus'][ $nav_menu->term_id ] = $nav_menu->name;
+		}
+		$config['nav_menu_edit_url'] = admin_url( 'nav-menus.php?action=edit&menu=%d' );
+		return $config;
+	}
 
-			<div class="no-menus-message">
-				<p><?php echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( 'javascript: wp.customize.panel( "nav_menus" ).focus();' ) ); ?></p>
-			</div>
-			<div class="menu-selection">
-				<?php
-				$this->render_form_field_template( array(
-					'name' => 'nav_menu',
-					'label' => __( 'Select Menu:', 'default' ),
-					'type' => 'select',
-					'choices' => array(
-						'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
-					),
-				) );
-				?>
-				<p>
-					<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
-				</p>
-			</div>
-		</script>
+	/**
+	 * Render JS template contents minus the `<script type="text/template">` wrapper.
+	 */
+	public function render_form_template() {
+		global $pagenow;
+		$this->render_title_form_field_template();
+		?>
+		<div class="no-menus-message">
+			<p><?php
+			if ( isset( $pagenow ) && 'customize.php' === $pagenow ) {
+				$url = 'javascript: wp.customize.panel( "nav_menus" ).focus();';
+			} else {
+				$url = admin_url( 'nav-menus.php' );
+			}
+			/* translators: %s is javascript link to nav_menus panel */
+			echo sprintf( __( 'No menus have been created yet. <a href="%s">Create some</a>.', 'default' ), esc_attr( $url ) );
+			?></p>
+		</div>
+		<div class="menu-selection">
+			<?php
+			$this->render_form_field_template( array(
+				'field' => 'nav_menu',
+				'label' => __( 'Select Menu:', 'default' ),
+				'type' => 'select',
+				'choices' => array(
+					'0' => html_entity_decode( __( '&mdash; Select &mdash;', 'default' ), ENT_QUOTES, 'utf-8' ),
+				),
+			) );
+			?>
+			<p>
+				<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
+			</p>
+		</div>
 		<?php
 	}
 }
