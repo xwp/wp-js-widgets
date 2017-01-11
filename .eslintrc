@@ -9,9 +9,6 @@
 	"env": {
 		"browser": true
 	},
-	"plugins": [
-		"react"
-	],
 	"globals": {
 		"_": false,
 		"Backbone": false,

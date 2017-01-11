@@ -127,8 +127,6 @@ class JS_Widgets_Plugin {
 	/**
 	 * Register scripts.
 	 *
-	 * Note this will skip registering react and react-dom if they are already registered.
-	 *
 	 * @access public
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
