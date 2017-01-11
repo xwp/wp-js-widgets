@@ -102,7 +102,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array(
+		$item_schema = array(
 			'title' => array(
 				'description' => __( 'The title for the widget.', 'js-widgets' ),
 				'type' => array( 'string', 'object' ),
@@ -123,7 +123,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 				),
 			),
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**

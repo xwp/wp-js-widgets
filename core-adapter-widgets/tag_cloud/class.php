@@ -34,7 +34,7 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 		}
 		$taxonomies = array_values( $taxonomies );
 
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'taxonomy' => array(
@@ -59,8 +59,8 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		$schema['title']['properties']['raw']['default'] = '';
-		return $schema;
+		$item_schema['title']['properties']['raw']['default'] = '';
+		return $item_schema;
 	}
 
 	/**

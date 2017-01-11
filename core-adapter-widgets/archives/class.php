@@ -28,7 +28,7 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'dropdown' => array(
@@ -46,7 +46,7 @@ class WP_JS_Widget_Archives extends WP_Adapter_JS_Widget {
 				// @todo There needs to be raw data returned such that a client can construct an archive view as get_archives() does on the server.
 			)
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**

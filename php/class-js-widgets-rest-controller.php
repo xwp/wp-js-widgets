@@ -88,7 +88,7 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		$schema = array(
+		$item_schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => $this->get_object_type(),
 			'type'       => 'object',
@@ -124,22 +124,22 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				$field_schema['context'] = array( 'edit' );
 			}
 
-			$schema['properties'][ $field_id ] = $field_schema;
+			$item_schema['properties'][ $field_id ] = $field_schema;
 		}
 
-		$schema = $this->add_additional_fields_schema( $schema );
+		$item_schema = $this->add_additional_fields_schema( $item_schema );
 
 		// Expose root-level required properties according to JSON Schema.
-		if ( ! isset( $schema['required'] ) ) {
-			$schema['required'] = array();
+		if ( ! isset( $item_schema['required'] ) ) {
+			$item_schema['required'] = array();
 		}
-		foreach ( $schema['properties'] as $field_id => $field_schema ) {
+		foreach ( $item_schema['properties'] as $field_id => $field_schema ) {
 			if ( ! empty( $field_schema['required'] ) ) {
-				$schema['required'][] = $field_id;
+				$item_schema['required'][] = $field_id;
 			}
 		}
 
-		return $schema;
+		return $item_schema;
 	}
 
 	/**

@@ -149,7 +149,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'show_date' => array(
@@ -190,7 +190,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 				),
 			)
 		);
-		return $schema;
+		return $item_schema;
 	}
 
 	/**

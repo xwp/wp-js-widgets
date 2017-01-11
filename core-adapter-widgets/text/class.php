@@ -25,7 +25,7 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$schema = array_merge(
+		$item_schema = array_merge(
 			parent::get_item_schema(),
 			array(
 				'text' => array(
@@ -56,8 +56,8 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 				),
 			)
 		);
-		$schema['title']['properties']['raw']['default'] = '';
-		return $schema;
+		$item_schema['title']['properties']['raw']['default'] = '';
+		return $item_schema;
 	}
 
 	/**
