@@ -542,17 +542,29 @@ abstract class WP_JS_Widget extends WP_Widget {
 	/**
 	 * Render form field template.
 	 *
-	 * @param array $args Args.
+	 * The supplied `$args` are used as the input/textarea/select attributes.
+	 * When `$args[field]` is present, default args will be fetched from any
+	 * corresponding field definition in the item schema.
+	 *
+	 * @param array $args {
+	 *     Form field args. Any args not explicitly listed here will be mapped to
+	 *     HTML input attributes if whitelisted, in addition to data-* attributes.
+	 *     Note that `name` will be dynamically computed.
+	 *
+	 *     @type string $field       Schema field ID. When present, a `data-field` HTML attribute will be added for `wp.customize.Element` to sync the input with the property in the `model`. Optional.
+	 *     @type string $type        Form field type, including the values for `input[type]` as well as 'select' and 'textarea'. Optional, defaults to 'text'.
+	 *     @type string $label       Field label, uses schema field `description` by default.
+	 *     @type string $class       Class name. Optional.
+	 *     @type string $placeholder Input placeholder, uses schema field `default` by default. Optional.
+	 *     @type string $min         Minimum, uses schema field `minimum` by default. Optional.
+	 *     @type string $max         Maximum, uses schema field `maximum` by default. Optional.
+	 *     @type string $help        Optional help text that appears below the input.
+	 * }
 	 */
 	protected function render_form_field_template( $args = array() ) {
 		$item_schema = $this->get_item_schema();
 		$default_input_attrs = array(
-			'label' => '',
 			'type' => 'text',
-			'choices' => array(),
-			'value' => '',
-			'placeholder' => '',
-			'help' => '',
 			'class' => '',
 		);
 
@@ -571,15 +583,22 @@ abstract class WP_JS_Widget extends WP_Widget {
 				'description' => 'label',
 				'minimum' => 'min',
 				'maximum' => 'max',
-				// @todo Use default as placeholder?
+				'default' => 'placeholder',
 			);
 			foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
 				if ( isset( $field_schema[ $schema_key ] ) ) {
 					$default_input_attrs[ $input_attr_key ] = $field_schema[ $schema_key ];
 				}
 			}
+			if ( isset( $field_schema['properties']['raw'] ) ) {
+				foreach ( $schema_to_input_attrs_mapping as $schema_key => $input_attr_key ) {
+					if ( isset( $field_schema['properties']['raw'][ $schema_key ] ) ) {
+						$default_input_attrs[ $input_attr_key ] = $field_schema['properties']['raw'][ $schema_key ];
+					}
+				}
+			}
 
-			if ( isset( $field_schema['type'] ) ) {
+			if ( isset( $field_schema['type'] ) && is_string( $field_schema['type'] ) ) {
 				$schema_type = $field_schema['type'];
 
 				if ( 'boolean' === $schema_type ) {
@@ -635,6 +654,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 			</p>
 			<?php
 		} elseif ( 'select' === $input_attrs['type'] ) {
+			unset( $input_attrs['type'] );
 			?>
 			<label for="{{ domId }}"> <?php echo esc_html( $args['label'] ); ?></label>
 			<select id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> >
@@ -648,7 +668,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 		} elseif ( 'textarea' === $input_attrs['type'] ) {
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<textarea id="{{ domId }}" <?php unset( $input_attrs['type'] ); $this->render_input_attrs( $input_attrs ); ?> ></textarea>
 			<?php
 		} else {
 			?>
@@ -657,10 +677,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 			<?php
 		} // End if().
 
-		if ( $args['help'] ) {
+		if ( ! empty( $args['help'] ) ) {
 			?>
 			<br>
-			<small><?php echo esc_html( $args['help'] ); ?></small>
+			<small><?php echo wp_kses_post( $args['help'] ); ?></small>
 			<?php
 		}
 
@@ -723,14 +743,7 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @see WP_JS_Widget::render_form_template_scripts()
 	 */
 	public function render_form_template() {
-		$item_schema = $this->get_item_schema();
-		$placeholder = '';
-		if ( isset( $item_schema['title']['properties']['raw']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['raw']['default'];
-		} elseif ( isset( $item_schema['title']['properties']['rendered']['default'] ) ) {
-			$placeholder = $item_schema['title']['properties']['rendered']['default'];
-		}
-		$this->render_title_form_field_template( compact( 'placeholder' ) );
+		$this->render_title_form_field_template();
 	}
 
 	/**
