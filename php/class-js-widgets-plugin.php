@@ -121,6 +121,7 @@ class JS_Widgets_Plugin {
 		add_action( 'widgets_init', array( $this, 'register_widget_shortcodes' ), 90 );
 		add_filter( 'shortcode_ui_fields', array( $this, 'filter_shortcode_ui_fields' ) );
 		add_action( 'print_shortcode_ui_templates', array( $this, 'print_shortcode_ui_templates' ) );
+		add_action( 'enqueue_shortcode_ui', array( $this, 'enqueue_shortcode_ui' ) );
 
 		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
 	}
@@ -162,6 +163,11 @@ class JS_Widgets_Plugin {
 		$src = $plugin_dir_url . 'js/admin-js-widgets.js';
 		$deps = array( 'admin-widgets', $this->script_handles['form'] );
 		$wp_scripts->add( $this->script_handles['admin-js-widgets'], $src, $deps, $this->version );
+
+		$this->script_handles['shortcode-ui-js-widgets'] = 'shortcode-ui-js-widgets';
+		$src = $plugin_dir_url . 'js/shortcode-ui-js-widgets.js';
+		$deps = array( 'shortcode-ui' );
+		$wp_scripts->add( $this->script_handles['shortcode-ui-js-widgets'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -282,6 +288,13 @@ class JS_Widgets_Plugin {
 				$widget->enqueue_control_scripts();
 			}
 		}
+	}
+
+	/**
+	 * Enqueue scripts for shortcode UI.
+	 */
+	function enqueue_shortcode_ui() {
+		wp_enqueue_script( $this->script_handles['shortcode-ui-js-widgets'] );
 	}
 
 	/**
