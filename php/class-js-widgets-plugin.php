@@ -166,7 +166,7 @@ class JS_Widgets_Plugin {
 
 		$this->script_handles['shortcode-ui-js-widgets'] = 'shortcode-ui-js-widgets';
 		$src = $plugin_dir_url . 'js/shortcode-ui-js-widgets.js';
-		$deps = array( 'shortcode-ui' );
+		$deps = array( 'shortcode-ui', $this->script_handles['form'] );
 		$wp_scripts->add( $this->script_handles['shortcode-ui-js-widgets'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
@@ -292,9 +292,19 @@ class JS_Widgets_Plugin {
 
 	/**
 	 * Enqueue scripts for shortcode UI.
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
 	function enqueue_shortcode_ui() {
+		global $wp_widget_factory;
+
 		wp_enqueue_script( $this->script_handles['shortcode-ui-js-widgets'] );
+
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget->enqueue_control_scripts();
+			}
+		}
 	}
 
 	/**
@@ -396,6 +406,8 @@ class JS_Widgets_Plugin {
 	 * Print shortcode UI templates.
 	 */
 	public function print_shortcode_ui_templates() {
+		$this->render_widget_form_template_scripts();
+
 		?>
 		<script id="tmpl-shortcode-ui-field-widget_form" type="text/template">
 		<!-- @todo Figure out how to render the Form into this. -->
