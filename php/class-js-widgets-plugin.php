@@ -27,6 +27,13 @@ class JS_Widgets_Plugin {
 	public $rest_api_namespace = 'js-widgets/v1';
 
 	/**
+	 * Registered controllers for widget shortcodes.
+	 *
+	 * @var JS_Widget_Shortcode_Controller[]
+	 */
+	public $widget_shortcodes = array();
+
+	/**
 	 * Instances of JS_Widgets_REST_Controller for each widget type.
 	 *
 	 * @var array
@@ -104,8 +111,9 @@ class JS_Widgets_Plugin {
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
-		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
+		add_action( 'widgets_init', array( $this, 'register_widget_shortcodes' ), 90 );
+		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
@@ -334,6 +342,23 @@ class JS_Widgets_Plugin {
 			$class_name = 'WP_JS_Widget_' . str_replace( '-', '_', $id_base );
 			$widget = new $class_name( $this, $registered_widgets[ $id_base ]['instance'] );
 			$wp_widget_factory->widgets[ $registered_widgets[ $id_base ]['key'] ] = $widget;
+		}
+	}
+
+	/**
+	 * Register widget shortcodes.
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function register_widget_shortcodes() {
+		global $wp_widget_factory;
+		require_once __DIR__ . '/class-js-widget-shortcode-controller.php';
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( $widget instanceof WP_JS_Widget ) {
+				$widget_shortcode = new JS_Widget_Shortcode_Controller( $this, $widget );
+				$widget_shortcode->register_shortcode();
+				add_action( 'register_shortcode_ui', array( $widget_shortcode, 'register_shortcode_ui' ) );
+			}
 		}
 	}
 
