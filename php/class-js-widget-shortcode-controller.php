@@ -68,7 +68,11 @@ class JS_Widget_Shortcode_Controller {
 		reset( $wp_registered_sidebars );
 		$args = current( $wp_registered_sidebars );
 
-		$atts = shortcode_atts( array( 'title' => '' ), $atts, $this->get_shortcode_tag() );
+		$atts = shortcode_atts(
+			$this->widget->get_default_instance(),
+			$atts,
+			$this->get_shortcode_tag()
+		);
 		$instance = $atts; // @todo There should be the JSON instance encoded in one attribute.
 		ob_start();
 		$this->widget->render( $args, $instance );
