@@ -27,6 +27,13 @@ class JS_Widget_Shortcode_Controller {
 	public $widget = array();
 
 	/**
+	 * Default icon name.
+	 *
+	 * @var string
+	 */
+	public $default_icon_name = 'dashicons-format-aside';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param JS_Widgets_Plugin $plugin Plugin.
@@ -125,10 +132,15 @@ class JS_Widget_Shortcode_Controller {
 	 * Register shortcode UI for widget shortcodes.
 	 */
 	public function register_shortcode_ui() {
+		$icon_name = $this->default_icon_name;
+		if ( isset( $this->widget->icon_name ) ) {
+			$icon_name = $this->widget->icon_name;
+		}
 		shortcode_ui_register_for_shortcode(
 			$this->get_shortcode_tag(),
 			array(
 				'label' => $this->widget->name,
+				'listItemImage' => $icon_name,
 			)
 		);
 	}

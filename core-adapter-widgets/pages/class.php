@@ -15,6 +15,13 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 	const ID_LIST_PATTERN = '\d+(,\s*\d+)*';
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-admin-page';
+
+	/**
 	 * WP_JS_Widget_Pages constructor.
 	 *
 	 * @param JS_Widgets_Plugin $plugin         Plugin.

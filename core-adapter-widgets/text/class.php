@@ -20,6 +20,13 @@ class WP_JS_Widget_Text extends WP_Adapter_JS_Widget {
 	public $adapted_widget;
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-text';
+
+	/**
 	 * Get instance schema properties.
 	 *
 	 * @return array Schema.
