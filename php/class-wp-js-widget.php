@@ -13,6 +13,13 @@
 abstract class WP_JS_Widget extends WP_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-format-aside';
+
+	/**
 	 * REST controller class that should be used for this widget.
 	 *
 	 * @var string
