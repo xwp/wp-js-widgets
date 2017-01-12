@@ -130,6 +130,14 @@ class JS_Widget_Shortcode_Controller {
 			array(
 				'label' => $this->widget->name,
 				'listItemImage' => $this->widget->icon_name,
+				'attrs' => array(
+					array(
+						'label'  => __( 'JSON Widget Instance Data', 'js-widgets' ),
+						'attr'   => 'instance_data',
+						'type'   => 'widget_form',
+						'encode' => true,
+					),
+				),
 			)
 		);
 	}

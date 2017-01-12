@@ -112,11 +112,15 @@ class JS_Widgets_Plugin {
 		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
-		add_action( 'widgets_init', array( $this, 'register_widget_shortcodes' ), 90 );
 		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
+
+		// Shortcake integration.
+		add_action( 'widgets_init', array( $this, 'register_widget_shortcodes' ), 90 );
+		add_filter( 'shortcode_ui_fields', array( $this, 'filter_shortcode_ui_fields' ) );
+		add_action( 'print_shortcode_ui_templates', array( $this, 'print_shortcode_ui_templates' ) );
 
 		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
 	}
@@ -350,7 +354,7 @@ class JS_Widgets_Plugin {
 	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 */
-	function register_widget_shortcodes() {
+	public function register_widget_shortcodes() {
 		global $wp_widget_factory;
 		require_once __DIR__ . '/class-js-widget-shortcode-controller.php';
 		foreach ( $wp_widget_factory->widgets as $widget ) {
@@ -360,6 +364,30 @@ class JS_Widgets_Plugin {
 				add_action( 'register_shortcode_ui', array( $widget_shortcode, 'register_shortcode_ui' ) );
 			}
 		}
+	}
+
+	/**
+	 * Add widget_form as a new shortcode UI field.
+	 *
+	 * @param array $fields Shortcode fields.
+	 * @return array Fields.
+	 */
+	public function filter_shortcode_ui_fields( $fields ) {
+		$fields['widget_form'] = array(
+			'template' => 'shortcode-ui-field-widget_form',
+		);
+		return $fields;
+	}
+
+	/**
+	 * Print shortcode UI templates.
+	 */
+	public function print_shortcode_ui_templates() {
+		?>
+		<script id="tmpl-shortcode-ui-field-widget_form" type="text/template">
+		<!-- @todo Figure out how to render the Form into this. -->
+		</script>
+		<?php
 	}
 
 	/**
