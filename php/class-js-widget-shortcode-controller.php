@@ -56,6 +56,52 @@ class JS_Widget_Shortcode_Controller {
 	}
 
 	/**
+	 * Get sidebar args needed for rendering a widget.
+	 *
+	 * This will by default use the args from the first registered sidebar.
+	 *
+	 * @see WP_JS_Widget::render()
+	 *
+	 * @return array {
+	 *     Sidebar args.
+	 *
+	 *     @type string $name          Name of the sidebar the widget is assigned to.
+	 *     @type string $id            ID of the sidebar the widget is assigned to.
+	 *     @type string $description   The sidebar description.
+	 *     @type string $class         CSS class applied to the sidebar container.
+	 *     @type string $before_widget HTML markup to prepend to each widget in the sidebar.
+	 *     @type string $after_widget  HTML markup to append to each widget in the sidebar.
+	 *     @type string $before_title  HTML markup to prepend to the widget title when displayed.
+	 *     @type string $after_title   HTML markup to append to the widget title when displayed.
+	 *     @type string $widget_id     ID of the widget.
+	 *     @type string $widget_name   Name of the widget.
+	 * }
+	 */
+	public function get_sidebar_args() {
+		global $wp_registered_sidebars;
+		reset( $wp_registered_sidebars );
+
+		$sidebar = current( $wp_registered_sidebars );
+
+		$widget_id = sprintf( '%s-%d', $this->widget->id_base, -rand() );
+		$args = array_merge(
+			$sidebar,
+			array(
+				'widget_id' => $widget_id,
+				'widget_name' => $this->widget->name,
+			)
+		);
+
+		// Substitute HTML id and class attributes into before_widget.
+		$args['before_widget'] = sprintf( $args['before_widget'], $widget_id, $this->widget->widget_options['classname'] );
+
+		/** This filter is documented in wp-includes/widgets.php */
+		$params = apply_filters( 'dynamic_sidebar_params', array( $args, array( 'number' => null ) ) );
+
+		return $params[0];
+	}
+
+	/**
 	 * Render widget shortcode.
 	 *
 	 * @global array $wp_registered_sidebars
@@ -64,10 +110,6 @@ class JS_Widget_Shortcode_Controller {
 	 * @return string Rendered shortcode.
 	 */
 	public function render_widget_shortcode( $atts ) {
-		global $wp_registered_sidebars;
-		reset( $wp_registered_sidebars );
-		$args = current( $wp_registered_sidebars );
-
 		$atts = shortcode_atts(
 			$this->widget->get_default_instance(),
 			$atts,
@@ -75,7 +117,7 @@ class JS_Widget_Shortcode_Controller {
 		);
 		$instance = $atts; // @todo There should be the JSON instance encoded in one attribute.
 		ob_start();
-		$this->widget->render( $args, $instance );
+		$this->widget->render( $this->get_sidebar_args(), $instance );
 		return ob_get_clean();
 	}
 
