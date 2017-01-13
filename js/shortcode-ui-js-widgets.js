@@ -37,7 +37,9 @@ wp.shortcake.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 		// @todo syncInput is unexpectedly persisting a value after closing the lightbox without pressing Update, even though the shortcode attributes remain unchanged until Update pressed.
 		instanceValue = new wp.customize.Value( syncInput.val() ? JSON.parse( syncInput.val() ) : {} );
 
-		container = $( '<div></div>' );
+		container = $( '<div></div>', {
+			'class': 'js-widget-form-shortcode-ui'
+		} );
 		syncInput.after( container );
 		form = new FormConstructor( {
 			model: instanceValue,

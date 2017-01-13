@@ -60,3 +60,48 @@
 .js-widget-form-notifications-container .notice-warning.notice-alt {
 	background-color: #fff8e5;
 }
+
+.js-widget-form-shortcode-ui input[type="text"],
+.js-widget-form-shortcode-ui input[type="password"],
+.js-widget-form-shortcode-ui input[type="color"],
+.js-widget-form-shortcode-ui input[type="date"],
+.js-widget-form-shortcode-ui input[type="datetime"],
+.js-widget-form-shortcode-ui input[type="datetime-local"],
+.js-widget-form-shortcode-ui input[type="email"],
+.js-widget-form-shortcode-ui input[type="month"],
+.js-widget-form-shortcode-ui input[type="number"],
+.js-widget-form-shortcode-ui input[type="search"],
+.js-widget-form-shortcode-ui input[type="tel"],
+.js-widget-form-shortcode-ui input[type="text"],
+.js-widget-form-shortcode-ui input[type="time"],
+.js-widget-form-shortcode-ui input[type="url"],
+.js-widget-form-shortcode-ui input[type="week"],
+.js-widget-form-shortcode-ui select,
+.js-widget-form-shortcode-ui textarea {
+	width: 25em;
+	padding: 3px 5px;
+	font-size: 14px;
+}
+
+.js-widget-form-shortcode-ui input[type="checkbox"],
+.js-widget-form-shortcode-ui input[type="radio"] {
+	border: 1px solid #b4b9be;
+	color: #555;
+}
+.js-widget-form-shortcode-ui input[type="checkbox"]:focus,
+.js-widget-form-shortcode-ui input[type="radio"]:focus {
+	border-color: #5b9dd9;
+}
+.js-widget-form-shortcode-ui input[type="checkbox"] + label,
+.js-widget-form-shortcode-ui input[type="radio"] + label {
+	display: inline;
+	clear: none;
+}
+
+.js-widget-form-shortcode-ui label {
+	color: #555d66;
+}
+
+.js-widget-form-shortcode-ui .select2-container {
+	max-width: 26.92em; /* 25em * 14px = 350px => 350px / 13px = 26.92em */
+}
