@@ -299,6 +299,7 @@ class JS_Widgets_Plugin {
 		global $wp_widget_factory;
 
 		wp_enqueue_script( $this->script_handles['shortcode-ui-js-widgets'] );
+		wp_add_inline_script( $this->script_handles['shortcode-ui-js-widgets'], 'wp.shortcake.JSWidgets.init()' );
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
@@ -410,7 +411,7 @@ class JS_Widgets_Plugin {
 
 		?>
 		<script id="tmpl-shortcode-ui-field-widget_form" type="text/template">
-		<!-- @todo Figure out how to render the Form into this. -->
+			<input type="hidden" name="{{ data.attr }}" id="{{ data.id }}" {{{ data.meta }}} value="{{ data.value }}">
 		</script>
 		<?php
 	}

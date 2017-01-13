@@ -111,13 +111,21 @@ class JS_Widget_Shortcode_Controller {
 	 */
 	public function render_widget_shortcode( $atts ) {
 		$atts = shortcode_atts(
-			$this->widget->get_default_instance(),
+			array( 'encoded_json_instance' => '' ),
 			$atts,
 			$this->get_shortcode_tag()
 		);
-		$instance = $atts; // @todo There should be the JSON instance encoded in one attribute.
+
+		$instance_data = array();
+		if ( ! empty( $atts['encoded_json_instance'] ) ) {
+			$decoded_instance_data = json_decode( urldecode( $atts['encoded_json_instance'] ), true );
+			if ( is_array( $decoded_instance_data ) ) {
+				$instance_data = $decoded_instance_data;
+			}
+		}
+
 		ob_start();
-		$this->widget->render( $this->get_sidebar_args(), $instance );
+		$this->widget->render( $this->get_sidebar_args(), $instance_data );
 		return ob_get_clean();
 	}
 
@@ -130,11 +138,12 @@ class JS_Widget_Shortcode_Controller {
 			array(
 				'label' => $this->widget->name,
 				'listItemImage' => $this->widget->icon_name,
+				'widgetType' => $this->widget->id_base,
 				'attrs' => array(
 					array(
-						'label'  => __( 'JSON Widget Instance Data', 'js-widgets' ),
-						'attr'   => 'instance_data',
-						'type'   => 'widget_form',
+						'label' => __( 'URL-encoded JSON Widget Instance Data', 'js-widgets' ),
+						'attr' => 'encoded_json_instance',
+						'type' => 'widget_form',
 						'encode' => true,
 					),
 				),
