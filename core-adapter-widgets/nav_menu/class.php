@@ -108,7 +108,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 				),
 			) );
 			?>
-			<p>
+			<p class="edit-menu" hidden>
 				<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
 			</p>
 		</div>
