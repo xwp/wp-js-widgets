@@ -105,3 +105,9 @@
 .js-widget-form-shortcode-ui .select2-container {
 	max-width: 26.92em; /* 25em * 14px = 350px => 350px / 13px = 26.92em */
 }
+
+/* Shortcake style fixes */
+.edit-shortcode-form .js-widget-form-notifications-container label {
+	clear: none;
+	display: inline;
+}
