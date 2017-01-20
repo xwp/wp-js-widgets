@@ -3,7 +3,7 @@
 /* eslint-disable complexity */
 /* eslint consistent-this: [ "error", "control" ] */
 
-wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-vars
+wp.customize.JSWidgets = (function( wp, api, $, _ ) { // eslint-disable-line no-unused-vars
 	'use strict';
 
 	var component = {}, originalInitialize;
@@ -16,7 +16,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 	 * @returns {void}
 	 */
 	component.init = function initComponent() {
-		component.extendWidgetControl();
+		component.extendWidgetControl( api.Widgets.WidgetControl );
 
 		// Handle (re-)adding a (previously-removed) control.
 		api.control.bind( 'add', function( addedControl ) {
@@ -46,9 +46,10 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 	/**
 	 * Inject WidgetControl instances with our component.WidgetControl method overrides.
 	 *
-	 * @returns {void}
+	 * @param {wp.Customize.Widgets.WidgetControl} WidgetControl The constructor function to modify
+	 * @returns {WidgetControl} The constructor function with a modified prototype
 	 */
-	component.extendWidgetControl = function extendWidgetControl() {
+	component.extendWidgetControl = function extendWidgetControl( WidgetControl ) {
 
 		/**
 		 * Initialize JS widget control.
@@ -57,7 +58,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @param {object} options Control options.
 		 * @returns {void}
 		 */
-		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
+		WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
 			var control = this, isJsWidget;
 			isJsWidget = options.params.widget_id_base && 'undefined' !== typeof wp.widgets.formConstructor[ options.params.widget_id_base ];
 			if ( isJsWidget ) {
@@ -67,6 +68,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 				originalInitialize.call( control, id, options );
 			}
 		};
+		return WidgetControl;
 	};
 
 	/**
@@ -310,4 +312,4 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 
 	return component;
 
-})( wp.customize, jQuery );
+})( wp, wp.customize, jQuery, _ );
