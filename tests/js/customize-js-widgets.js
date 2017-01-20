@@ -9,7 +9,9 @@ const noop = () => null;
 function resetGlobals() {
 	global.wp = {
 		widgets: {
-			formConstructor: {},
+			formConstructor: {
+				text: noop,
+			},
 		},
 		customize: {
 			Widgets: {
@@ -35,13 +37,40 @@ describe( 'wp.customize.JSWidgets', function() {
 	} );
 
 	describe( '.isJsWidgetControl()', function() {
-		it( 'returns false if the passed Control is not a JSWidget', function() {
+		it( 'returns false if the passed Control is not a WidgetControl and has no id_base', function() {
 			const mockWidget = {
 				extended: () => false,
 				params: {},
 			};
 			const result = JSWidgets.isJsWidgetControl( mockWidget );
 			expect( result ).to.be.false;
+		} );
+
+		it( 'returns false if the passed Control has a known formConstructor for its id_base but is not a WidgetControl', function() {
+			const mockWidget = {
+				extended: () => false,
+				params: { widget_id_base: 'text' },
+			};
+			const result = JSWidgets.isJsWidgetControl( mockWidget );
+			expect( result ).to.be.false;
+		} );
+
+		it( 'returns false if the passed Control is a WidgetControl and has an unknown formConstructor for its id_base', function() {
+			const mockWidget = {
+				extended: () => true,
+				params: { widget_id_base: 'foo' },
+			};
+			const result = JSWidgets.isJsWidgetControl( mockWidget );
+			expect( result ).to.be.false;
+		} );
+
+		it( 'returns true if the passed Control is a WidgetControl and has a known formConstructor for its id_base', function() {
+			const mockWidget = {
+				extended: () => true,
+				params: { widget_id_base: 'text' },
+			};
+			const result = JSWidgets.isJsWidgetControl( mockWidget );
+			expect( result ).to.be.true;
 		} );
 	} );
 
