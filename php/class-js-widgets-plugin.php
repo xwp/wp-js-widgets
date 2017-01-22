@@ -313,16 +313,17 @@ class JS_Widgets_Plugin {
 	 *
 	 * @access public
 	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global WP_Customize_Manager $wp_customize
 	 */
 	function enqueue_frontend_scripts() {
-		global $wp_widget_factory;
+		global $wp_widget_factory, $wp_customize;
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
 		}
 
-		if ( is_customize_preview() ) {
+		if ( is_customize_preview() && ! empty( $wp_customize->widgets ) && current_user_can( 'edit_theme_options' ) ) {
 			wp_enqueue_script( $this->script_handles['trac-39389-preview'] );
 		}
 	}
