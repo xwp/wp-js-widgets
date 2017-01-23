@@ -10,7 +10,7 @@ if ( ! wp.widgets.formConstructor ) {
 	wp.widgets.formConstructor = {};
 }
 
-wp.widgets.Form = (function( api, $ ) {
+wp.widgets.Form = (function( api, $, _ ) {
 	'use strict';
 
 	/**
@@ -395,4 +395,4 @@ wp.widgets.Form = (function( api, $ ) {
 		}
 	});
 
-} )( wp.customize, jQuery );
+} )( wp.customize, jQuery, _ );
