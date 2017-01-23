@@ -1,4 +1,4 @@
-/* global wp, console */
+/* global wp, console, module */
 /* eslint-disable strict */
 /* eslint consistent-this: [ "error", "form" ] */
 /* eslint-disable complexity */
@@ -396,3 +396,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 	});
 
 } )( wp.customize, jQuery, _ );
+
+if ( 'undefined' !== typeof module ) {
+	module.exports = wp.widgets.Form;
+}
