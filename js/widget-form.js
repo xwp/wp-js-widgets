@@ -51,7 +51,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 						default_instance: {}
 					}
 				},
-				properties ? _.clone( properties ) : {}
+				properties || {}
 			);
 
 			if ( ! args.model || ! args.model.extended || ! args.model.extended( api.Value ) ) {
