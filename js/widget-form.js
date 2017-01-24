@@ -38,21 +38,25 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @return {void}
 		 */
 		initialize: function initialize( properties ) {
-			var form = this, args, previousValidate;
+			var form = this, args, previousValidate, defaultConfig, defaultProperties, config;
 
-			args = _.extend(
-				{
-					model: null,
-					container: null,
-					config: ! _.isEmpty( form.config ) ? _.clone( form.config ) : {
-						form_template_id: '',
-						notifications_template_id: '',
-						l10n: {},
-						default_instance: {}
-					}
-				},
-				properties || {}
-			);
+			defaultConfig = {
+				form_template_id: '',
+				notifications_template_id: '',
+				l10n: {},
+				default_instance: {}
+			};
+
+			defaultProperties = {
+				model: null,
+				container: null,
+				config: {},
+			};
+
+			config = properties ? properties.config : {};
+
+			args = _.extend( {}, defaultProperties, properties || {} );
+			args.config = _.extend( {}, defaultConfig, form.config, config || {} );
 
 			if ( ! args.model || ! args.model.extended || ! args.model.extended( api.Value ) ) {
 				throw new Error( 'Missing model property which must be a Value or Setting instance.' );
