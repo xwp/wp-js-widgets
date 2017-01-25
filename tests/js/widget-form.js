@@ -297,9 +297,9 @@ describe( 'wp.widgets.Form', function() {
 			expect( model.get().beep ).to.eql( 'boop' );
 		} );
 
-		it( 'updates the model by merging its value with the properties of config.default_instance', function() {
-			form.setState( { beep: 'boop' } );
-			expect( model.get().foo ).to.eql( 'bar' );
+		it( 'does not change the model if no properties are passed', function() {
+			form.setState( {} );
+			expect( model.get() ).to.eql( { hello: 'world' } );
 		} );
 	} );
 
