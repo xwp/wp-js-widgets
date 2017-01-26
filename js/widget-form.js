@@ -255,7 +255,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 */
 		setState: function setState( props ) {
 			var form = this, value;
-			value = _.extend( form.getValue(), props || {} );
+			value = _.extend( {}, form.model.get(), props || {} );
 			form.model.set( value );
 		},
 
