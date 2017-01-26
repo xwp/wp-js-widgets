@@ -414,6 +414,11 @@ describe( 'wp.widgets.Form', function() {
 			expect( model.get().beep ).to.eql( 'boop' );
 		} );
 
+		it( 'retains the current values on the model if not specifically overwritten', function() {
+			form.setState( { beep: 'boop' } );
+			expect( model.get().hello ).to.eql( 'world' );
+		} );
+
 		it( 'does not change the model if no properties are passed', function() {
 			form.setState( {} );
 			expect( model.get() ).to.eql( { hello: 'world' } );
