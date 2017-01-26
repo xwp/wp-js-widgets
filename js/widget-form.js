@@ -89,10 +89,9 @@ wp.widgets.Form = (function( api, $, _ ) {
 			 */
 			form.model.validate = function validate( value ) {
 				var setting = this, newValue, oldValue, error, code, notification; // eslint-disable-line consistent-this
-				newValue = _.extend( {}, form.config.default_instance, value );
 				oldValue = _.extend( {}, setting() );
 
-				newValue = previousValidate.call( setting, newValue );
+				newValue = previousValidate.call( setting, value );
 
 				newValue = form.sanitize( newValue, oldValue );
 				if ( newValue instanceof Error ) {
@@ -106,7 +105,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 					notification = newValue;
 				}
 
-				// If sanitize method returned an error/notification, block setting u0date.
+				// If sanitize method returned an error/notification, block setting update.
 				if ( notification ) {
 					newValue = null;
 				}
