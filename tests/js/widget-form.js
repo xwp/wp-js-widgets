@@ -192,6 +192,123 @@ describe( 'wp.widgets.Form', function() {
 		} );
 	} );
 
+	describe( '.model.validate()', function() {
+		let model;
+
+		beforeEach( function() {
+			model = new Value( { hello: 'world' } );
+		} );
+
+		it( 'returns an object with the properties of the object passed in', function() {
+			new Form( { model, container: 'findme' } );
+			const actual = model.validate( { foo: 'bar' } );
+			expect( actual.foo ).to.eql( 'bar' );
+		} );
+
+		it( 'also calls the model\'s previous validate method', function() {
+			model.validate = values => Object.assign( {}, values, { red: 'green' } );
+			new Form( { model, container: 'findme' } );
+			const actual = model.validate( { foo: 'bar' } );
+			expect( actual.red ).to.eql( 'green' );
+		} );
+
+		it( 'does not remove any Notifications from form.notifications which do not have the `viaWidgetFormSanitizeReturn` property', function() {
+			const form = new Form( { model, container: '.findme' } );
+			form.notifications.add( 'other-notification', new Notification( 'other-notification', { message: 'test', type: 'warning' } ) );
+			model.validate( { foo: 'bar' } );
+			expect( form.notifications.has( 'other-notification' ) ).to.be.true;
+		} );
+
+		it( 'removes any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property', function() {
+			const form = new Form( { model, container: '.findme' } );
+			const notification = new Notification( 'other-notification', { message: 'test', type: 'warning' } );
+			notification.viaWidgetFormSanitizeReturn = true;
+			form.notifications.add( 'other-notification', notification );
+			model.validate( { foo: 'bar' } );
+			expect( form.notifications.has( 'other-notification' ) ).to.be.false;
+		} );
+
+		describe( 'if the sanitize function returns a Notification', function() {
+			let MyForm, form;
+
+			beforeEach( function() {
+				MyForm = Form.extend( {
+					sanitize: input => MyForm.returnNotification ? new Notification( 'testcode', { message: 'test', type: 'warning' } ) : input,
+				} );
+				form = new MyForm( { model, container: 'findme' } );
+				MyForm.returnNotification = true;
+			} );
+
+			it( 'returns null', function() {
+				const actual = model.validate( { foo: 'bar' } );
+				expect( actual ).to.be.null;
+			} );
+
+			it( 'adds any Notification returned from the sanitize method to form.notifications', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.has( 'testcode' ) ).to.be.true;
+			} );
+
+			it( 'adds `viaWidgetFormSanitizeReturn` property to any Notification returned from the sanitize method', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.value( 'testcode' ).viaWidgetFormSanitizeReturn ).to.be.true;
+			} );
+
+			it( 'adds `viaWidgetFormSanitizeReturn` property to any Notification returned from the sanitize method', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.value( 'testcode' ).viaWidgetFormSanitizeReturn ).to.be.true;
+			} );
+
+			it( 'causes subsequent calls to remove any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property', function() {
+				model.validate( { foo: 'bar' } );
+				MyForm.returnNotification = false;
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.has( 'testcode' ) ).to.be.false;
+			} );
+
+			it( 'does not remove any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property and whose code matches the new Notification', function() {
+				const notification = new Notification( 'testcode', { message: 'test', type: 'warning' } );
+				notification.firstOne = true;
+				notification.viaWidgetFormSanitizeReturn = true;
+				form.notifications.add( 'testcode', notification );
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.value( 'testcode' ).firstOne ).to.be.true;
+			} );
+		} );
+
+		describe( 'if the sanitize function returns an Error', function() {
+			let MyForm, form;
+
+			beforeEach( function() {
+				MyForm = Form.extend( {
+					sanitize: input => MyForm.returnError ? new Error( 'test error' ) : input,
+				} );
+				form = new MyForm( { model, container: 'findme' } );
+				MyForm.returnError = true;
+			} );
+
+			it( 'returns null', function() {
+				const actual = model.validate( { foo: 'bar' } );
+				expect( actual ).to.be.null;
+			} );
+
+			it( 'adds a Notification with the code `invalidValue`', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.has( 'invalidValue' ) ).to.be.true;
+			} );
+
+			it( 'adds a Notification with the type `error`', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.value( 'invalidValue' ).type ).to.eql( 'error' );
+			} );
+
+			it( 'adds a Notification with the Error message in the message', function() {
+				model.validate( { foo: 'bar' } );
+				expect( form.notifications.value( 'invalidValue' ).message ).to.eql( 'test error' );
+			} );
+		} );
+	} );
+
 	describe( '.getNotificationsContainerElement()', function() {
 		let form;
 
