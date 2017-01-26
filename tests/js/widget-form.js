@@ -355,11 +355,6 @@ describe( 'wp.widgets.Form', function() {
 			expect( actual.foo ).to.eql( 'bar' );
 		} );
 
-		it( 'returns an object with the `title` property added if it does not exist on the original', function() {
-			const actual = form.sanitize( { foo: 'bar' }, {} );
-			expect( actual ).to.have.property( 'title' );
-		} );
-
 		it( 'returns an object with the `title` property trimmed', function() {
 			const actual = form.sanitize( { title: ' hello world ' }, {} );
 			expect( actual.title ).to.eql( 'hello world' );
