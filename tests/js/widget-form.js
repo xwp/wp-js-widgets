@@ -14,7 +14,7 @@ const expect = chai.expect;
 
 function resetGlobals() {
 	global.wp.customize = {};
-	global.wp.template = () => null;
+	global.wp.template = id => _.template( jQuery( '#tmpl-' + id ).html(), { evaluate: /<#([\s\S]+?)#>/g, interpolate: /\{\{\{([\s\S]+?)\}\}\}/g, escape: /\{\{([^\}]+?)\}\}(?!\})/g, variable: 'data' } );
 	global.jQuery = jQuery;
 	global.$ = jQuery;
 	global._ = _;
@@ -28,12 +28,9 @@ const { Value, Notification } = require( './lib/customize-base' );
 const Form = require( '../../js/widget-form' );
 
 describe( 'wp.widgets.Form', function() {
-	let templateSpy;
-
 	beforeEach( function() {
+		resetGlobals();
 		jQuery( '.root' ).html( markup );
-		templateSpy = sinon.stub().returns( () => 'pastries' );
-		global.wp.template = templateSpy;
 	} );
 
 	describe( '.initialize() (constructor)', function() {
@@ -383,9 +380,11 @@ describe( 'wp.widgets.Form', function() {
 	} );
 
 	describe( '.getTemplate()', function() {
-		let form, model;
+		let form, model, templateSpy;
 
 		beforeEach( function() {
+			templateSpy = sinon.stub().returns( () => 'pastries' );
+			global.wp.template = templateSpy;
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
 			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
@@ -425,11 +424,11 @@ describe( 'wp.widgets.Form', function() {
 	} );
 
 	describe( '.render()', function() {
-		let form, model;
+		let form, model, templateSpy;
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
 			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
 			form.container.html = sinon.spy();
 		} );
@@ -445,6 +444,28 @@ describe( 'wp.widgets.Form', function() {
 			global.wp.template = templateSpy;
 			form.render();
 			expect( interpolateSpy ).to.have.been.calledWith( form );
+		} );
+	} );
+
+	describe( 'when rendered with a form element whose `data-field` attribute matches a model property', function() {
+		let model;
+
+		beforeEach( function() {
+			model = new Value( { hello: 'world' } );
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template"><input class="hello-field" type="text" data-field="hello" /></script>' );
+			const form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			form.render();
+		} );
+
+		it( 'updates the associated model property when the form element changes', function() {
+			jQuery( '.hello-field' ).val( 'computer' );
+			jQuery( '.hello-field' ).trigger( 'change' );
+			expect( model.get().hello ).to.eql( 'computer' );
+		} );
+
+		it( 'updates the form field value when the model property changes', function() {
+			model.set( { hello: 'computer' } );
+			expect( jQuery( '.hello-field' ).val() ).to.eql( 'computer' );
 		} );
 	} );
 } );
