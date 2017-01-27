@@ -5,51 +5,14 @@ const sinon = require( 'sinon' );
 const sinonChai = require( 'sinon-chai' );
 const chai = require( 'chai' );
 const _ = require( 'underscore' );
+const markup = '<span class="findme">findme</span>';
+require( 'jsdom-global' )( '<div class="root"></div>' );
+const jQuery = require( 'jquery' );
 
 chai.use( sinonChai );
 const expect = chai.expect;
 
-function getMockDom() {
-	return {
-		'findme': true,
-		'findit': true,
-	};
-}
-
-function mockJQuery() {
-	const jQuery = ( selector ) => {
-		const jQueryResult = {
-			selector: '',
-			length: 0,
-			find: jQuery,
-			is: () => mockDom[ selector ],
-			html: markup => markup,
-			each: () => null,
-		};
-		if ( ! mockDom[ selector ] ) {
-			return jQueryResult;
-		}
-		jQueryResult.selector = selector;
-		jQueryResult.length = 1;
-		jQueryResult.each = iterator => iterator.call( jQueryResult );
-		return jQueryResult;
-	};
-	jQuery.extend = _.extend;
-	jQuery.each = ( elements, callback ) => {
-		if ( Array.isArray( elements ) ) {
-			return elements.map( ( element, index ) => callback( index, element ) );
-		}
-		return Object.keys( elements ).map( key => callback( key, elements[ key ] ) );
-	};
-	jQuery.trim = str => str.trim();
-	jQuery.support = {};
-	jQuery.Callbacks = () => ( { fireWith: () => null, add: () => null } );
-	jQuery.proxy = _.bind;
-	return jQuery;
-}
-
 function resetGlobals() {
-	const jQuery = mockJQuery();
 	global.wp.customize = {};
 	global.wp.template = () => null;
 	global.jQuery = jQuery;
@@ -60,7 +23,6 @@ function resetGlobals() {
 	};
 }
 
-let mockDom = getMockDom();
 resetGlobals();
 const { Value, Notification } = require( './lib/customize-base' );
 const Form = require( '../../js/widget-form' );
@@ -69,7 +31,7 @@ describe( 'wp.widgets.Form', function() {
 	let templateSpy;
 
 	beforeEach( function() {
-		mockDom = getMockDom();
+		jQuery( '.root' ).html( markup );
 		templateSpy = sinon.stub().returns( () => 'pastries' );
 		global.wp.template = templateSpy;
 	} );
@@ -80,7 +42,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( 'test' );
-			container = 'findme';
+			container = '.findme';
 		} );
 
 		it( 'assigns arbitrary properties on the argument object as properties on the form object', function() {
@@ -169,9 +131,9 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'assigns form.container to a jQuery DOM object for the selector previously in form.container', function() {
-			const params = { foo: 'bar', model, container: 'findit' };
+			const params = { foo: 'bar', model, container: '.findme' };
 			const form = new Form( params );
-			expect( form.container.selector ).to.eql( 'findit' );
+			expect( form.container[ 0 ].className ).to.eql( 'findme' );
 		} );
 
 		it( 'throws an error if the form.container selector does not match a DOM node', function( done ) {
@@ -200,14 +162,14 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'returns an object with the properties of the object passed in', function() {
-			new Form( { model, container: 'findme' } );
+			new Form( { model, container: '.findme' } );
 			const actual = model.validate( { foo: 'bar' } );
 			expect( actual.foo ).to.eql( 'bar' );
 		} );
 
 		it( 'also calls the model\'s previous validate method', function() {
 			model.validate = values => Object.assign( {}, values, { red: 'green' } );
-			new Form( { model, container: 'findme' } );
+			new Form( { model, container: '.findme' } );
 			const actual = model.validate( { foo: 'bar' } );
 			expect( actual.red ).to.eql( 'green' );
 		} );
@@ -235,7 +197,7 @@ describe( 'wp.widgets.Form', function() {
 				MyForm = Form.extend( {
 					sanitize: input => MyForm.returnNotification ? new Notification( 'testcode', { message: 'test', type: 'warning' } ) : input,
 				} );
-				form = new MyForm( { model, container: 'findme' } );
+				form = new MyForm( { model, container: '.findme' } );
 				MyForm.returnNotification = true;
 			} );
 
@@ -283,7 +245,7 @@ describe( 'wp.widgets.Form', function() {
 				MyForm = Form.extend( {
 					sanitize: input => MyForm.returnError ? new Error( 'test error' ) : input,
 				} );
-				form = new MyForm( { model, container: 'findme' } );
+				form = new MyForm( { model, container: '.findme' } );
 				MyForm.returnError = true;
 			} );
 
@@ -314,11 +276,11 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( 'test' );
-			form = new Form( { model, container: 'findme' } );
+			form = new Form( { model, container: '.findme' } );
 		} );
 
 		it( 'returns a jQuery object for the first instance of .js-widget-form-notifications-container in the container', function() {
-			mockDom[ '.js-widget-form-notifications-container:first' ] = true;
+			jQuery( '.findme' ).append( '<span class="js-widget-form-notifications-container">notifications</span>' );
 			const actual = form.getNotificationsContainerElement();
 			expect( actual.length ).to.eql( 1 );
 		} );
@@ -334,7 +296,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( 'test' );
-			form = new Form( { model, container: 'findme' } );
+			form = new Form( { model, container: '.findme' } );
 		} );
 
 		it( 'throws an Error if oldInstance is not set', function( done ) {
@@ -382,7 +344,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( { hello: 'world' } );
-			form = new Form( { model, container: 'findme', config: { default_instance: { foo: 'bar' } } } );
+			form = new Form( { model, container: '.findme', config: { default_instance: { foo: 'bar' } } } );
 		} );
 
 		it( 'returns an object with the properties of the form\'s config.default_instance', function() {
@@ -401,7 +363,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			form = new Form( { model, container: 'findme', config: { default_instance: { foo: 'bar' } } } );
+			form = new Form( { model, container: '.findme', config: { default_instance: { foo: 'bar' } } } );
 		} );
 
 		it( 'updates the model by merging its value with the passed object properties', function() {
@@ -425,8 +387,8 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			mockDom[ '#tmpl-my-template' ] = true;
-			form = new Form( { model, container: 'findme', config: { form_template_id: 'my-template' } } );
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
+			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
 		} );
 
 		it( 'calls wp.template() on the config.form_template_id if no template is cached', function() {
@@ -440,7 +402,7 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'throws an error if the template does not exist in the DOM', function( done ) {
-			form = new Form( { model, container: 'findme', config: { form_template_id: 'notfound' } } );
+			form = new Form( { model, container: '.findme', config: { form_template_id: 'notfound' } } );
 			try {
 				form.getTemplate();
 			} catch( err ) {
@@ -467,8 +429,8 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			mockDom[ '#tmpl-my-template' ] = true;
-			form = new Form( { model, container: 'findme', config: { form_template_id: 'my-template' } } );
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
+			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
 			form.container.html = sinon.spy();
 		} );
 
