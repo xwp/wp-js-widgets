@@ -1,6 +1,6 @@
 /* global wp, console, module */
 /* eslint-disable strict */
-/* eslint consistent-this: [ "error", "form" ] */
+/* eslint consistent-this: [ "error", "form", "setting" ] */
 /* eslint-disable complexity */
 
 if ( ! wp.widgets ) {
@@ -12,6 +12,49 @@ if ( ! wp.widgets.formConstructor ) {
 
 wp.widgets.Form = (function( api, $, _ ) {
 	'use strict';
+
+	function removeSanitizeNotifications( notifications ) {
+		notifications.each( function iterateNotifications( notification ) {
+			if ( notification.viaWidgetFormSanitizeReturn ) {
+				notifications.remove( notification.code );
+			}
+		} );
+	}
+
+	function addSanitizeNotification( widgetForm, notification ) {
+		notification.viaWidgetFormSanitizeReturn = true;
+		widgetForm.notifications.add( notification.code, notification );
+	}
+
+	function getValidateWidget( widgetForm, previousValidate ) {
+		/**
+		 * Validate the instance data.
+		 *
+		 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
+		 *
+		 * @param {object} value Instance value.
+		 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
+		 */
+		return function validate( value ) {
+			var setting = this, newValue, oldValue;
+			oldValue = setting();
+			newValue = widgetForm.sanitize( previousValidate.call( setting, value ), oldValue );
+
+			// If sanitize method returned an error/notification, block setting update and add a notification
+			if ( newValue instanceof Error ) {
+				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
+			}
+			if ( newValue instanceof api.Notification ) {
+				addSanitizeNotification( widgetForm, newValue );
+				return null;
+			}
+
+			// Remove all existing notifications added via sanitization since only one can be returned.
+			removeSanitizeNotifications( widgetForm.notifications );
+
+			return newValue;
+		}
+	}
 
 	/**
 	 * Customize Widget Form.
@@ -38,7 +81,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @return {void}
 		 */
 		initialize: function initialize( properties ) {
-			var form = this, args, previousValidate, defaultConfig, defaultProperties, config;
+			var form = this, args, defaultConfig, defaultProperties, config;
 
 			defaultConfig = {
 				form_template_id: '',
@@ -77,54 +120,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 				throw new Error( 'Missing container property as Element or jQuery.' );
 			}
 
-			previousValidate = form.model.validate;
-
-			/**
-			 * Validate the instance data.
-			 *
-			 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
-			 *
-			 * @param {object} value Instance value.
-			 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
-			 */
-			form.model.validate = function validate( value ) {
-				var setting = this, newValue, oldValue, error, code, notification; // eslint-disable-line consistent-this
-				oldValue = _.extend( {}, setting() );
-
-				newValue = previousValidate.call( setting, value );
-
-				newValue = form.sanitize( newValue, oldValue );
-				if ( newValue instanceof Error ) {
-					error = newValue;
-					code = 'invalidValue';
-					notification = new api.Notification( code, {
-						message: error.message,
-						type: 'error'
-					} );
-				} else if ( newValue instanceof api.Notification ) {
-					notification = newValue;
-				}
-
-				// If sanitize method returned an error/notification, block setting update.
-				if ( notification ) {
-					newValue = null;
-				}
-
-				// Remove all existing notifications added via sanitization since only one can be returned.
-				form.notifications.each( function iterateNotifications( iteratedNotification ) {
-					if ( iteratedNotification.viaWidgetFormSanitizeReturn && ( ! notification || notification.code !== iteratedNotification.code ) ) {
-						form.notifications.remove( iteratedNotification.code );
-					}
-				} );
-
-				// Add the new notification.
-				if ( notification ) {
-					notification.viaWidgetFormSanitizeReturn = true;
-					form.notifications.add( notification.code, notification );
-				}
-
-				return newValue;
-			};
+			form.model.validate = getValidateWidget( form, form.model.validate );
 		},
 
 		/**
