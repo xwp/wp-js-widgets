@@ -56,6 +56,35 @@ wp.widgets.Form = (function( api, $, _ ) {
 		}
 	}
 
+	function validateForm( widgetForm ) {
+		if ( ! widgetForm.model || ! widgetForm.model.extended || ! widgetForm.model.extended( api.Value ) ) {
+			throw new Error( 'Widget Form is missing model property which must be a Value or Setting instance.' );
+		}
+		if ( 0 === widgetForm.container.length ) {
+			throw new Error( 'Widget Form is missing container property as Element or jQuery.' );
+		}
+	}
+
+	function getValidatedFormProperties( config, properties ) {
+		var defaultConfig = {
+			form_template_id: '',
+			notifications_template_id: '',
+			l10n: {},
+			default_instance: {}
+		};
+
+		var defaultProperties = {
+			model: null,
+			container: null,
+			config: {},
+		};
+
+		var args = _.extend( {}, defaultProperties, properties || {} );
+		var propertiesConfig = properties ? properties.config : {};
+		args.config = _.extend( {}, defaultConfig, config, propertiesConfig || {} );
+		return args;
+	}
+
 	/**
 	 * Customize Widget Form.
 	 *
@@ -81,44 +110,16 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @return {void}
 		 */
 		initialize: function initialize( properties ) {
-			var form = this, args, defaultConfig, defaultProperties, config;
+			var form = this;
 
-			defaultConfig = {
-				form_template_id: '',
-				notifications_template_id: '',
-				l10n: {},
-				default_instance: {}
-			};
+			_.extend( form, getValidatedFormProperties( form.config, properties ) );
 
-			defaultProperties = {
-				model: null,
-				container: null,
-				config: {},
-			};
-
-			config = properties ? properties.config : {};
-
-			args = _.extend( {}, defaultProperties, properties || {} );
-			args.config = _.extend( {}, defaultConfig, form.config, config || {} );
-
-			if ( ! args.model || ! args.model.extended || ! args.model.extended( api.Value ) ) {
-				throw new Error( 'Missing model property which must be a Value or Setting instance.' );
-			}
-
-			_.extend( form, args );
-			form.setting = args.model; // @todo Deprecate 'setting' name in favor of 'model'?
-
-			if ( form.model.notifications ) {
-				form.notifications = form.model.notifications;
-			} else {
-				form.notifications = new api.Values({ defaultConstructor: api.Notification });
-			}
+			form.setting = form.model; // @todo Deprecate 'setting' name in favor of 'model'?
+			form.notifications = form.model.notifications || new api.Values( { defaultConstructor: api.Notification } );
 			form.renderNotifications = _.bind( form.renderNotifications, form );
-
 			form.container = $( form.container );
-			if ( 0 === form.container.length ) {
-				throw new Error( 'Missing container property as Element or jQuery.' );
-			}
+
+			validateForm( form );
 
 			form.model.validate = getValidateWidget( form, form.model.validate );
 		},
