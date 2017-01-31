@@ -206,10 +206,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 			}
 			instance = _.extend( {}, newInstance );
 
-			if ( ! instance.title ) {
-				instance.title = '';
-			}
-
 			// Warn about markup in title.
 			code = 'markupTitleInvalid';
 			if ( /<\/?\w+[^>]*>/.test( instance.title ) ) {
@@ -226,7 +222,9 @@ wp.widgets.Form = (function( api, $, _ ) {
 			 * Trim per sanitize_text_field().
 			 * Protip: This prevents the widget partial from refreshing after adding a space or adding a new paragraph.
 			 */
-			instance.title = $.trim( instance.title );
+			if ( instance.title ) {
+				instance.title = $.trim( instance.title );
+			}
 
 			return instance;
 		},
