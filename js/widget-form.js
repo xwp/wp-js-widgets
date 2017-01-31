@@ -53,7 +53,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			}
 
 			return newValue;
-		}
+		};
 	}
 
 	function validateForm( widgetForm ) {
