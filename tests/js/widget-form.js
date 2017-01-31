@@ -226,13 +226,13 @@ describe( 'wp.widgets.Form', function() {
 				expect( form.notifications.has( 'testcode' ) ).to.be.false;
 			} );
 
-			it( 'does not remove any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property and whose code matches the new Notification', function() {
+			it( 'removes any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property and whose code matches the new Notification', function() {
 				const notification = new Notification( 'testcode', { message: 'test', type: 'warning' } );
 				notification.firstOne = true;
 				notification.viaWidgetFormSanitizeReturn = true;
 				form.notifications.add( 'testcode', notification );
 				model.validate( { foo: 'bar' } );
-				expect( form.notifications.value( 'testcode' ).firstOne ).to.be.true;
+				expect( form.notifications.value( 'testcode' ) ).to.not.have.property( 'firstOne' );
 			} );
 		} );
 
