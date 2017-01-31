@@ -138,6 +138,10 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @returns {void}
 		 */
 		renderNotifications: _.debounce( function renderNotifications() {
+			this.renderNotificationsToContainer();
+		} ),
+
+		renderNotificationsToContainer: function renderNotificationsToContainer() {
 			var form = this, container, notifications, hasError = false;
 			container = form.getNotificationsContainerElement();
 			if ( ! container || ! container.length ) {
@@ -175,7 +179,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			container.empty().append( $.trim(
 				form._notificationsTemplate( { notifications: notifications, altNotice: Boolean( form.altNotice ) } )
 			) );
-		} ),
+		},
 
 		/**
 		 * Get the element inside of a form's container that contains the notifications.
