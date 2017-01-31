@@ -204,7 +204,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			if ( _.isUndefined( oldInstance ) ) {
 				throw new Error( 'Expected oldInstance' );
 			}
-			instance = _.extend( {}, form.config.default_instance, newInstance );
+			instance = _.extend( {}, newInstance );
 
 			if ( ! instance.title ) {
 				instance.title = '';
