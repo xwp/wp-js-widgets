@@ -14,6 +14,7 @@ const expect = chai.expect;
 
 function resetGlobals() {
 	global.wp.customize = {};
+	global.wp.a11y = { speak: () => null };
 	global.wp.template = id => _.template( jQuery( '#tmpl-' + id ).html(), { evaluate: /<#([\s\S]+?)#>/g, interpolate: /\{\{\{([\s\S]+?)\}\}\}/g, escape: /\{\{([^\}]+?)\}\}(?!\})/g, variable: 'data' } );
 	global.jQuery = jQuery;
 	global.$ = jQuery;
@@ -420,6 +421,124 @@ describe( 'wp.widgets.Form', function() {
 			form.getTemplate();
 			form.getTemplate();
 			expect( templateSpy ).to.have.been.calledOnce;
+		} );
+	} );
+
+	describe( '.renderNotificationsToContainer()', function() {
+		let form, model;
+
+		beforeEach( function() {
+			model = new Value( { hello: 'world' } );
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-notifications">notifications template</script>' )
+			jQuery( '.findme' ).append( '<span class="js-widget-form-notifications-container"></span>' );
+			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template', notifications_template_id: 'my-notifications' } } );
+		} );
+
+		it( 'throws an error if notifications_template_id is undefined', function( done ) {
+			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			try {
+				form.renderNotificationsToContainer();
+			} catch( err ) {
+				done();
+			}
+			throw new Error( 'Expected renderNotificationsToContainer to throw an Error but it did not' );
+		} );
+
+		it( 'does not throw any errors if getNotificationsContainerElement returns null', function() {
+			form.getNotificationsContainerElement = () => null;
+			expect( form.renderNotificationsToContainer() ).to.be.empty;
+		} );
+
+		describe( 'when form.notifications is empty', function() {
+			it( 'hides the notifications area', function() {
+				const notificationsContainer = jQuery( '.js-widget-form-notifications-container' );
+				notificationsContainer.slideUp = sinon.spy();
+				form.getNotificationsContainerElement = () => notificationsContainer;
+				form.renderNotificationsToContainer();
+				expect( notificationsContainer.slideUp ).to.have.been.called;
+			} );
+
+			it( 'removes the `has-notifications` class on form.container', function() {
+				jQuery( '.findme' ).addClass( 'has-notifications' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.findme' ).hasClass( 'has-notifications' ) ).to.be.false;
+			} );
+
+			it( 'removes the `has-error` class on form.container', function() {
+				jQuery( '.findme' ).addClass( 'has-error' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.findme' ).hasClass( 'has-error' ) ).to.be.false;
+			} );
+
+			it( 'replaces the content of the notifications area with the contents of the notifications template', function() {
+				jQuery( '.js-widget-form-notifications-container' ).text( 'nothing here' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.js-widget-form-notifications-container' ).text() ).to.eql( 'notifications template' );
+			} );
+
+			it( 'replaces the content of the notifications area with the trimmed contents of the notifications template', function() {
+				jQuery( '#tmpl-my-notifications' ).html( ' notifications template  ' )
+				jQuery( '.js-widget-form-notifications-container' ).text( 'nothing here' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.js-widget-form-notifications-container' ).text() ).to.eql( 'notifications template' );
+			} );
+
+			it( 'does not call wp.a11y.speak', function() {
+				wp.a11y.speak = sinon.spy();
+				form.renderNotificationsToContainer();
+				expect( wp.a11y.speak ).to.not.have.been.called;
+			} );
+		} );
+
+		describe( 'when there are notifications', function() {
+			let myNotification;
+
+			beforeEach( function() {
+				myNotification = new Notification( 'other-notification', { message: 'test', type: 'warning' } );
+				form.notifications.add( 'other-notification', myNotification );
+			} );
+
+			it( 'shows the notifications area', function() {
+				const notificationsContainer = jQuery( '.js-widget-form-notifications-container' );
+				notificationsContainer.slideDown = sinon.spy();
+				form.getNotificationsContainerElement = () => notificationsContainer;
+				form.renderNotificationsToContainer();
+				expect( notificationsContainer.slideDown ).to.have.been.called;
+			} );
+
+			it( 'adds the `has-notifications` class on form.container', function() {
+				jQuery( '.findme' ).removeClass( 'has-notifications' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.findme' ).hasClass( 'has-notifications' ) ).to.be.true;
+			} );
+
+			it( 'adds the `has-error` class on form.container if a notification is an error', function() {
+				jQuery( '.findme' ).removeClass( 'has-error' );
+				form.notifications.add( 'error-notification', new Notification( 'error-notification', { message: 'test', type: 'error' } ) );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.findme' ).hasClass( 'has-error' ) ).to.be.true;
+			} );
+
+			it( 'removes the `has-error` class on form.container if no notifications are errors', function() {
+				jQuery( '.findme' ).addClass( 'has-error' );
+				form.renderNotificationsToContainer();
+				expect( jQuery( '.findme' ).hasClass( 'has-error' ) ).to.be.false;
+			} );
+
+			it( 'calls wp.a11y.speak for each notification', function() {
+				wp.a11y.speak = sinon.spy();
+				form.renderNotificationsToContainer();
+				expect( wp.a11y.speak ).to.have.been.calledWith( 'test', 'assertive' );
+			} );
+
+			it( 'calls the notifications template function with the notifications as interpolated values', function() {
+				const interpolateSpy = sinon.spy();
+				const templateSpy = sinon.stub().returns( interpolateSpy );
+				global.wp.template = templateSpy;
+				form.renderNotificationsToContainer();
+				expect( interpolateSpy ).to.have.been.calledWith( { notifications: [ myNotification ], altNotice: false } );
+			} );
 		} );
 	} );
 
