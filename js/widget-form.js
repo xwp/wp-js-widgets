@@ -40,6 +40,9 @@ wp.widgets.Form = (function( api, $, _ ) {
 			oldValue = setting();
 			newValue = widgetForm.sanitize( previousValidate.call( setting, value ), oldValue );
 
+			// Remove all existing notifications added via sanitization since only one can be returned.
+			removeSanitizeNotifications( widgetForm.notifications );
+
 			// If sanitize method returned an error/notification, block setting update and add a notification
 			if ( newValue instanceof Error ) {
 				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
@@ -48,9 +51,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 				addSanitizeNotification( widgetForm, newValue );
 				return null;
 			}
-
-			// Remove all existing notifications added via sanitization since only one can be returned.
-			removeSanitizeNotifications( widgetForm.notifications );
 
 			return newValue;
 		}
