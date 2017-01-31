@@ -76,7 +76,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		var defaultProperties = {
 			model: null,
 			container: null,
-			config: {},
+			config: {}
 		};
 
 		var args = _.extend( {}, defaultProperties, properties || {} );
