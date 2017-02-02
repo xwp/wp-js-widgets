@@ -13,6 +13,50 @@ if ( ! wp.widgets.formConstructor ) {
 wp.widgets.Form = (function( api, $, _ ) {
 	'use strict';
 
+	function getArrayFromValues( values ) {
+		var ary = [];
+		values.each( function( value ) {
+			ary.push( value );
+		} );
+		return ary;
+	}
+
+	function isNotificationError( notification ) {
+		return 'error' === notification.type;
+	}
+
+	function toggleContainer( container, showContainer ) {
+		var deferred = $.Deferred();
+		if ( showContainer ) {
+			container.stop().slideDown( 'fast', null, deferred.resolve );
+		} else {
+			container.stop().slideUp( 'fast', null, deferred.resolve );
+		}
+		return deferred;
+	}
+
+	function speakNotification( notification ) {
+		if ( ! notification.hasA11ySpoken ) {
+
+			// @todo In the context of the Customizer, this presently will end up getting spoken twice due to wp.customize.Control also rendering it.
+			wp.a11y.speak( notification.message, 'assertive' );
+			notification.hasA11ySpoken = true;
+		}
+	}
+
+	function getNotificationsTemplate( widgetForm ) {
+		if ( ! widgetForm._notificationsTemplate ) {
+			widgetForm._notificationsTemplate = wp.template( widgetForm.config.notifications_template_id );
+		}
+		return widgetForm._notificationsTemplate;
+	}
+
+	function renderNotificationsTemplate( container, templateFunction, notifications, altNotice ) {
+		container.empty().append( $.trim(
+			templateFunction( { notifications: notifications, altNotice: Boolean( altNotice ) } )
+		) );
+	}
+
 	function removeSanitizeNotifications( notifications ) {
 		notifications.each( function iterateNotifications( notification ) {
 			if ( notification.viaWidgetFormSanitizeReturn ) {
@@ -142,43 +186,26 @@ wp.widgets.Form = (function( api, $, _ ) {
 		} ),
 
 		renderNotificationsToContainer: function renderNotificationsToContainer() {
-			var form = this, container, notifications, hasError = false;
+			var form = this, container, notifications, templateFunction;
 			container = form.getNotificationsContainerElement();
 			if ( ! container || ! container.length ) {
 				return;
 			}
-			notifications = [];
-			form.notifications.each( function( notification ) {
-				notifications.push( notification );
-				if ( 'error' === notification.type ) {
-					hasError = true;
-				}
+			notifications = getArrayFromValues( form.notifications );
 
-				if ( ! notification.hasA11ySpoken ) {
-
-					// @todo In the context of the Customizer, this presently will end up getting spoken twice due to wp.customize.Control also rendering it.
-					wp.a11y.speak( notification.message, 'assertive' );
-					notification.hasA11ySpoken = true;
-				}
-			} );
-
-			if ( 0 === notifications.length ) {
-				container.stop().slideUp( 'fast' );
-			} else {
-				container.stop().slideDown( 'fast', null, function() {
-					$( this ).css( 'height', 'auto' );
+			toggleContainer( container, notifications.length > 0 )
+				.then( function() {
+					if ( notifications.length > 0 ) {
+						$( form ).css( 'height', 'auto' );
+					}
 				} );
-			}
+			form.container.toggleClass( 'has-error', notifications.filter( isNotificationError ).length > 0 );
+			form.container.toggleClass( 'has-notifications', notifications.length > 0 );
 
-			if ( ! form._notificationsTemplate ) {
-				form._notificationsTemplate = wp.template( form.config.notifications_template_id );
-			}
+			notifications.map( speakNotification );
 
-			form.container.toggleClass( 'has-notifications', 0 !== notifications.length );
-			form.container.toggleClass( 'has-error', hasError );
-			container.empty().append( $.trim(
-				form._notificationsTemplate( { notifications: notifications, altNotice: Boolean( form.altNotice ) } )
-			) );
+			templateFunction = getNotificationsTemplate( form );
+			renderNotificationsTemplate( container, templateFunction, notifications, form.altNotice );
 		},
 
 		/**
