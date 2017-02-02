@@ -85,20 +85,14 @@ wp.widgets.Form = (function( api, $, _ ) {
 	}
 
 	/**
-	 * Apply and render a Notifications area template function
+	 * Replace the markup of a DOM node container
 	 *
-	 * @todo: simplify these arguments
-	 *
-	 * @param {jQuery} container The DOM node which will be replaced by the template
-	 * @param {Function} templateFunction The template function to use
-	 * @param {wp.customize.Values} notifications An instance of api.Values to pass to the template function
-	 * @param {Boolean} altNotice An argument to pass to the altNotice param of the template function
+	 * @param {jQuery} container The DOM node which will be replaced by the markup
+	 * @param {string} markup The markup to apply to the container
 	 * @return {void}
 	 */
-	function renderNotificationsTemplate( container, templateFunction, notifications, altNotice ) {
-		container.empty().append( $.trim(
-			templateFunction( { notifications: notifications, altNotice: Boolean( altNotice ) } )
-		) );
+	function renderMarkupToContainer( container, markup ) {
+		container.empty().append( $.trim( markup ) );
 	}
 
 	/**
@@ -290,7 +284,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			notifications.map( speakNotification );
 
 			templateFunction = getNotificationsTemplate( form );
-			renderNotificationsTemplate( container, templateFunction, notifications, form.altNotice );
+			renderMarkupToContainer( container, templateFunction( { notifications: notifications, altNotice: Boolean( form.altNotice ) } ) );
 		},
 
 		/**
