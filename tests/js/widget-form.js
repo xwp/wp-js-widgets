@@ -192,6 +192,16 @@ describe( 'wp.widgets.Form', function() {
 			expect( form.notifications.has( 'other-notification' ) ).to.be.false;
 		} );
 
+		it( 'retains a reference to the Form through the validate closure even after the Form is destroyed', function() {
+			let form = new CustomForm( { model, container: '.findme' } );
+			const sanitizeSpy = sinon.spy();
+			form.sanitize = sanitizeSpy;
+			form.destruct();
+			form = null;
+			model.validate( { foo: 'bar' } );
+			expect( sanitizeSpy ).to.have.been.called;
+		} );
+
 		describe( 'if the sanitize function returns a Notification', function() {
 			let MyForm, form;
 
