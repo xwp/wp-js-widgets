@@ -202,10 +202,10 @@ wp.widgets.Form = (function( api, $, _ ) {
 			config: {}
 		};
 
-		var args = _.extend( {}, defaultProperties, properties || {} );
-		var propertiesConfig = properties ? properties.config : {};
-		args.config = _.extend( {}, defaultConfig, config, propertiesConfig || {} );
-		return args;
+		var formArguments = properties ? { model: properties.model, container: properties.container } : {};
+		var validProperties = _.extend( {}, defaultProperties, formArguments );
+		validProperties.config = _.extend( {}, defaultConfig, config );
+		return validProperties;
 	}
 
 	/**
