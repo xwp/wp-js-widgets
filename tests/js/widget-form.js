@@ -43,14 +43,14 @@ describe( 'wp.widgets.Form', function() {
 			container = '.findme';
 		} );
 
-		it( 'assigns arbitrary properties on the argument object as properties on the form object', function() {
+		it( 'ignores arbitrary properties on the argument object', function() {
 			const params = { foo: 'bar', model, container };
 			const form = new Form( params );
-			expect( form.foo ).to.eql( 'bar' );
+			expect( form.foo ).to.not.exist;
 		} );
 
 		it( 'throws an error if the model property is missing', function( done ) {
-			const params = { foo: 'bar', container };
+			const params = { container };
 			try {
 				new Form( params );
 			} catch ( err ) {
@@ -60,7 +60,7 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'throws an error if the model property is not an instance of Value', function( done ) {
-			const params = { foo: 'bar', model: { hello: 'world' }, container };
+			const params = { model: { hello: 'world' }, container };
 			try {
 				new Form( params );
 			} catch ( err ) {
@@ -70,7 +70,7 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'assigns a default config property if it has not already been set on the form object', function() {
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const form = new Form( params );
 			const expected = {
 				form_template_id: '',
@@ -85,7 +85,7 @@ describe( 'wp.widgets.Form', function() {
 			const MyForm = Form.extend( {
 				config: { subclass: 'yes' },
 			} );
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const form = new MyForm( params );
 			const expected = {
 				form_template_id: '',
@@ -97,45 +97,33 @@ describe( 'wp.widgets.Form', function() {
 			expect( form.config ).to.eql( expected );
 		} );
 
-		it( 'allows overriding the default property values with the properties of the argument', function() {
-			const params = { foo: 'bar', model, config: { form_template_id: 'hello' }, container };
-			const form = new Form( params );
-			const expected = {
-				form_template_id: 'hello',
-				notifications_template_id: '',
-				l10n: {},
-				default_instance: {},
-			};
-			expect( form.config ).to.eql( expected );
-		} );
-
 		it( 'assigns form.setting as an alias to form.model', function() {
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const form = new Form( params );
 			expect( form.setting ).to.equal( model );
 		} );
 
 		it( 'assigns form.notifications as an alias for form.model.notifications if it exists', function() {
 			model.notifications = { hello: 'world' };
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const form = new Form( params );
 			expect( form.notifications ).to.equal( model.notifications );
 		} );
 
 		it( 'assigns form.notifications to a new Values with the Notification defaultConstructor if form.model.notifications does not exist', function() {
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const form = new Form( params );
 			expect( form.notifications.defaultConstructor ).to.equal( Notification );
 		} );
 
 		it( 'assigns form.container to a jQuery DOM object for the selector previously in form.container', function() {
-			const params = { foo: 'bar', model, container: '.findme' };
+			const params = { model, container: '.findme' };
 			const form = new Form( params );
 			expect( form.container[ 0 ].className ).to.eql( 'findme' );
 		} );
 
 		it( 'throws an error if the form.container selector does not match a DOM node', function( done ) {
-			const params = { foo: 'bar', model, container: 'notfound' };
+			const params = { model, container: 'notfound' };
 			try {
 				new Form( params );
 			} catch( err ) {
@@ -145,7 +133,7 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'mutates the model to override the `validate` method', function() {
-			const params = { foo: 'bar', model, container };
+			const params = { model, container };
 			const previousValidate = model.validate;
 			new Form( params );
 			expect( model.validate ).to.not.equal( previousValidate );
@@ -342,7 +330,10 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( { hello: 'world' } );
-			form = new Form( { model, container: '.findme', config: { default_instance: { foo: 'bar' } } } );
+			const MyForm = Form.extend( {
+				config: { default_instance: { foo: 'bar' } },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 		} );
 
 		it( 'returns an object with the properties of the form\'s config.default_instance', function() {
@@ -361,7 +352,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			form = new Form( { model, container: '.findme', config: { default_instance: { foo: 'bar' } } } );
+			form = new Form( { model, container: '.findme' } );
 		} );
 
 		it( 'updates the model by merging its value with the passed object properties', function() {
@@ -388,7 +379,10 @@ describe( 'wp.widgets.Form', function() {
 			global.wp.template = templateSpy;
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
-			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'my-template' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 		} );
 
 		it( 'calls wp.template() on the config.form_template_id if no template is cached', function() {
@@ -402,7 +396,10 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'throws an error if the template does not exist in the DOM', function( done ) {
-			form = new Form( { model, container: '.findme', config: { form_template_id: 'notfound' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'notfound' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 			try {
 				form.getTemplate();
 			} catch( err ) {
@@ -432,11 +429,17 @@ describe( 'wp.widgets.Form', function() {
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-notifications">notifications template</script>' )
 			jQuery( '.findme' ).append( '<span class="js-widget-form-notifications-container"></span>' );
-			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template', notifications_template_id: 'my-notifications' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'my-template', notifications_template_id: 'my-notifications' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 		} );
 
 		it( 'throws an error if notifications_template_id is undefined', function( done ) {
-			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'my-template' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 			try {
 				form.renderNotificationsToContainer();
 			} catch( err ) {
@@ -548,7 +551,10 @@ describe( 'wp.widgets.Form', function() {
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
-			form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'my-template' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
 			form.container.html = sinon.spy();
 		} );
 
@@ -572,7 +578,10 @@ describe( 'wp.widgets.Form', function() {
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template"><input class="hello-field" type="text" data-field="hello" /></script>' );
-			const form = new Form( { model, container: '.findme', config: { form_template_id: 'my-template' } } );
+			const MyForm = Form.extend( {
+				config: { form_template_id: 'my-template' },
+			} );
+			const form = new MyForm( { model, container: '.findme' } );
 			form.render();
 		} );
 
