@@ -29,9 +29,15 @@ const { Value, Notification } = require( './lib/customize-base' );
 const Form = require( '../../js/widget-form' );
 
 describe( 'wp.widgets.Form', function() {
+	let CustomForm;
+
 	beforeEach( function() {
 		resetGlobals();
 		jQuery( '.root' ).html( markup );
+		CustomForm = Form.extend( {
+			id_base: 'custom',
+			config: { default_instance: { red: '#f00' } },
+		} );
 	} );
 
 	describe( '.initialize() (constructor)', function() {
@@ -44,15 +50,13 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'ignores arbitrary properties on the argument object', function() {
-			const params = { foo: 'bar', model, container };
-			const form = new Form( params );
+			const form = new CustomForm( { foo: 'bar', model, container } );
 			expect( form.foo ).to.not.exist;
 		} );
 
 		it( 'throws an error if the model property is missing', function( done ) {
-			const params = { container };
 			try {
-				new Form( params );
+				new CustomForm( { container } );
 			} catch ( err ) {
 				done();
 			}
@@ -60,9 +64,28 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'throws an error if the model property is not an instance of Value', function( done ) {
-			const params = { model: { hello: 'world' }, container };
 			try {
-				new Form( params );
+				new CustomForm( { model: { hello: 'world' }, container } );
+			} catch ( err ) {
+				done();
+			}
+			throw new Error( 'Expected initialize to throw an Error but it did not' );
+		} );
+
+		it( 'throws an error if the id_base property is not set on the Form prototype', function( done ) {
+			CustomForm.prototype.id_base = null;
+			try {
+				new CustomForm( { model, container } );
+			} catch ( err ) {
+				done();
+			}
+			throw new Error( 'Expected initialize to throw an Error but it did not' );
+		} );
+
+		it( 'throws an error if the config.default_instance property is not set on the Form prototype', function( done ) {
+			CustomForm.prototype.config.default_instance = null;
+			try {
+				new CustomForm( { model, container } );
 			} catch ( err ) {
 				done();
 			}
@@ -70,8 +93,8 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'assigns a default config property if it has not already been set on the form object', function() {
-			const params = { model, container };
-			const form = new Form( params );
+			CustomForm.prototype.config = null;
+			const form = new CustomForm( { model, container } );
 			const expected = {
 				form_template_id: '',
 				notifications_template_id: '',
@@ -82,11 +105,10 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'keeps the current config property if it is already set on the form object', function() {
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { subclass: 'yes' },
 			} );
-			const params = { model, container };
-			const form = new MyForm( params );
+			const form = new MyForm( { model, container } );
 			const expected = {
 				form_template_id: '',
 				notifications_template_id: '',
@@ -98,34 +120,29 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'assigns form.setting as an alias to form.model', function() {
-			const params = { model, container };
-			const form = new Form( params );
+			const form = new CustomForm( { model, container } );
 			expect( form.setting ).to.equal( model );
 		} );
 
 		it( 'assigns form.notifications as an alias for form.model.notifications if it exists', function() {
 			model.notifications = { hello: 'world' };
-			const params = { model, container };
-			const form = new Form( params );
+			const form = new CustomForm( { model, container } );
 			expect( form.notifications ).to.equal( model.notifications );
 		} );
 
 		it( 'assigns form.notifications to a new Values with the Notification defaultConstructor if form.model.notifications does not exist', function() {
-			const params = { model, container };
-			const form = new Form( params );
+			const form = new CustomForm( { model, container } );
 			expect( form.notifications.defaultConstructor ).to.equal( Notification );
 		} );
 
 		it( 'assigns form.container to a jQuery DOM object for the selector previously in form.container', function() {
-			const params = { model, container: '.findme' };
-			const form = new Form( params );
+			const form = new CustomForm( { model, container: '.findme' } );
 			expect( form.container[ 0 ].className ).to.eql( 'findme' );
 		} );
 
 		it( 'throws an error if the form.container selector does not match a DOM node', function( done ) {
-			const params = { model, container: 'notfound' };
 			try {
-				new Form( params );
+				new CustomForm( { model, container: 'notfound' } );
 			} catch( err ) {
 				done();
 			}
@@ -133,9 +150,8 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'mutates the model to override the `validate` method', function() {
-			const params = { model, container };
 			const previousValidate = model.validate;
-			new Form( params );
+			new CustomForm( { model, container } );
 			expect( model.validate ).to.not.equal( previousValidate );
 		} );
 	} );
@@ -148,27 +164,27 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'returns an object with the properties of the object passed in', function() {
-			new Form( { model, container: '.findme' } );
+			new CustomForm( { model, container: '.findme' } );
 			const actual = model.validate( { foo: 'bar' } );
 			expect( actual.foo ).to.eql( 'bar' );
 		} );
 
 		it( 'also calls the model\'s previous validate method', function() {
 			model.validate = values => Object.assign( {}, values, { red: 'green' } );
-			new Form( { model, container: '.findme' } );
+			new CustomForm( { model, container: '.findme' } );
 			const actual = model.validate( { foo: 'bar' } );
 			expect( actual.red ).to.eql( 'green' );
 		} );
 
 		it( 'does not remove any Notifications from form.notifications which do not have the `viaWidgetFormSanitizeReturn` property', function() {
-			const form = new Form( { model, container: '.findme' } );
+			const form = new CustomForm( { model, container: '.findme' } );
 			form.notifications.add( 'other-notification', new Notification( 'other-notification', { message: 'test', type: 'warning' } ) );
 			model.validate( { foo: 'bar' } );
 			expect( form.notifications.has( 'other-notification' ) ).to.be.true;
 		} );
 
 		it( 'removes any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property', function() {
-			const form = new Form( { model, container: '.findme' } );
+			const form = new CustomForm( { model, container: '.findme' } );
 			const notification = new Notification( 'other-notification', { message: 'test', type: 'warning' } );
 			notification.viaWidgetFormSanitizeReturn = true;
 			form.notifications.add( 'other-notification', notification );
@@ -180,7 +196,7 @@ describe( 'wp.widgets.Form', function() {
 			let MyForm, form;
 
 			beforeEach( function() {
-				MyForm = Form.extend( {
+				MyForm = CustomForm.extend( {
 					sanitize: input => MyForm.returnNotification ? new Notification( 'testcode', { message: 'test', type: 'warning' } ) : input,
 				} );
 				form = new MyForm( { model, container: '.findme' } );
@@ -228,7 +244,7 @@ describe( 'wp.widgets.Form', function() {
 			let MyForm, form;
 
 			beforeEach( function() {
-				MyForm = Form.extend( {
+				MyForm = CustomForm.extend( {
 					sanitize: input => MyForm.returnError ? new Error( 'test error' ) : input,
 				} );
 				form = new MyForm( { model, container: '.findme' } );
@@ -262,7 +278,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( 'test' );
-			form = new Form( { model, container: '.findme' } );
+			form = new CustomForm( { model, container: '.findme' } );
 		} );
 
 		it( 'returns a jQuery object for the first instance of .js-widget-form-notifications-container in the container', function() {
@@ -282,7 +298,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( 'test' );
-			form = new Form( { model, container: '.findme' } );
+			form = new CustomForm( { model, container: '.findme' } );
 		} );
 
 		it( 'throws an Error if oldInstance is not set', function( done ) {
@@ -330,7 +346,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			const model = new Value( { hello: 'world' } );
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { default_instance: { foo: 'bar' } },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
@@ -352,7 +368,7 @@ describe( 'wp.widgets.Form', function() {
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
-			form = new Form( { model, container: '.findme' } );
+			form = new CustomForm( { model, container: '.findme' } );
 		} );
 
 		it( 'updates the model by merging its value with the passed object properties', function() {
@@ -379,7 +395,7 @@ describe( 'wp.widgets.Form', function() {
 			global.wp.template = templateSpy;
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">template contents</script>' )
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template' },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
@@ -396,7 +412,7 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'throws an error if the template does not exist in the DOM', function( done ) {
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'notfound' },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
@@ -429,14 +445,14 @@ describe( 'wp.widgets.Form', function() {
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-notifications">notifications template</script>' )
 			jQuery( '.findme' ).append( '<span class="js-widget-form-notifications-container"></span>' );
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template', notifications_template_id: 'my-notifications' },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
 		} );
 
 		it( 'throws an error if notifications_template_id is undefined', function( done ) {
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template' },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
@@ -551,7 +567,7 @@ describe( 'wp.widgets.Form', function() {
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template">pastries</script>' )
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template' },
 			} );
 			form = new MyForm( { model, container: '.findme' } );
@@ -578,7 +594,7 @@ describe( 'wp.widgets.Form', function() {
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
 			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template"><input class="hello-field" type="text" data-field="hello" /></script>' );
-			const MyForm = Form.extend( {
+			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template' },
 			} );
 			const form = new MyForm( { model, container: '.findme' } );
