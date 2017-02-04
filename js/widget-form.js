@@ -177,6 +177,12 @@ wp.widgets.Form = (function( api, $, _ ) {
 		if ( 0 === widgetForm.container.length ) {
 			throw new Error( 'Widget Form is missing container property as Element or jQuery.' );
 		}
+		if ( ! widgetForm.id_base ) {
+			throw new Error( 'Widget Form class is missing id_base' );
+		}
+		if ( ! widgetForm.config || ! widgetForm.config.default_instance ) {
+			throw new Error( 'Widget Form class is missing config.default_instance' );
+		}
 	}
 
 	/**
