@@ -488,6 +488,18 @@ describe( 'wp.widgets.Form', function() {
 				expect( notificationsContainer.slideUp ).to.have.been.called;
 			} );
 
+			it( 'does not change the height css of the notifications area', function( done ) {
+				const notificationsContainer = jQuery( '.js-widget-form-notifications-container' );
+				notificationsContainer.css = sinon.spy();
+				form.getNotificationsContainerElement = () => notificationsContainer;
+				form.renderNotificationsToContainer();
+				// The height change happens async so we defer this assertion
+				setTimeout( function() {
+					expect( notificationsContainer.css ).to.not.have.been.called;
+					done();
+				}, 0 );
+			} );
+
 			it( 'removes the `has-notifications` class on form.container', function() {
 				jQuery( '.findme' ).addClass( 'has-notifications' );
 				form.renderNotificationsToContainer();
@@ -534,6 +546,18 @@ describe( 'wp.widgets.Form', function() {
 				form.getNotificationsContainerElement = () => notificationsContainer;
 				form.renderNotificationsToContainer();
 				expect( notificationsContainer.slideDown ).to.have.been.called;
+			} );
+
+			it( 'changes the css height property on the notification container to `auto`', function( done ) {
+				const notificationsContainer = jQuery( '.js-widget-form-notifications-container' );
+				notificationsContainer.css = sinon.spy();
+				form.getNotificationsContainerElement = () => notificationsContainer;
+				form.renderNotificationsToContainer();
+				// The height change happens async so we defer this assertion
+				setTimeout( function() {
+					expect( notificationsContainer.css ).to.have.been.calledWith( 'height', 'auto' );
+					done();
+				}, 0 );
 			} );
 
 			it( 'adds the `has-notifications` class on form.container', function() {
