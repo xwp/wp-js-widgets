@@ -80,7 +80,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			toggleContainer( container, notifications.length > 0 )
 				.then( function() {
 					if ( notifications.length > 0 ) {
-						$( form ).css( 'height', 'auto' );
+						container.css( 'height', 'auto' );
 					}
 				} );
 			form.container.toggleClass( 'has-error', notifications.filter( isNotificationError ).length > 0 );
@@ -342,7 +342,9 @@ wp.widgets.Form = (function( api, $, _ ) {
 	function toggleContainer( container, showContainer ) {
 		var deferred = $.Deferred();
 		if ( showContainer ) {
-			container.stop().slideDown( 'fast', null, deferred.resolve );
+			container.stop().slideDown( 'fast', null, function() {
+				deferred.resolve();
+			} );
 		} else {
 			container.stop().slideUp( 'fast', null, deferred.resolve );
 		}
