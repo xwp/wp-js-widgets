@@ -14,207 +14,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 	'use strict';
 
 	/**
-	 * Return an Array of an api.Values object's values
-	 *
-	 * @param {wp.customize.Values} values An instance of api.Values
-	 * @return {Array} An array of api.Value objects
-	 */
-	function getArrayFromValues( values ) {
-		var ary = [];
-		values.each( function( value ) {
-			ary.push( value );
-		} );
-		return ary;
-	}
-
-	/**
-	 * Return true if the Notification is an error
-	 *
-	 * @param {wp.customize.Notification} notification An instance of api.Notification
-	 * @return {Boolean} True if the `type` of the Notification is 'error'
-	 */
-	function isNotificationError( notification ) {
-		return 'error' === notification.type;
-	}
-
-	/**
-	 * Hide or show a DOM node using jQuery animation
-	 *
-	 * @param {jQuery} container The jQuery object to hide or show
-	 * @param {Boolean} showContainer True to show the node, or false to hide it
-	 * @return {Deferred} A promise that is resolved when the animation is complete
-	 */
-	function toggleContainer( container, showContainer ) {
-		var deferred = $.Deferred();
-		if ( showContainer ) {
-			container.stop().slideDown( 'fast', null, deferred.resolve );
-		} else {
-			container.stop().slideUp( 'fast', null, deferred.resolve );
-		}
-		return deferred;
-	}
-
-	/**
-	 * Speak a Notification using wp.a11y
-	 *
-	 * Will only speak a Notification once, so if passed a Notification that has already been spoken, this is a noop.
-	 *
-	 * @param {Notification} notification The Notification to speak
-	 * @return {void}
-	 */
-	function speakNotification( notification ) {
-		if ( ! notification.hasA11ySpoken ) {
-
-			// @todo In the context of the Customizer, this presently will end up getting spoken twice due to wp.customize.Control also rendering it.
-			wp.a11y.speak( notification.message, 'assertive' );
-			notification.hasA11ySpoken = true;
-		}
-	}
-
-	/**
-	 * Return the template function for rendering Notifications
-	 *
-	 * @param {Form} widgetForm The instance of the Form whose template to fetch
-	 * @return {Function} The template function
-	 */
-	function getNotificationsTemplate( widgetForm ) {
-		if ( ! widgetForm._notificationsTemplate ) {
-			widgetForm._notificationsTemplate = wp.template( widgetForm.config.notifications_template_id );
-		}
-		return widgetForm._notificationsTemplate;
-	}
-
-	/**
-	 * Replace the markup of a DOM node container
-	 *
-	 * @param {jQuery} container The DOM node which will be replaced by the markup
-	 * @param {string} markup The markup to apply to the container
-	 * @return {void}
-	 */
-	function renderMarkupToContainer( container, markup ) {
-		container.empty().append( $.trim( markup ) );
-	}
-
-	/**
-	 * Removes Notification objects which have been added by `addSanitizeNotification`
-	 *
-	 * Note: this mutates the object itself!
-	 *
-	 * @param {wp.customize.Values} notifications An instance of api.Values containing Notification objects
-	 * @return {void}
-	 */
-	function removeSanitizeNotifications( notifications ) {
-		notifications.each( function iterateNotifications( notification ) {
-			if ( notification.viaWidgetFormSanitizeReturn ) {
-				notifications.remove( notification.code );
-			}
-		} );
-	}
-
-	/**
-	 * Adds a Notification to a Form from the form's `sanitize` method
-	 *
-	 * @param {Form} widgetForm The instance of the Form to modify
-	 * @param {wp.customize.Values} notification An instance of api.Notification to add
-	 * @return {void}
-	 */
-	function addSanitizeNotification( widgetForm, notification ) {
-		notification.viaWidgetFormSanitizeReturn = true;
-		widgetForm.notifications.add( notification.code, notification );
-	}
-
-	/**
-	 * Return a new validation function for a Form's model
-	 *
-	 * The new method will call the old method first.
-	 *
-	 * @param {Form} widgetForm The instance of the Form to modify
-	 * @param {Function} previousValidate The old version of the model's validate method
-	 * @return {Function} The new validate method
-	 */
-	function getValidateWidget( widgetForm, previousValidate ) {
-		/**
-		 * Validate the instance data.
-		 *
-		 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
-		 *
-		 * @param {object} value Instance value.
-		 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
-		 */
-		return function validate( value ) {
-			var setting = this, newValue, oldValue;
-			oldValue = setting();
-			newValue = widgetForm.sanitize( previousValidate.call( setting, value ), oldValue );
-
-			// Remove all existing notifications added via sanitization since only one can be returned.
-			removeSanitizeNotifications( widgetForm.notifications );
-
-			// If sanitize method returned an error/notification, block setting update and add a notification
-			if ( newValue instanceof Error ) {
-				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
-			}
-			if ( newValue instanceof api.Notification ) {
-				addSanitizeNotification( widgetForm, newValue );
-				return null;
-			}
-
-			return newValue;
-		};
-	}
-
-	/**
-	 * Validate the properties of a Form
-	 *
-	 * Throws an Error if the properties are invalid.
-	 *
-	 * @param {Form} widgetForm The instance of the Form to modify
-	 * @return {void}
-	 */
-	function validateForm( widgetForm ) {
-		if ( ! widgetForm.model || ! widgetForm.model.extended || ! widgetForm.model.extended( api.Value ) ) {
-			throw new Error( 'Widget Form is missing model property which must be a Value or Setting instance.' );
-		}
-		if ( 0 === widgetForm.container.length ) {
-			throw new Error( 'Widget Form is missing container property as Element or jQuery.' );
-		}
-		if ( ! widgetForm.id_base ) {
-			throw new Error( 'Widget Form class is missing id_base' );
-		}
-		if ( ! widgetForm.config || ! widgetForm.config.default_instance ) {
-			throw new Error( 'Widget Form class is missing config.default_instance' );
-		}
-	}
-
-	/**
-	 * Merges properties for a Form with the defaults
-	 *
-	 * The passed properties override the Form's config property which overrides the default values.
-	 *
-	 * @param {object} config The Form's current config property
-	 * @param {object} properties The passed-in properties to the Form
-	 * @return {object} The merged properties object
-	 */
-	function getValidatedFormProperties( config, properties ) {
-		var defaultConfig = {
-			form_template_id: '',
-			notifications_template_id: '',
-			l10n: {},
-			default_instance: {}
-		};
-
-		var defaultProperties = {
-			model: null,
-			container: null,
-			config: {}
-		};
-
-		var formArguments = properties ? { model: properties.model, container: properties.container } : {};
-		var validProperties = _.extend( {}, defaultProperties, formArguments );
-		validProperties.config = _.extend( {}, defaultConfig, config );
-		return validProperties;
-	}
-
-	/**
 	 * Customize Widget Form.
 	 *
 	 * @constructor
@@ -508,6 +307,207 @@ wp.widgets.Form = (function( api, $, _ ) {
 			form.notifications.unbind( 'remove', form.renderNotifications );
 		}
 	});
+
+	/**
+	 * Return an Array of an api.Values object's values
+	 *
+	 * @param {wp.customize.Values} values An instance of api.Values
+	 * @return {Array} An array of api.Value objects
+	 */
+	function getArrayFromValues( values ) {
+		var ary = [];
+		values.each( function( value ) {
+			ary.push( value );
+		} );
+		return ary;
+	}
+
+	/**
+	 * Return true if the Notification is an error
+	 *
+	 * @param {wp.customize.Notification} notification An instance of api.Notification
+	 * @return {Boolean} True if the `type` of the Notification is 'error'
+	 */
+	function isNotificationError( notification ) {
+		return 'error' === notification.type;
+	}
+
+	/**
+	 * Hide or show a DOM node using jQuery animation
+	 *
+	 * @param {jQuery} container The jQuery object to hide or show
+	 * @param {Boolean} showContainer True to show the node, or false to hide it
+	 * @return {Deferred} A promise that is resolved when the animation is complete
+	 */
+	function toggleContainer( container, showContainer ) {
+		var deferred = $.Deferred();
+		if ( showContainer ) {
+			container.stop().slideDown( 'fast', null, deferred.resolve );
+		} else {
+			container.stop().slideUp( 'fast', null, deferred.resolve );
+		}
+		return deferred;
+	}
+
+	/**
+	 * Speak a Notification using wp.a11y
+	 *
+	 * Will only speak a Notification once, so if passed a Notification that has already been spoken, this is a noop.
+	 *
+	 * @param {Notification} notification The Notification to speak
+	 * @return {void}
+	 */
+	function speakNotification( notification ) {
+		if ( ! notification.hasA11ySpoken ) {
+
+			// @todo In the context of the Customizer, this presently will end up getting spoken twice due to wp.customize.Control also rendering it.
+			wp.a11y.speak( notification.message, 'assertive' );
+			notification.hasA11ySpoken = true;
+		}
+	}
+
+	/**
+	 * Return the template function for rendering Notifications
+	 *
+	 * @param {Form} widgetForm The instance of the Form whose template to fetch
+	 * @return {Function} The template function
+	 */
+	function getNotificationsTemplate( widgetForm ) {
+		if ( ! widgetForm._notificationsTemplate ) {
+			widgetForm._notificationsTemplate = wp.template( widgetForm.config.notifications_template_id );
+		}
+		return widgetForm._notificationsTemplate;
+	}
+
+	/**
+	 * Replace the markup of a DOM node container
+	 *
+	 * @param {jQuery} container The DOM node which will be replaced by the markup
+	 * @param {string} markup The markup to apply to the container
+	 * @return {void}
+	 */
+	function renderMarkupToContainer( container, markup ) {
+		container.empty().append( $.trim( markup ) );
+	}
+
+	/**
+	 * Removes Notification objects which have been added by `addSanitizeNotification`
+	 *
+	 * Note: this mutates the object itself!
+	 *
+	 * @param {wp.customize.Values} notifications An instance of api.Values containing Notification objects
+	 * @return {void}
+	 */
+	function removeSanitizeNotifications( notifications ) {
+		notifications.each( function iterateNotifications( notification ) {
+			if ( notification.viaWidgetFormSanitizeReturn ) {
+				notifications.remove( notification.code );
+			}
+		} );
+	}
+
+	/**
+	 * Adds a Notification to a Form from the form's `sanitize` method
+	 *
+	 * @param {Form} widgetForm The instance of the Form to modify
+	 * @param {wp.customize.Values} notification An instance of api.Notification to add
+	 * @return {void}
+	 */
+	function addSanitizeNotification( widgetForm, notification ) {
+		notification.viaWidgetFormSanitizeReturn = true;
+		widgetForm.notifications.add( notification.code, notification );
+	}
+
+	/**
+	 * Return a new validation function for a Form's model
+	 *
+	 * The new method will call the old method first.
+	 *
+	 * @param {Form} widgetForm The instance of the Form to modify
+	 * @param {Function} previousValidate The old version of the model's validate method
+	 * @return {Function} The new validate method
+	 */
+	function getValidateWidget( widgetForm, previousValidate ) {
+		/**
+		 * Validate the instance data.
+		 *
+		 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
+		 *
+		 * @param {object} value Instance value.
+		 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
+		 */
+		return function validate( value ) {
+			var setting = this, newValue, oldValue;
+			oldValue = setting();
+			newValue = widgetForm.sanitize( previousValidate.call( setting, value ), oldValue );
+
+			// Remove all existing notifications added via sanitization since only one can be returned.
+			removeSanitizeNotifications( widgetForm.notifications );
+
+			// If sanitize method returned an error/notification, block setting update and add a notification
+			if ( newValue instanceof Error ) {
+				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
+			}
+			if ( newValue instanceof api.Notification ) {
+				addSanitizeNotification( widgetForm, newValue );
+				return null;
+			}
+
+			return newValue;
+		};
+	}
+
+	/**
+	 * Validate the properties of a Form
+	 *
+	 * Throws an Error if the properties are invalid.
+	 *
+	 * @param {Form} widgetForm The instance of the Form to modify
+	 * @return {void}
+	 */
+	function validateForm( widgetForm ) {
+		if ( ! widgetForm.model || ! widgetForm.model.extended || ! widgetForm.model.extended( api.Value ) ) {
+			throw new Error( 'Widget Form is missing model property which must be a Value or Setting instance.' );
+		}
+		if ( 0 === widgetForm.container.length ) {
+			throw new Error( 'Widget Form is missing container property as Element or jQuery.' );
+		}
+		if ( ! widgetForm.id_base ) {
+			throw new Error( 'Widget Form class is missing id_base' );
+		}
+		if ( ! widgetForm.config || ! widgetForm.config.default_instance ) {
+			throw new Error( 'Widget Form class is missing config.default_instance' );
+		}
+	}
+
+	/**
+	 * Merges properties for a Form with the defaults
+	 *
+	 * The passed properties override the Form's config property which overrides the default values.
+	 *
+	 * @param {object} config The Form's current config property
+	 * @param {object} properties The passed-in properties to the Form
+	 * @return {object} The merged properties object
+	 */
+	function getValidatedFormProperties( config, properties ) {
+		var defaultConfig = {
+			form_template_id: '',
+			notifications_template_id: '',
+			l10n: {},
+			default_instance: {}
+		};
+
+		var defaultProperties = {
+			model: null,
+			container: null,
+			config: {}
+		};
+
+		var formArguments = properties ? { model: properties.model, container: properties.container } : {};
+		var validProperties = _.extend( {}, defaultProperties, formArguments );
+		validProperties.config = _.extend( {}, defaultConfig, config );
+		return validProperties;
+	}
 
 } )( wp.customize, jQuery, _ );
 
