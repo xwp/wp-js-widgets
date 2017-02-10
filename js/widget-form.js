@@ -179,7 +179,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			return _.extend(
 				{},
 				form.config.default_instance,
-				form.model() || {}
+				form.model.get() || {}
 			);
 		},
 
