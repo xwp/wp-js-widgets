@@ -626,7 +626,7 @@ describe( 'wp.widgets.Form', function() {
 	} );
 
 	describe( 'when rendered with a form element whose `data-field` attribute matches a model property', function() {
-		let model;
+		let model, form;
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
@@ -634,7 +634,7 @@ describe( 'wp.widgets.Form', function() {
 			const MyForm = CustomForm.extend( {
 				config: { form_template_id: 'my-template' },
 			} );
-			const form = new MyForm( { model, container: '.findme' } );
+			form = new MyForm( { model, container: '.findme' } );
 			form.render();
 		} );
 
@@ -642,6 +642,20 @@ describe( 'wp.widgets.Form', function() {
 			jQuery( '.hello-field' ).val( 'computer' );
 			jQuery( '.hello-field' ).trigger( 'change' );
 			expect( model.get().hello ).to.eql( 'computer' );
+		} );
+
+		it( 'updates the associated model property with a validated version when the form element changes', function() {
+			form.validate = () => ( { hello: 'valid' } );
+			jQuery( '.hello-field' ).val( 'invalid' );
+			jQuery( '.hello-field' ).trigger( 'change' );
+			expect( model.get().hello ).to.eql( 'valid' );
+		} );
+
+		it( 'does not update the associated model property when the form element changes and validation fails', function() {
+			form.validate = () => null;
+			jQuery( '.hello-field' ).val( 'invalid' );
+			jQuery( '.hello-field' ).trigger( 'change' );
+			expect( model.get().hello ).to.eql( 'world' );
 		} );
 
 		it( 'updates the form field value when the model property changes', function() {
