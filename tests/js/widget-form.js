@@ -1,5 +1,5 @@
 /* globals global, require, describe, it, beforeEach */
-/* eslint-disable no-unused-expressions, no-new, no-magic-numbers */
+/* eslint-disable no-unused-expressions, no-new, no-magic-numbers, max-nested-callbacks */
 
 const sinon = require( 'sinon' );
 const sinonChai = require( 'sinon-chai' );
@@ -148,95 +148,69 @@ describe( 'wp.widgets.Form', function() {
 			}
 			throw new Error( 'Expected initialize to throw an Error but it did not' );
 		} );
-
-		it( 'mutates the model to override the `validate` method', function() {
-			const previousValidate = model.validate;
-			new CustomForm( { model, container } );
-			expect( model.validate ).to.not.equal( previousValidate );
-		} );
 	} );
 
-	describe( '.model.validate()', function() {
-		let model;
+	describe( '.validate()', function() {
+		let model, form;
 
 		beforeEach( function() {
 			model = new Value( { hello: 'world' } );
+			form = new CustomForm( { model, container: '.findme' } );
 		} );
 
 		it( 'returns an object with the properties of the object passed in', function() {
-			new CustomForm( { model, container: '.findme' } );
-			const actual = model.validate( { foo: 'bar' } );
+			const actual = form.validate( { foo: 'bar' } );
 			expect( actual.foo ).to.eql( 'bar' );
 		} );
 
-		it( 'also calls the model\'s previous validate method', function() {
-			model.validate = values => Object.assign( {}, values, { red: 'green' } );
-			new CustomForm( { model, container: '.findme' } );
-			const actual = model.validate( { foo: 'bar' } );
-			expect( actual.red ).to.eql( 'green' );
-		} );
-
 		it( 'does not remove any Notifications from form.notifications which do not have the `viaWidgetFormSanitizeReturn` property', function() {
-			const form = new CustomForm( { model, container: '.findme' } );
 			form.notifications.add( 'other-notification', new Notification( 'other-notification', { message: 'test', type: 'warning' } ) );
-			model.validate( { foo: 'bar' } );
+			form.validate( { foo: 'bar' } );
 			expect( form.notifications.has( 'other-notification' ) ).to.be.true;
 		} );
 
 		it( 'removes any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property', function() {
-			const form = new CustomForm( { model, container: '.findme' } );
 			const notification = new Notification( 'other-notification', { message: 'test', type: 'warning' } );
 			notification.viaWidgetFormSanitizeReturn = true;
 			form.notifications.add( 'other-notification', notification );
-			model.validate( { foo: 'bar' } );
+			form.validate( { foo: 'bar' } );
 			expect( form.notifications.has( 'other-notification' ) ).to.be.false;
 		} );
 
-		it( 'retains a reference to the Form through the validate closure even after the Form is destroyed', function() {
-			let form = new CustomForm( { model, container: '.findme' } );
-			const sanitizeSpy = sinon.spy();
-			form.sanitize = sanitizeSpy;
-			form.destruct();
-			form = null;
-			model.validate( { foo: 'bar' } );
-			expect( sanitizeSpy ).to.have.been.called;
-		} );
-
 		describe( 'if the sanitize function returns a Notification', function() {
-			let MyForm, form;
+			let MyForm;
 
 			beforeEach( function() {
-				MyForm = CustomForm.extend( {
-					sanitize: input => MyForm.returnNotification ? new Notification( 'testcode', { message: 'test', type: 'warning' } ) : input,
-				} );
+				const sanitize = input => MyForm.returnNotification ? new Notification( 'testcode', { message: 'test', type: 'warning' } ) : input;
+				MyForm = CustomForm.extend( { sanitize } );
 				form = new MyForm( { model, container: '.findme' } );
 				MyForm.returnNotification = true;
 			} );
 
 			it( 'returns null', function() {
-				const actual = model.validate( { foo: 'bar' } );
+				const actual = form.validate( { foo: 'bar' } );
 				expect( actual ).to.be.null;
 			} );
 
 			it( 'adds any Notification returned from the sanitize method to form.notifications', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.has( 'testcode' ) ).to.be.true;
 			} );
 
 			it( 'adds `viaWidgetFormSanitizeReturn` property to any Notification returned from the sanitize method', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.value( 'testcode' ).viaWidgetFormSanitizeReturn ).to.be.true;
 			} );
 
 			it( 'adds `viaWidgetFormSanitizeReturn` property to any Notification returned from the sanitize method', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.value( 'testcode' ).viaWidgetFormSanitizeReturn ).to.be.true;
 			} );
 
 			it( 'causes subsequent calls to remove any Notifications from form.notifications which have the `viaWidgetFormSanitizeReturn` property', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				MyForm.returnNotification = false;
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.has( 'testcode' ) ).to.be.false;
 			} );
 
@@ -245,13 +219,13 @@ describe( 'wp.widgets.Form', function() {
 				notification.firstOne = true;
 				notification.viaWidgetFormSanitizeReturn = true;
 				form.notifications.add( 'testcode', notification );
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.value( 'testcode' ) ).to.not.have.property( 'firstOne' );
 			} );
 		} );
 
 		describe( 'if the sanitize function returns an Error', function() {
-			let MyForm, form;
+			let MyForm;
 
 			beforeEach( function() {
 				MyForm = CustomForm.extend( {
@@ -262,22 +236,22 @@ describe( 'wp.widgets.Form', function() {
 			} );
 
 			it( 'returns null', function() {
-				const actual = model.validate( { foo: 'bar' } );
+				const actual = form.validate( { foo: 'bar' } );
 				expect( actual ).to.be.null;
 			} );
 
 			it( 'adds a Notification with the code `invalidValue`', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.has( 'invalidValue' ) ).to.be.true;
 			} );
 
 			it( 'adds a Notification with the type `error`', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.value( 'invalidValue' ).type ).to.eql( 'error' );
 			} );
 
 			it( 'adds a Notification with the Error message in the message', function() {
-				model.validate( { foo: 'bar' } );
+				form.validate( { foo: 'bar' } );
 				expect( form.notifications.value( 'invalidValue' ).message ).to.eql( 'test error' );
 			} );
 		} );
@@ -381,9 +355,14 @@ describe( 'wp.widgets.Form', function() {
 			form = new CustomForm( { model, container: '.findme' } );
 		} );
 
-		it( 'updates the model by merging its value with the passed object properties', function() {
+		it( 'updates the model by merging its value with the passed object properties to add values', function() {
 			form.setState( { beep: 'boop' } );
 			expect( model.get().beep ).to.eql( 'boop' );
+		} );
+
+		it( 'updates the model by merging its value with the passed object properties to replace values', function() {
+			form.setState( { hello: 'boop' } );
+			expect( model.get().hello ).to.eql( 'boop' );
 		} );
 
 		it( 'retains the current values on the model if not specifically overwritten', function() {
@@ -393,6 +372,30 @@ describe( 'wp.widgets.Form', function() {
 
 		it( 'does not change the model if no properties are passed', function() {
 			form.setState( {} );
+			expect( model.get() ).to.eql( { hello: 'world' } );
+		} );
+
+		it( 'calls form.validate() on its value before updating the model', function() {
+			form.validate = () => ( { valid: 'good' } );
+			form.setState( { invalid: 'bad' } );
+			expect( model.get() ).to.eql( { hello: 'world', valid: 'good' } );
+		} );
+
+		it( 'if form.validate returns an Error, the model is left unchanged', function() {
+			form.validate = () => new Error( 'test error' );
+			form.setState( { invalid: 'bad' } );
+			expect( model.get() ).to.eql( { hello: 'world' } );
+		} );
+
+		it( 'if form.validate returns null, the model is left unchanged', function() {
+			form.validate = () => null;
+			form.setState( { invalid: 'bad' } );
+			expect( model.get() ).to.eql( { hello: 'world' } );
+		} );
+
+		it( 'if form.validate returns a Notification, the model is left unchanged', function() {
+			form.validate = () => new Notification( 'other-notification', { message: 'test', type: 'warning' } );
+			form.setState( { invalid: 'bad' } );
 			expect( model.get() ).to.eql( { hello: 'world' } );
 		} );
 	} );
