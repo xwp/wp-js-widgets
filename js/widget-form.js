@@ -48,8 +48,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 			form.container = $( form.container );
 
 			validateForm( form );
-
-			form.model.validate = getValidateWidget( form, form.model.validate );
 		},
 
 		/**
@@ -102,6 +100,34 @@ wp.widgets.Form = (function( api, $, _ ) {
 		getNotificationsContainerElement: function getNotificationsContainerElement() {
 			var form = this;
 			return form.container.find( '.js-widget-form-notifications-container:first' );
+		},
+
+		/**
+		 * Validate the instance data.
+		 *
+		 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
+		 *
+		 * @param {object} value Instance value.
+		 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
+		 */
+		validate: function validate( value ) {
+			var form = this, newValue, oldValue;
+			oldValue = form.model.get();
+			newValue = form.sanitize( value, oldValue );
+
+			// Remove all existing notifications added via sanitization since only one can be returned.
+			removeSanitizeNotifications( form.notifications );
+
+			// If sanitize method returned an error/notification, block setting update and add a notification
+			if ( newValue instanceof Error ) {
+				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
+			}
+			if ( newValue instanceof api.Notification ) {
+				addSanitizeNotification( form, newValue );
+				return null;
+			}
+
+			return newValue;
 		},
 
 		/**
@@ -166,8 +192,12 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @returns {void}
 		 */
 		setState: function setState( props ) {
-			var form = this, value;
-			value = _.extend( {}, form.model.get(), props || {} );
+			var form = this, value, validated;
+			validated = form.validate( props || {} );
+			if ( ! validated || validated instanceof Error || validated instanceof api.Notification ) {
+				return;
+			}
+			value = _.extend( {}, form.model.get(), validated );
 			form.model.set( value );
 		},
 
@@ -418,45 +448,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 	function addSanitizeNotification( widgetForm, notification ) {
 		notification.viaWidgetFormSanitizeReturn = true;
 		widgetForm.notifications.add( notification.code, notification );
-	}
-
-	/**
-	 * Return a new validation function for a Form's model
-	 *
-	 * The new method will call the old method first.
-	 *
-	 * @param {Form} widgetForm The instance of the Form to modify
-	 * @param {Function} previousValidate The old version of the model's validate method
-	 * @return {Function} The new validate method
-	 */
-	function getValidateWidget( widgetForm, previousValidate ) {
-		/**
-		 * Validate the instance data.
-		 *
-		 * @todo In order for returning an error/notification to work properly, api._handleSettingValidities needs to only remove notification errors that are no longer valid which are fromServer:
-		 *
-		 * @param {object} value Instance value.
-		 * @returns {object|Error|wp.customize.Notification} Sanitized instance value or error/notification.
-		 */
-		return function validate( value ) {
-			var setting = this, newValue, oldValue;
-			oldValue = setting();
-			newValue = widgetForm.sanitize( previousValidate.call( setting, value ), oldValue );
-
-			// Remove all existing notifications added via sanitization since only one can be returned.
-			removeSanitizeNotifications( widgetForm.notifications );
-
-			// If sanitize method returned an error/notification, block setting update and add a notification
-			if ( newValue instanceof Error ) {
-				newValue = new api.Notification( 'invalidValue', { message: newValue.message, type: 'error' } );
-			}
-			if ( newValue instanceof api.Notification ) {
-				addSanitizeNotification( widgetForm, newValue );
-				return null;
-			}
-
-			return newValue;
-		};
 	}
 
 	/**
