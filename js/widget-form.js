@@ -257,6 +257,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 					return;
 				}
 
+				// @todo: use setState instead of updating the model directly
 				syncedProperty = form.createSyncedPropertyValue( form.model, field );
 				syncedProperty.element = new api.Element( input );
 				syncedProperty.element.set( initialInstanceData[ field ] );
