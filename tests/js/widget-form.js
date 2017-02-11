@@ -663,4 +663,26 @@ describe( 'wp.widgets.Form', function() {
 			expect( jQuery( '.hello-field' ).val() ).to.eql( 'computer' );
 		} );
 	} );
+
+	describe( 'when rendered and then destroyed', function() {
+		let model, form;
+
+		beforeEach( function() {
+			model = new Value( { hello: 'world' } );
+			jQuery( '.root' ).append( '<script type="text/template" id="tmpl-my-template"><input class="hello-field" type="text" data-field="hello" /></script>' );
+			const MyForm = CustomForm.extend( {
+				config: { form_template_id: 'my-template' },
+			} );
+			form = new MyForm( { model, container: '.findme' } );
+			form.render();
+		} );
+
+		it( 'removes event bindings between the Form and the DOM', function() {
+			// This is hard to test; keep the DOM around to see if it retains references
+			form.container.empty = () => null;
+			form.destruct();
+			model.set( { hello: 'computer' } );
+			expect( jQuery( '.hello-field' ).val() ).to.not.eql( 'computer' );
+		} );
+	} );
 } );
