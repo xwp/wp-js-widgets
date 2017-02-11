@@ -215,15 +215,15 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @returns {object} Property value instance.
 		 */
 		createSyncedPropertyValue: function createSyncedPropertyValue( root, property ) {
-			var propertyValue, rootChangeListener, propertyChangeListener;
+			var form = this, propertyValue, rootChangeListener, propertyChangeListener;
 
 			propertyValue = new api.Value( root.get()[ property ] );
 
 			// Sync changes to the property back to the root value.
 			propertyChangeListener = function( newPropertyValue ) {
-				var rootValue = _.clone( root.get() );
-				rootValue[ property ] = newPropertyValue;
-				root.set( rootValue );
+				var newState = {};
+				newState[ property ] = newPropertyValue;
+				form.setState( newState );
 			};
 			propertyValue.bind( propertyChangeListener );
 
