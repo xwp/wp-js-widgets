@@ -33,7 +33,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @param {object}             properties           Properties.
 		 * @param {string}             properties.id_base   The widget ID base (aka type).
 		 * @param {wp.customize.Value} properties.model     The Value or Setting instance containing the widget instance data object.
-		 * @param {Element|jQuery}     properties.container The Value or Setting instance containing the widget instance data object.
+		 * @param {string|Element|jQuery} properties.container The selector string or DOM element in which to render this Form.
 		 * @param {object}             properties.config    Form config.
 		 * @return {void}
 		 */
