@@ -197,12 +197,11 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 */
 		setState: function setState( props ) {
 			var form = this, value, validated;
-			validated = form.validate( props || {} );
+			validated = form.validate( _.extend( {}, form.model.get(), props ) );
 			if ( ! validated || validated instanceof Error || validated instanceof api.Notification ) {
 				return;
 			}
-			value = _.extend( {}, form.model.get(), validated );
-			form.model.set( value );
+			form.model.set( validated );
 		},
 
 		/**
@@ -221,7 +220,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		createSyncedPropertyValue: function createSyncedPropertyValue( root, property ) {
 			var form = this, propertyValue, rootChangeListener, propertyChangeListener;
 
-			propertyValue = new api.Value( root.get()[ property ] );
+			propertyValue = new api.Value( form.getValue()[ property ] );
 
 			// Sync changes to the property back to the root value.
 			propertyChangeListener = function( newPropertyValue ) {
