@@ -40,6 +40,10 @@ wp.widgets.Form = (function( api, $, _ ) {
 		initialize: function initialize( properties ) {
 			var form = this;
 
+			if ( ! form.id_base ) {
+				throw new Error( 'Missing id_base' );
+			}
+
 			_.extend( form, getValidatedFormProperties( form.config, properties ) );
 
 			form.setting = form.model; // @todo Deprecate 'setting' name in favor of 'model'?
