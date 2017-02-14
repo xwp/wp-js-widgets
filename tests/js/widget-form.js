@@ -383,6 +383,12 @@ describe( 'wp.widgets.Form', function() {
 			expect( model.get() ).to.eql( { hello: 'world', valid: 'good' } );
 		} );
 
+		it( 'calls form.validate() with the new value merged with the model\'s current value', function() {
+			form.validate = sinon.spy();
+			form.setState( { foo: 'bar' } );
+			expect( form.validate ).to.be.calledWith( { hello: 'world', foo: 'bar' } );
+		} );
+
 		it( 'if form.validate returns an Error, the model is left unchanged', function() {
 			form.validate = () => new Error( 'test error' );
 			form.setState( { invalid: 'bad' } );
