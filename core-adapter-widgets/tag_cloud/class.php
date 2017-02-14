@@ -184,7 +184,7 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 				$taxonomy_choices[ $taxonomy->name ] = $taxonomy->label;
 			}
 			$this->render_form_field_template( array(
-				'name' => 'taxonomy',
+				'field' => 'taxonomy',
 				'label' => __( 'Taxonomy:', 'default' ),
 				'type' => 'select',
 				'choices' => $taxonomy_choices,
