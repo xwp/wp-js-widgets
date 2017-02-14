@@ -196,7 +196,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * @returns {void}
 		 */
 		setState: function setState( props ) {
-			var form = this, value, validated;
+			var form = this, validated;
 			validated = form.validate( _.extend( {}, form.model.get(), props ) );
 			if ( ! validated || validated instanceof Error || validated instanceof api.Notification ) {
 				return;
