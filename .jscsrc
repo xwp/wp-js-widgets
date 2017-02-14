@@ -1,5 +1,9 @@
 {
 	"preset": "wordpress",
+	"requireCamelCaseOrUpperCaseIdentifiers": {
+		"ignoreProperties": true,
+		"allExcept": [ "Shortcode_UI" ]
+	},
 	"excludeFiles": [
 		"**/*.min.js",
 		"**/*.jsx",

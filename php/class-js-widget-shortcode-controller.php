@@ -96,7 +96,12 @@ class JS_Widget_Shortcode_Controller {
 		$args['before_widget'] = sprintf( $args['before_widget'], $widget_id, $this->widget->widget_options['classname'] );
 
 		/** This filter is documented in wp-includes/widgets.php */
-		$params = apply_filters( 'dynamic_sidebar_params', array( $args, array( 'number' => null ) ) );
+		$params = apply_filters( 'dynamic_sidebar_params', array(
+			$args,
+			array(
+				'number' => null,
+			),
+		) );
 
 		return $params[0];
 	}
@@ -111,7 +116,9 @@ class JS_Widget_Shortcode_Controller {
 	 */
 	public function render_widget_shortcode( $atts ) {
 		$atts = shortcode_atts(
-			array( 'encoded_json_instance' => '' ),
+			array(
+				'encoded_json_instance' => '',
+			),
 			$atts,
 			$this->get_shortcode_tag()
 		);

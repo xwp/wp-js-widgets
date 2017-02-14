@@ -164,10 +164,10 @@ class JS_Widgets_Plugin {
 		$deps = array( 'admin-widgets', $this->script_handles['form'] );
 		$wp_scripts->add( $this->script_handles['admin-js-widgets'], $src, $deps, $this->version );
 
-		$this->script_handles['shortcode-ui-js-widgets'] = 'shortcode-ui-js-widgets';
-		$src = $plugin_dir_url . 'js/shortcode-ui-js-widgets.js';
+		$this->script_handles['shortcode-ui-view-widget-form-field'] = 'shortcode-ui-view-widget-form-field';
+		$src = $plugin_dir_url . 'js/shortcode-ui-view-widget-form-field.js';
 		$deps = array( 'shortcode-ui', $this->script_handles['form'] );
-		$wp_scripts->add( $this->script_handles['shortcode-ui-js-widgets'], $src, $deps, $this->version );
+		$wp_scripts->add( $this->script_handles['shortcode-ui-view-widget-form-field'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -298,8 +298,7 @@ class JS_Widgets_Plugin {
 	function enqueue_shortcode_ui() {
 		global $wp_widget_factory;
 
-		wp_enqueue_script( $this->script_handles['shortcode-ui-js-widgets'] );
-		wp_add_inline_script( $this->script_handles['shortcode-ui-js-widgets'], 'wp.shortcake.JSWidgets.init()' );
+		wp_enqueue_script( $this->script_handles['shortcode-ui-view-widget-form-field'] );
 
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget ) {
@@ -400,6 +399,7 @@ class JS_Widgets_Plugin {
 	public function filter_shortcode_ui_fields( $fields ) {
 		$fields['widget_form'] = array(
 			'template' => 'shortcode-ui-field-widget_form',
+			'view' => 'widgetFormField',
 		);
 		return $fields;
 	}
@@ -409,12 +409,6 @@ class JS_Widgets_Plugin {
 	 */
 	public function print_shortcode_ui_templates() {
 		$this->render_widget_form_template_scripts();
-
-		?>
-		<script id="tmpl-shortcode-ui-field-widget_form" type="text/template">
-			<input type="hidden" name="{{ data.attr }}" id="{{ data.id }}" {{{ data.meta }}} value="{{ data.value }}">
-		</script>
-		<?php
 	}
 
 	/**
