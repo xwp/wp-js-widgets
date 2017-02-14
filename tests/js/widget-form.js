@@ -376,7 +376,9 @@ describe( 'wp.widgets.Form', function() {
 		} );
 
 		it( 'calls form.validate() on its value before updating the model', function() {
-			form.validate = () => ( { valid: 'good' } );
+			form.validate = original => {
+				return Object.assign( {}, _.omit( original, [ 'invalid' ] ), { valid: 'good' } );
+			};
 			form.setState( { invalid: 'bad' } );
 			expect( model.get() ).to.eql( { hello: 'world', valid: 'good' } );
 		} );
