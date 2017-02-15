@@ -46,7 +46,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 			form.renderNotifications = _.bind( form.renderNotifications, form );
 			form.container = $( form.container );
 
-			validateForm( form );
+			assertValidForm( form );
 		},
 
 		/**
@@ -456,7 +456,7 @@ wp.widgets.Form = (function( api, $, _ ) {
 	 * @param {Form} widgetForm The instance of the Form to modify
 	 * @return {void}
 	 */
-	function validateForm( widgetForm ) {
+	function assertValidForm( widgetForm ) {
 		if ( ! widgetForm.model || ! widgetForm.model.extended || ! widgetForm.model.extended( api.Value ) ) {
 			throw new Error( 'Widget Form is missing model property which must be a Value or Setting instance.' );
 		}
