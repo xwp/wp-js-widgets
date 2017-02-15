@@ -31,7 +31,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 * Initialize.
 		 *
 		 * @param {object}             properties           Properties.
-		 * @param {string}             properties.id_base   The widget ID base (aka type).
 		 * @param {wp.customize.Value} properties.model     The Value or Setting instance containing the widget instance data object.
 		 * @param {string|Element|jQuery} properties.container The selector string or DOM element in which to render this Form.
 		 * @param {object}             properties.config    Form config.
@@ -39,10 +38,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 		 */
 		initialize: function initialize( properties ) {
 			var form = this;
-
-			if ( ! form.id_base ) {
-				throw new Error( 'Missing id_base' );
-			}
 
 			_.extend( form, getValidatedFormProperties( form.config, properties ) );
 
@@ -467,9 +462,6 @@ wp.widgets.Form = (function( api, $, _ ) {
 		}
 		if ( 0 === widgetForm.container.length ) {
 			throw new Error( 'Widget Form is missing container property as Element or jQuery.' );
-		}
-		if ( ! widgetForm.id_base ) {
-			throw new Error( 'Widget Form class is missing id_base' );
 		}
 		if ( ! widgetForm.config || ! widgetForm.config.default_instance ) {
 			throw new Error( 'Widget Form class is missing config.default_instance' );
