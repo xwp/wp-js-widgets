@@ -35,7 +35,6 @@ describe( 'wp.widgets.Form', function() {
 		resetGlobals();
 		jQuery( '.root' ).html( markup );
 		CustomForm = Form.extend( {
-			id_base: 'custom',
 			config: { default_instance: { red: '#f00' } },
 		} );
 	} );
@@ -66,16 +65,6 @@ describe( 'wp.widgets.Form', function() {
 		it( 'throws an error if the model property is not an instance of Value', function( done ) {
 			try {
 				new CustomForm( { model: { hello: 'world' }, container } );
-			} catch ( err ) {
-				done();
-			}
-			throw new Error( 'Expected initialize to throw an Error but it did not' );
-		} );
-
-		it( 'throws an error if the id_base property is not set on the Form prototype', function( done ) {
-			CustomForm.prototype.id_base = null;
-			try {
-				new CustomForm( { model, container } );
 			} catch ( err ) {
 				done();
 			}
