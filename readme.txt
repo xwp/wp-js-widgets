@@ -1,5 +1,5 @@
 === JS Widgets ===
-Contributors:      xwp, westonruter
+Contributors:      xwp, westonruter, sirbrillig
 Tags:              customizer, widgets, rest-api
 Requires at least: 4.7.0
 Tested up to:      4.7.0
@@ -80,6 +80,10 @@ Fixed:
 See [issues and PRs in milestone](https://github.com/xwp/wp-js-widgets/milestone/1?closed=1) and [full release commit log](https://github.com/xwp/wp-js-widgets/compare/0.2.0...0.3.0).
 
 See also updated [Customizer Object Selector](https://wordpress.org/plugins/customize-object-selector/) and [Next Recent Posts Widget](https://github.com/xwp/wp-next-recent-posts-widget) plugins.
+
+= 0.3.0 - 2017-02-?? (Unreleased) =
+
+* Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
 
 = 0.2.0 - 2017-01-02 =
 

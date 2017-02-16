@@ -13,9 +13,7 @@ wp.widgets.formConstructor.archives = (function() {
 	 *
 	 * @constructor
 	 */
-	ArchivesWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'archives'
-	} );
+	ArchivesWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = ArchivesWidgetForm;

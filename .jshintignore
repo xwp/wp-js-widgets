@@ -3,3 +3,4 @@
 **/vendor/**
 **/*.jsx
 /bower_components/**
+/tests/js/**

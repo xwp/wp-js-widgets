@@ -21,6 +21,7 @@ install:
     - source $DEV_LIB_PATH/travis.install.sh
 
 script:
+    - npm test
     - source $DEV_LIB_PATH/travis.script.sh
 
 after_script:

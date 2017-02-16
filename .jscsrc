@@ -9,6 +9,7 @@
 		"**/*.jsx",
 		"**/node_modules/**",
 		"**/vendor/**",
+		"**/tests/**",
 		"bower_components/**"
 	]
 }
