@@ -91,6 +91,23 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 	}
 
 	/**
+	 * Render widget.
+	 *
+	 * @param array $args     Widget args.
+	 * @param array $instance Widget instance.
+	 * @return void
+	 */
+	public function render( $args, $instance ) {
+
+		// Convert an array exclude into a string exclude since wp_list_pages() requires it.
+		if ( isset( $instance['exclude'] ) && is_array( $instance['exclude'] ) ) {
+			$instance['exclude'] = join( ',', $instance['exclude'] );
+		}
+
+		$this->adapted_widget->widget( $args, $instance );
+	}
+
+	/**
 	 * Sanitize instance data.
 	 *
 	 * @inheritdoc
