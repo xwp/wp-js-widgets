@@ -126,8 +126,11 @@ class JS_Widget_Shortcode_Controller {
 		$instance_data = array();
 		if ( ! empty( $atts['encoded_json_instance'] ) ) {
 			$decoded_instance_data = json_decode( urldecode( $atts['encoded_json_instance'] ), true );
-			if ( is_array( $decoded_instance_data ) ) {
-				$instance_data = $decoded_instance_data;
+			if ( is_array( $decoded_instance_data ) && true === $this->widget->validate( $decoded_instance_data ) ) {
+				$instance_data = $this->widget->sanitize( $decoded_instance_data, array() );
+				if ( is_wp_error( $instance_data ) ) {
+					$instance_data = array();
+				}
 			}
 		}
 
