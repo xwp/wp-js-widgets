@@ -3,8 +3,8 @@
  * Plugin Name: JS Widgets: Post Collection Widget
  * Description: A widget allowing for featuring a curated list of posts.
  * Plugin URI: https://github.com/xwp/wp-js-widgets/
- * Version: 0.3.0-alpha
- * Author: Weston Ruter, XWP
+ * Version: 0.3.0-beta
+ * Author: XWP
  * Author URI: https://make.xwp.co/
  * License: GPLv2+
  *
