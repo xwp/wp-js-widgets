@@ -13,9 +13,7 @@ wp.widgets.formConstructor.categories = (function() {
 	 *
 	 * @constructor
 	 */
-	CategoriesWidgetForm = wp.widgets.Form.extend( {
-		id_base: 'categories'
-	} );
+	CategoriesWidgetForm = wp.widgets.Form.extend( {} );
 
 	if ( 'undefined' !== typeof module ) {
 		module.exports = CategoriesWidgetForm;

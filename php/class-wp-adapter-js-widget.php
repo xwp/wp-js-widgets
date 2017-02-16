@@ -87,6 +87,11 @@ abstract class WP_Adapter_JS_Widget extends WP_JS_Widget {
 			wp_json_encode( $this->id_base ),
 			wp_json_encode( $this->get_form_config() )
 		) );
+		wp_add_inline_script( $handle, sprintf(
+			'wp.widgets.formConstructor[ %s ].prototype.id_base = %s;',
+			wp_json_encode( $this->id_base ),
+			wp_json_encode( $this->id_base )
+		) );
 	}
 
 	/**

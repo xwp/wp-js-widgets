@@ -4,12 +4,13 @@
   "homepage": "https://github.com/xwp/wp-js-widgets",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xwp/wp-js-widgets.git"
+    "url": "git+https://github.com/xwp/wp-js-widgets.git"
   },
   "version": "0.3.0",
   "license": "GPL-2.0+",
   "private": true,
   "devDependencies": {
+    "chai": "^3.5.0",
     "eslint": "^3.13.1",
     "grunt": "~0.4.5",
     "grunt-contrib-clean": "~1.0.0",
@@ -17,7 +18,25 @@
     "grunt-contrib-jshint": "~1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-shell": "^1.3.1",
-    "grunt-wp-deploy": "^1.2.1"
+    "grunt-wp-deploy": "^1.2.1",
+    "jquery": "^3.1.1",
+    "jsdom": "^9.9.1",
+    "jsdom-global": "^2.1.1",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.7",
+    "sinon-chai": "^2.8.0",
+    "underscore": "^1.8.3"
   },
-  "author": "XWP"
+  "author": "XWP",
+  "description": "The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.",
+  "bugs": {
+    "url": "https://github.com/xwp/wp-js-widgets/issues"
+  },
+  "main": "Gruntfile.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha tests/js"
+  }
 }

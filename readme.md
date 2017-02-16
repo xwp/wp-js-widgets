@@ -3,7 +3,7 @@
 
 The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
 
-**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter)  
+**Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter), [sirbrillig](https://profiles.wordpress.org/sirbrillig)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
 **Requires at least:** 4.7.0  
 **Tested up to:** 4.7.0  
@@ -82,6 +82,9 @@ Fixed:
 See [issues and PRs in milestone](https://github.com/xwp/wp-js-widgets/milestone/1?closed=1) and [full release commit log](https://github.com/xwp/wp-js-widgets/compare/0.2.0...0.3.0).
 
 See also updated [Customizer Object Selector](https://wordpress.org/plugins/customize-object-selector/) and [Next Recent Posts Widget](https://github.com/xwp/wp-next-recent-posts-widget) plugins.
+
+### 0.3.0 - 2017-02-?? (Unreleased) ###
+* Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
 
 ### 0.2.0 - 2017-01-02 ###
 * Important: Update minimum WordPress core version to 4.7.0.
