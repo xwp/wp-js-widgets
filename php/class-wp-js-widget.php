@@ -613,12 +613,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 				} elseif ( 'integer' === $schema_type || 'number' === $schema_type ) {
 					$default_input_attrs['type'] = 'number';
 				} elseif ( 'string' === $schema_type && isset( $field_schema['format'] ) ) {
+
+					// @todo Support date-time format.
 					if ( 'uri' === $field_schema['format'] ) {
 						$default_input_attrs['type'] = 'url';
 					} elseif ( 'email' === $field_schema['format'] ) {
 						$default_input_attrs['type'] = 'email';
 					}
-					// @todo Support date-time format.
 				}
 
 				if ( 'integer' === $schema_type ) {
@@ -673,9 +674,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 			</select>
 			<?php
 		} elseif ( 'textarea' === $input_attrs['type'] ) {
+			unset( $input_attrs['type'] );
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<textarea id="{{ domId }}" <?php unset( $input_attrs['type'] ); $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
 			<?php
 		} else {
 			?>
