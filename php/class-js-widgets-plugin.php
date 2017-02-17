@@ -27,13 +27,6 @@ class JS_Widgets_Plugin {
 	public $rest_api_namespace = 'js-widgets/v1';
 
 	/**
-	 * Registered controllers for widget shortcodes.
-	 *
-	 * @var JS_Widget_Shortcode_Controller[]
-	 */
-	public $widget_shortcodes = array();
-
-	/**
 	 * Instances of JS_Widgets_REST_Controller for each widget type.
 	 *
 	 * @var array
@@ -79,6 +72,13 @@ class JS_Widgets_Plugin {
 	public $script_handles = array();
 
 	/**
+	 * Shortcode UI (Shortcake) integration.
+	 *
+	 * @var Shortcode_UI
+	 */
+	public $shortcode_ui;
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -118,12 +118,9 @@ class JS_Widgets_Plugin {
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
 
 		// Shortcake integration.
-		add_action( 'widgets_init', array( $this, 'register_widget_shortcodes' ), 90 );
-		add_filter( 'shortcode_ui_fields', array( $this, 'filter_shortcode_ui_fields' ) );
-		add_action( 'print_shortcode_ui_templates', array( $this, 'print_shortcode_ui_templates' ) );
-		add_action( 'enqueue_shortcode_ui', array( $this, 'enqueue_shortcode_ui' ) );
-
-		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
+		require_once __DIR__ . '/class-js-widgets-shortcode-ui.php';
+		$this->shortcode_ui = new JS_Widgets_Shortcode_UI( $this );
+		$this->shortcode_ui->add_hooks();
 	}
 
 	/**
@@ -291,23 +288,6 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
-	 * Enqueue scripts for shortcode UI.
-	 *
-	 * @global WP_Widget_Factory $wp_widget_factory
-	 */
-	function enqueue_shortcode_ui() {
-		global $wp_widget_factory;
-
-		wp_enqueue_script( $this->script_handles['shortcode-ui-view-widget-form-field'] );
-
-		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
-				$widget->enqueue_control_scripts();
-			}
-		}
-	}
-
-	/**
 	 * Enqueue scripts on the frontend.
 	 *
 	 * @access public
@@ -371,44 +351,6 @@ class JS_Widgets_Plugin {
 			$widget = new $class_name( $this, $registered_widgets[ $id_base ]['instance'] );
 			$wp_widget_factory->widgets[ $registered_widgets[ $id_base ]['key'] ] = $widget;
 		}
-	}
-
-	/**
-	 * Register widget shortcodes.
-	 *
-	 * @global WP_Widget_Factory $wp_widget_factory
-	 */
-	public function register_widget_shortcodes() {
-		global $wp_widget_factory;
-		require_once __DIR__ . '/class-js-widget-shortcode-controller.php';
-		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( $widget instanceof WP_JS_Widget ) {
-				$widget_shortcode = new JS_Widget_Shortcode_Controller( $this, $widget );
-				$widget_shortcode->register_shortcode();
-				add_action( 'register_shortcode_ui', array( $widget_shortcode, 'register_shortcode_ui' ) );
-			}
-		}
-	}
-
-	/**
-	 * Add widget_form as a new shortcode UI field.
-	 *
-	 * @param array $fields Shortcode fields.
-	 * @return array Fields.
-	 */
-	public function filter_shortcode_ui_fields( $fields ) {
-		$fields['widget_form'] = array(
-			'template' => 'shortcode-ui-field-widget_form',
-			'view' => 'widgetFormField',
-		);
-		return $fields;
-	}
-
-	/**
-	 * Print shortcode UI templates.
-	 */
-	public function print_shortcode_ui_templates() {
-		$this->render_widget_form_template_scripts();
 	}
 
 	/**
