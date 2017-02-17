@@ -27,6 +27,13 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 	public $id_base = 'post-collection';
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-admin-post';
+
+	/**
 	 * Base query vars used in post lookup.
 	 *
 	 * @var array

@@ -13,6 +13,13 @@
 class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-admin-post';
+
+	/**
 	 * WP_JS_Widget_Recent_Posts constructor.
 	 *
 	 * @param JS_Widgets_Plugin      $plugin         Plugin.

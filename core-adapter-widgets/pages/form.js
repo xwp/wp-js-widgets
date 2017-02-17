@@ -81,8 +81,8 @@ wp.widgets.formConstructor.pages = (function( api ) {
 							excludeIds.push( id );
 						}
 					} );
+					form.model._value.exclude = excludeIds;
 				}
-				form.model._value.exclude = excludeIds;
 
 				form.syncedProperties.exclude = form.createSyncedPropertyValue( form.model, 'exclude' );
 			}
