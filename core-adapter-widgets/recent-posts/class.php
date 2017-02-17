@@ -111,7 +111,7 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 	public function get_rest_response_links( $response, $request, $controller ) {
 		$links = array();
 
-		$links['wp:post'] = array();
+		$links['item'] = array();
 		foreach ( $response->data['posts'] as $post_id ) {
 			$post = get_post( $post_id );
 			if ( empty( $post ) ) {
@@ -125,7 +125,7 @@ class WP_JS_Widget_Recent_Posts extends WP_Adapter_JS_Widget {
 			$rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 			$base = sprintf( '/wp/v2/%s', $rest_base );
 
-			$links['wp:post'][] = array(
+			$links['item'][] = array(
 				'href'       => rest_url( trailingslashit( $base ) . $post_id ),
 				'embeddable' => true,
 				'post_type'  => $post->post_type,

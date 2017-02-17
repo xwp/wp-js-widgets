@@ -171,7 +171,7 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 	public function get_rest_response_links( $response, $request, $controller ) {
 		$links = array();
 
-		$links['wp:term'] = array();
+		$links['item'] = array();
 		foreach ( $response->data['terms'] as $term_id ) {
 			$term = get_term( (int) $term_id );
 			if ( empty( $term ) || is_wp_error( $term ) ) {
@@ -185,7 +185,7 @@ class WP_JS_Widget_Categories extends WP_Adapter_JS_Widget {
 			$rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 			$base = sprintf( '/wp/v2/%s', $rest_base );
 
-			$links['wp:term'][] = array(
+			$links['item'][] = array(
 				'href'       => rest_url( trailingslashit( $base ) . $term_id ),
 				'embeddable' => true,
 				'taxonomy'  => $term->taxonomy,

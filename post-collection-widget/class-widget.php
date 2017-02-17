@@ -237,7 +237,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 		unset( $request, $controller );
 		$links = array();
 
-		$links['wp:post'] = array();
+		$links['item'] = array();
 		foreach ( $response->data['posts'] as $post_id ) {
 			$post = get_post( $post_id );
 			if ( empty( $post ) ) {
@@ -251,7 +251,7 @@ class WP_JS_Widget_Post_Collection extends WP_JS_Widget {
 			$rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 			$base = sprintf( '/wp/v2/%s', $rest_base );
 
-			$links['wp:post'][] = array(
+			$links['item'][] = array(
 				'href'       => rest_url( trailingslashit( $base ) . $post_id ),
 				'embeddable' => true,
 				'post_type'  => $post->post_type,
