@@ -135,6 +135,7 @@ class JS_Widget_Shortcode_Controller {
 		}
 
 		ob_start();
+		$this->widget->enqueue_frontend_scripts();
 		$this->widget->render( $this->get_sidebar_args(), $instance_data );
 		return ob_get_clean();
 	}

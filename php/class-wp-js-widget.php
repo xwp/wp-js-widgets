@@ -453,6 +453,12 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @param array $instance The settings for the particular instance of the widget.
 	 */
 	final public function widget( $args, $instance ) {
+		/*
+		 * Make sure frontend scripts and styles get enqueued if not already done.
+		 * This is particularly important in the case of a widget used in a shortcode.
+		 */
+		$this->enqueue_frontend_scripts();
+
 		$this->render( $args, $instance );
 	}
 
