@@ -35,7 +35,9 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 	 * @return array Schema.
 	 */
 	public function get_item_schema() {
-		$taxonomies = get_taxonomies( array( 'show_tagcloud' => true ), 'names' );
+		$taxonomies = get_taxonomies( array(
+			'show_tagcloud' => true,
+		), 'names' );
 		if ( ! get_option( 'link_manager_enabled' ) ) {
 			unset( $taxonomies['link_category'] );
 		}
@@ -87,7 +89,9 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 		if ( true !== $validity ) {
 			return $validity;
 		}
-		if ( 0 === count( get_taxonomies( array( 'show_tagcloud' => true ), 'names' ) ) ) {
+		if ( 0 === count( get_taxonomies( array(
+			'show_tagcloud' => true,
+		), 'names' ) ) ) {
 			return new WP_Error( 'no_tagcloud_taxonomies', __( 'The tag cloud will not be displayed since there are no taxonomies that support the tag cloud widget.', 'default' ) );
 		}
 		return true;
@@ -140,7 +144,10 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 
 		$tags = get_terms(
 			$tag_cloud_args['taxonomy'],
-			array_merge( $tag_cloud_args, array( 'orderby' => 'count', 'order' => 'DESC' ) ) // Always query top tags.
+			array_merge( $tag_cloud_args, array(
+				'orderby' => 'count',
+				'order' => 'DESC',
+			) ) // Always query top tags.
 		);
 
 		// @todo should these not be _links?
@@ -181,7 +188,9 @@ class WP_JS_Widget_Tag_Cloud extends WP_Adapter_JS_Widget {
 		$this->render_title_form_field_template( array(
 			'placeholder' => $item_schema['title']['properties']['raw']['default'],
 		) );
-		$taxonomies = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
+		$taxonomies = get_taxonomies( array(
+			'show_tagcloud' => true,
+		), 'object' );
 		if ( ! get_option( 'link_manager_enabled' ) ) {
 			unset( $taxonomies['link_category'] );
 		}

@@ -18,6 +18,11 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Ignore since we have class files in places like {id_base}/widget.php -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<severity>0</severity>
+	</rule>
+
 	<exclude-pattern>*/dev-lib/*</exclude-pattern>
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>

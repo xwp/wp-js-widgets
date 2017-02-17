@@ -55,6 +55,7 @@ Limitations/Caveats:
 ### 0.4.0 - 2017-02-17 ###
 * Integrate with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow any JS widget to be used inside the editor as a Post Element. See [#11](https://github.com/xwp/wp-js-widgets/issues/11), [#32](https://github.com/xwp/wp-js-widgets/pull/32).
 * Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
+* Use `item` relation in resource links instead of ad hoc `wp:post`, `wp:page`, and `wp:comment` relations. See [#36](https://github.com/xwp/wp-js-widgets/issues/36), [#38](https://github.com/xwp/wp-js-widgets/pull/38).
 
 ### 0.3.0 - 2017-01-11 ###
 Added:
