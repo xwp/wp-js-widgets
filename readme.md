@@ -6,8 +6,8 @@ The next generation of widgets in core, embracing JS for UI and powering the Wid
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter), [sirbrillig](https://profiles.wordpress.org/sirbrillig)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
 **Requires at least:** 4.7.0  
-**Tested up to:** 4.7.0  
-**Stable tag:** 0.3.0  
+**Tested up to:** 4.8-alpha  
+**Stable tag:** 0.4.0  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
 
 [![Build Status](https://travis-ci.org/xwp/wp-js-widgets.svg?branch=master)](https://travis-ci.org/xwp/wp-js-widgets) [![Coverage Status](https://coveralls.io/repos/xwp/wp-js-widgets/badge.svg?branch=master)](https://coveralls.io/github/xwp/wp-js-widgets) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) [![devDependency Status](https://david-dm.org/xwp/wp-js-widgets/dev-status.svg)](https://david-dm.org/xwp/wp-js-widgets#info=devDependencies) 
@@ -26,7 +26,9 @@ This plugin implements:
 
 Features:
 
+* Integrates with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow all JS widgets to be made available as Post Elements in the editor.
 * Widget instance settings in the Customizer are exported from PHP as regular JSON without any PHP-serialized base64-encoded `encoded_serialized_instance` anywhere to be seen.
+* Previewing widget changes in the customizer is faster since the `update-widget` Ajax request can be eliminated since the JS control can directly manipulate the widget instance data.
 * Widgets control forms use JS content templates instead of PHP to render the markup for each control, reducing the weight of the customizer load, especially when there are a lot of widgets in use.
 * Widgets that extend `WP_JS_Widget` will editable from both the customizer and the widgets admin page using the same `Form` JS interface. This `Form` is also able to be embedded in other contexts, like on the frontend and as a Shortcake (Shortcode UI) form. See [#11](https://github.com/xwp/wp-js-widgets/issues/11).
 * Widgets employ the JSON Schema from the REST API to define an instance with validation and sanitization of the instance properties, beyond also providing `validate` and `sanitize` methods that work on the instance array as a whole.
@@ -49,6 +51,10 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 ## Changelog ##
+
+### 0.4.0 - 2017-02-17 ###
+* Integrate with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow any JS widget to be used inside the editor as a Post Element. See [#11](https://github.com/xwp/wp-js-widgets/issues/11), [#32](https://github.com/xwp/wp-js-widgets/pull/32).
+* Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
 
 ### 0.3.0 - 2017-01-11 ###
 Added:
@@ -82,9 +88,6 @@ Fixed:
 See [issues and PRs in milestone](https://github.com/xwp/wp-js-widgets/milestone/1?closed=1) and [full release commit log](https://github.com/xwp/wp-js-widgets/compare/0.2.0...0.3.0).
 
 See also updated [Customizer Object Selector](https://wordpress.org/plugins/customize-object-selector/) and [Next Recent Posts Widget](https://github.com/xwp/wp-next-recent-posts-widget) plugins.
-
-### 0.3.0 - 2017-02-?? (Unreleased) ###
-* Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
 
 ### 0.2.0 - 2017-01-02 ###
 * Important: Update minimum WordPress core version to 4.7.0.
