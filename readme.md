@@ -59,7 +59,7 @@ Limitations/Caveats:
 
 See <a href="https://github.com/xwp/wp-js-widgets/milestone/2?closed=1">issues and PRs in milestone</a> and <a href="https://github.com/xwp/wp-js-widgets/compare/0.3.0...0.4.0">full release commit log</a>.
 
-Props Payton Swick (<a href="https://github.com/sirbrillig" class="user-mention">@sirbrillig</a>),  Weston Ruter (<a href="https://github.com/westonruter" class="user-mention">@westonruter</a>), Piotr Delawski (<a href="https://github.com/delawski" class="user-mention">@delawski</a>.
+Props Payton Swick (<a href="https://github.com/sirbrillig" class="user-mention">@sirbrillig</a>),  Weston Ruter (<a href="https://github.com/westonruter" class="user-mention">@westonruter</a>), Piotr Delawski (<a href="https://github.com/delawski" class="user-mention">@delawski</a>).
 
 ### 0.3.0 - 2017-01-11 ###
 Added:
