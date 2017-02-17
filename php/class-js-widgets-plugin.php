@@ -107,6 +107,7 @@ class JS_Widgets_Plugin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_customize_controls_scripts' ) );
+		add_action( 'customize_controls_print_scripts', array( $this, 'print_available_widget_icon_styles' ), 100 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_widgets_admin_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
@@ -248,6 +249,31 @@ class JS_Widgets_Plugin {
 		}
 
 		wp_enqueue_script( $this->script_handles['trac-39389-controls'] );
+	}
+
+	/**
+	 * Print the CSS styles to ensure the defined Dashicon $icon_name in the available JS widgets panel.
+	 *
+	 * This is somewhat hacky to parse the Dashicons CSS to obtain the necessary CSS properties
+	 * to output into the page
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function print_available_widget_icon_styles() {
+		global $wp_widget_factory;
+
+		$dashicons_content = file_get_contents( ABSPATH . WPINC . '/css/dashicons.css' );
+
+		echo '<style type="text/css">';
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( ! ( $widget instanceof WP_JS_Widget ) || empty( $widget->icon_name ) ) {
+				continue;
+			}
+			if ( preg_match( sprintf( '#\.%s:before\s*{(.+?)}#Ds', $widget->icon_name ), $dashicons_content, $matches ) ) {
+				printf( '#available-widgets .widget-tpl[id^="widget-tpl-%s"] .widget-title:before { %s }', $widget->id_base, $matches[1] );
+			}
+		}
+		echo '</style>';
 	}
 
 	/**

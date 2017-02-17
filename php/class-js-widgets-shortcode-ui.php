@@ -153,7 +153,8 @@ class JS_Widgets_Shortcode_UI {
 	 * Handle printing before shortcode.
 	 *
 	 * @param string $shortcode Shortcode.
-	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global WP_Scripts $wp_scripts
+	 * @global WP_Styles $wp_styles
 	 */
 	public function before_do_shortcode( $shortcode ) {
 		global $wp_scripts, $wp_styles;
@@ -172,6 +173,9 @@ class JS_Widgets_Shortcode_UI {
 
 	/**
 	 * Print scripts and styles that the widget depends on.
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global WP_Styles $wp_styles
 	 */
 	public function after_do_shortcode() {
 		global $wp_scripts, $wp_styles;
