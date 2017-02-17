@@ -13,6 +13,13 @@
 class WP_JS_Widget_Meta extends WP_Adapter_JS_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-wordpress';
+
+	/**
 	 * WP_JS_Widget_Meta constructor.
 	 *
 	 * @param JS_Widgets_Plugin $plugin         Plugin.
@@ -21,7 +28,6 @@ class WP_JS_Widget_Meta extends WP_Adapter_JS_Widget {
 	public function __construct( JS_Widgets_Plugin $plugin, WP_Widget_Meta $adapted_widget ) {
 		parent::__construct( $plugin, $adapted_widget );
 	}
-
 
 	/**
 	 * Get instance schema properties.

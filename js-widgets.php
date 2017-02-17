@@ -3,8 +3,8 @@
  * Plugin Name: JS Widgets
  * Description: The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
  * Plugin URI: https://github.com/xwp/wp-js-widgets/
- * Version: 0.3.0
- * Author: Weston Ruter, XWP
+ * Version: 0.4.0
+ * Author: XWP
  * Author URI: https://make.xwp.co/
  * License: GPLv2+
  *

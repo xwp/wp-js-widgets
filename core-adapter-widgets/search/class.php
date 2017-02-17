@@ -13,6 +13,13 @@
 class WP_JS_Widget_Search extends WP_Adapter_JS_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-search';
+
+	/**
 	 * WP_JS_Widget_Search constructor.
 	 *
 	 * @param JS_Widgets_Plugin $plugin         Plugin.

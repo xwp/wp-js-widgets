@@ -101,7 +101,7 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 		initialize: function initialize( properties ) {
 			var form = this;
 			wp.widgets.Form.prototype.initialize.call( form, properties );
-			_.bindAll( form, 'updateForm', 'handleEditButtonClick' );
+			_.bindAll( form, 'updateForm', 'handleEditButtonClick', 'updateEditButtonVisibility' );
 
 			if ( _.isObject( form.config.nav_menus ) && 0 === classProps.navMenuCollection.length ) {
 				_.each( form.config.nav_menus, function( name, id ) {
@@ -120,10 +120,12 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 			var form = this;
 			wp.widgets.Form.prototype.render.call( form );
 			NavMenuWidgetForm.navMenuCollection.on( 'update change', form.updateForm );
+			form.model.bind( form.updateEditButtonVisibility );
 			form.container.find( 'button.edit' ).on( 'click', form.handleEditButtonClick );
 			form.noMenusMessage = form.container.find( '.no-menus-message' );
 			form.menuSelection = form.container.find( '.menu-selection' );
 			form.updateForm();
+			form.updateEditButtonVisibility();
 		},
 
 		/**
@@ -135,6 +137,7 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 			var form = this;
 			form.container.find( 'button.edit' ).off( 'click', form.handleEditButtonClick );
 			NavMenuWidgetForm.navMenuCollection.off( 'update change', form.updateForm );
+			form.model.unbind( form.updateEditButtonVisibility );
 			form.noMenusMessage = null;
 			form.menuSelection = null;
 			wp.widgets.Form.prototype.destruct.call( form );
@@ -182,6 +185,17 @@ wp.widgets.formConstructor.nav_menu = (function( api, $ ) {
 			select.val( NavMenuWidgetForm.navMenuCollection.has( currentValue.nav_menu ) ? currentValue.nav_menu : 0 );
 			form.noMenusMessage.toggle( 0 === NavMenuWidgetForm.navMenuCollection.length );
 			form.menuSelection.toggle( 0 !== NavMenuWidgetForm.navMenuCollection.length );
+		},
+
+		/**
+		 * Update the visibility of the edit button based on whether a menu is selected.
+		 *
+		 * @returns {void}
+		 */
+		updateEditButtonVisibility: function updateEditButtonVisibility() {
+			var form = this, button;
+			button = form.container.find( '.edit-menu' );
+			button.toggle( NavMenuWidgetForm.navMenuCollection.length > 0 && form.getValue().nav_menu > 0 );
 		}
 
 	}, classProps );

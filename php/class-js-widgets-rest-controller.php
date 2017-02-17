@@ -181,7 +181,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args' => array(
-					'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					'context' => $this->get_context_param( array(
+						'default' => 'view',
+					) ),
 				),
 			),
 			array(
@@ -267,7 +269,10 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 
 				// Only use required / default from arg_options on CREATABLE/EDITABLE endpoints.
 				if ( ! $is_create_or_edit ) {
-					$params['arg_options'] = array_diff_key( $params['arg_options'], array( 'required' => '', 'default' => '' ) );
+					$params['arg_options'] = array_diff_key( $params['arg_options'], array(
+						'required' => '',
+						'default' => '',
+					) );
 				}
 
 				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
@@ -397,7 +402,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	public function get_items_permissions_check( $request ) {
 
 		if ( 'edit' === $request['context'] && ! $this->current_user_can_manage_widgets() ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit widgets.', 'js-widgets' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit widgets.', 'js-widgets' ), array(
+				'status' => rest_authorization_required_code(),
+			) );
 		}
 
 		return true;
@@ -445,7 +452,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$instances = $this->widget->get_settings();
 		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
-			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array(
+				'status' => 404,
+			) );
 		}
 
 		$instance = $instances[ $request['widget_number'] ];
@@ -464,16 +473,22 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		$instances = $this->widget->get_settings();
 		if ( ! array_key_exists( $request['widget_number'], $instances ) ) {
-			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_widget_invalid_number', __( 'Unknown widget.', 'js-widgets' ), array(
+				'status' => 404,
+			) );
 		}
 
 		$old_instance = $instances[ $request['widget_number'] ];
 		$expected_id = $this->get_object_id( $request['widget_number'] );
 		if ( ! empty( $request['id'] ) && $expected_id !== $request['id'] ) {
-			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_widget_unexpected_id', __( 'Widget ID mismatch.', 'js-widgets' ), array(
+				'status' => 400,
+			) );
 		}
 		if ( ! empty( $request['type'] ) && $this->get_object_type() !== $request['type'] ) {
-			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_widget_unexpected_type', __( 'Widget type mismatch.', 'js-widgets' ), array(
+				'status' => 400,
+			) );
 		}
 
 		// Note that $new_instance has gone through the validate and sanitize callbacks defined on the instance schema.
@@ -485,7 +500,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			return $instance;
 		}
 		if ( ! is_array( $instance ) ) {
-			return new WP_Error( 'rest_widget_sanitize_failed', __( 'Sanitization failed.', 'js-widgets' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_widget_sanitize_failed', __( 'Sanitization failed.', 'js-widgets' ), array(
+				'status' => 400,
+			) );
 		}
 
 		$instances[ $request['widget_number'] ] = $instance;
@@ -530,7 +547,9 @@ class JS_Widgets_REST_Controller extends WP_REST_Controller {
 			$widget_number = $request['widget_number'];
 		}
 		if ( empty( $widget_number ) ) {
-			return new WP_Error( 'rest_widget_unavailable_widget_number', __( 'Unknown widget number.', 'js-widgets' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_widget_unavailable_widget_number', __( 'Unknown widget number.', 'js-widgets' ), array(
+				'status' => 500,
+			) );
 		}
 
 		// Just in case.

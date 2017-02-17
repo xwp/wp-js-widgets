@@ -3,7 +3,7 @@
 /* eslint-disable complexity */
 /* eslint consistent-this: [ "error", "control" ] */
 
-wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-vars
+wp.customize.JSWidgets = (function( wp, api, $, _ ) { // eslint-disable-line no-unused-vars
 	'use strict';
 
 	var component = {}, originalInitialize;
@@ -16,7 +16,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 	 * @returns {void}
 	 */
 	component.init = function initComponent() {
-		component.extendWidgetControl();
+		component.extendWidgetControl( api.Widgets.WidgetControl );
 
 		// Handle (re-)adding a (previously-removed) control.
 		api.control.bind( 'add', function( addedControl ) {
@@ -46,9 +46,10 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 	/**
 	 * Inject WidgetControl instances with our component.WidgetControl method overrides.
 	 *
-	 * @returns {void}
+	 * @param {wp.Customize.Widgets.WidgetControl} WidgetControl The constructor function to modify
+	 * @returns {WidgetControl} The constructor function with a modified prototype
 	 */
-	component.extendWidgetControl = function extendWidgetControl() {
+	component.extendWidgetControl = function extendWidgetControl( WidgetControl ) {
 
 		/**
 		 * Initialize JS widget control.
@@ -57,7 +58,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * @param {object} options Control options.
 		 * @returns {void}
 		 */
-		api.Widgets.WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
+		WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
 			var control = this, isJsWidget;
 			isJsWidget = options.params.widget_id_base && 'undefined' !== typeof wp.widgets.formConstructor[ options.params.widget_id_base ];
 			if ( isJsWidget ) {
@@ -67,6 +68,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 				originalInitialize.call( control, id, options );
 			}
 		};
+		return WidgetControl;
 	};
 
 	/**
@@ -83,11 +85,11 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		/**
 		 * Initialize.
 		 *
-		 * @param {string} id
-		 * @param {object} options
-		 * @param {object} options.params
-		 * @param {string} options.params.widget_id
-		 * @param {string} options.params.widget_id_base
+		 * @param {string} id The widget id
+		 * @param {object} options The options (see below)
+		 * @param {object} options.params The params (see below)
+		 * @param {string} options.params.widget_id The widget id
+		 * @param {string} options.params.widget_id_base The widget id_base
 		 * @param {string} [options.params.type] - Must be 'widget_form'.
 		 * @param {string} [options.params.content] - This may be supplied by addWidget, but it will not be read since the form is constructed dynamically.
 		 * @param {string} [options.params.widget_control] - Handled internally, if supplied, an error will be thrown.
@@ -232,7 +234,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 * Submit the widget form via Ajax and get back the updated instance,
 		 * along with the new widget control form to render.
 		 *
-		 * @param {object} [args]
+		 * @param {object} [args] The args to update the widget (see below)
 		 * @param {Object|null} [args.instance=null]  When the model changes, the instance is sent here; otherwise, the inputs from the form are used
 		 * @param {Function|null} [args.complete=null]  Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
 		 * @returns {void}
@@ -259,6 +261,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 *
 		 * @deprecated
 		 * @private
+		 * @return {void}
 		 */
 		_getInputs: function _getInputs() {
 			throw new Error( 'The _getInputs method should not be called for customize widget instances.' );
@@ -271,6 +274,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 *
 		 * @deprecated
 		 * @private
+		 * @return {void}
 		 */
 		_getInputsSignature: function _getInputsSignature() {
 			throw new Error( 'The _getInputsSignature method should not be called for customize widget instances.' );
@@ -283,6 +287,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 *
 		 * @deprecated
 		 * @private
+		 * @return {void}
 		 */
 		_getInputState: function _getInputState() {
 			throw new Error( 'The _getInputState method should not be called for customize widget instances.' );
@@ -295,6 +300,7 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 		 *
 		 * @deprecated
 		 * @private
+		 * @return {void}
 		 */
 		_setInputState: function _setInputState() {
 			throw new Error( 'The _setInputState method should not be called for customize widget instances.' );
@@ -310,4 +316,4 @@ wp.customize.JSWidgets = (function( api, $ ) { // eslint-disable-line no-unused-
 
 	return component;
 
-})( wp.customize, jQuery );
+})( wp, wp.customize, jQuery, _ );

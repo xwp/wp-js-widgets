@@ -13,6 +13,13 @@
 abstract class WP_JS_Widget extends WP_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-format-aside';
+
+	/**
 	 * REST controller class that should be used for this widget.
 	 *
 	 * @var string
@@ -446,6 +453,12 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @param array $instance The settings for the particular instance of the widget.
 	 */
 	final public function widget( $args, $instance ) {
+		/*
+		 * Make sure frontend scripts and styles get enqueued if not already done.
+		 * This is particularly important in the case of a widget used in a shortcode.
+		 */
+		$this->enqueue_frontend_scripts();
+
 		$this->render( $args, $instance );
 	}
 
@@ -606,12 +619,13 @@ abstract class WP_JS_Widget extends WP_Widget {
 				} elseif ( 'integer' === $schema_type || 'number' === $schema_type ) {
 					$default_input_attrs['type'] = 'number';
 				} elseif ( 'string' === $schema_type && isset( $field_schema['format'] ) ) {
+
+					// @todo Support date-time format.
 					if ( 'uri' === $field_schema['format'] ) {
 						$default_input_attrs['type'] = 'url';
 					} elseif ( 'email' === $field_schema['format'] ) {
 						$default_input_attrs['type'] = 'email';
 					}
-					// @todo Support date-time format.
 				}
 
 				if ( 'integer' === $schema_type ) {
@@ -666,9 +680,10 @@ abstract class WP_JS_Widget extends WP_Widget {
 			</select>
 			<?php
 		} elseif ( 'textarea' === $input_attrs['type'] ) {
+			unset( $input_attrs['type'] );
 			?>
 			<label for="{{ domId }}"><?php echo esc_html( $args['label'] ); ?></label>
-			<textarea id="{{ domId }}" <?php unset( $input_attrs['type'] ); $this->render_input_attrs( $input_attrs ); ?> ></textarea>
+			<textarea id="{{ domId }}" <?php $this->render_input_attrs( $input_attrs ); ?> ></textarea>
 			<?php
 		} else {
 			?>

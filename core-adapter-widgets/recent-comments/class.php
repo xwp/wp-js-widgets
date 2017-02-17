@@ -13,6 +13,13 @@
 class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-admin-comments';
+
+	/**
 	 * WP_JS_Widget_Recent_Comments constructor.
 	 *
 	 * @param JS_Widgets_Plugin         $plugin         Plugin.
@@ -94,9 +101,9 @@ class WP_JS_Widget_Recent_Comments extends WP_Adapter_JS_Widget {
 	public function get_rest_response_links( $response, $request, $controller ) {
 		$links = array();
 
-		$links['wp:comment'] = array();
+		$links['item'] = array();
 		foreach ( $response->data['comments'] as $comment_id ) {
-			$links['wp:comment'][] = array(
+			$links['item'][] = array(
 				'href' => rest_url( "/wp/v2/comments/$comment_id" ),
 				'embeddable' => true,
 			);

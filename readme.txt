@@ -1,9 +1,9 @@
 === JS Widgets ===
-Contributors:      xwp, westonruter
+Contributors:      xwp, westonruter, sirbrillig
 Tags:              customizer, widgets, rest-api
 Requires at least: 4.7.0
-Tested up to:      4.7.0
-Stable tag:        0.3.0
+Tested up to:      4.8-alpha
+Stable tag:        0.4.0
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,9 @@ This plugin implements:
 
 Features:
 
+* Integrates with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow all JS widgets to be made available as Post Elements in the editor.
 * Widget instance settings in the Customizer are exported from PHP as regular JSON without any PHP-serialized base64-encoded `encoded_serialized_instance` anywhere to be seen.
+* Previewing widget changes in the customizer is faster since the `update-widget` Ajax request can be eliminated since the JS control can directly manipulate the widget instance data.
 * Widgets control forms use JS content templates instead of PHP to render the markup for each control, reducing the weight of the customizer load, especially when there are a lot of widgets in use.
 * Widgets that extend `WP_JS_Widget` will editable from both the customizer and the widgets admin page using the same `Form` JS interface. This `Form` is also able to be embedded in other contexts, like on the frontend and as a Shortcake (Shortcode UI) form. See [#11](https://github.com/xwp/wp-js-widgets/issues/11).
 * Widgets employ the JSON Schema from the REST API to define an instance with validation and sanitization of the instance properties, beyond also providing `validate` and `sanitize` methods that work on the instance array as a whole.
@@ -46,6 +48,16 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 == Changelog ==
+
+= 0.4.0 - 2017-02-17 =
+
+* Integrate with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow any JS widget to be used inside the editor as a Post Element. See [#11](https://github.com/xwp/wp-js-widgets/issues/11), [#32](https://github.com/xwp/wp-js-widgets/pull/32).
+* Refactor of `Form` along with introduction of JS unit tests. See [#35](https://github.com/xwp/wp-js-widgets/pull/35). Props [sirbrillig](https://profiles.wordpress.org/sirbrillig)!
+* Use `item` relation in resource links instead of ad hoc `wp:post`, `wp:page`, and `wp:comment` relations. See [#36](https://github.com/xwp/wp-js-widgets/issues/36), [#38](https://github.com/xwp/wp-js-widgets/pull/38).
+
+See <a href="https://github.com/xwp/wp-js-widgets/milestone/2?closed=1">issues and PRs in milestone</a> and <a href="https://github.com/xwp/wp-js-widgets/compare/0.3.0...0.4.0">full release commit log</a>.
+
+Props Payton Swick (<a href="https://github.com/sirbrillig" class="user-mention">@sirbrillig</a>),  Weston Ruter (<a href="https://github.com/westonruter" class="user-mention">@westonruter</a>), Piotr Delawski (<a href="https://github.com/delawski" class="user-mention">@delawski</a>).
 
 = 0.3.0 - 2017-01-11 =
 

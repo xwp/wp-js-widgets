@@ -1,5 +1,6 @@
 **/*.min.js
 **/node_modules/**
 **/vendor/**
+/tests/js/lib/**
 **/*.browserified.js
 /bower_components/**

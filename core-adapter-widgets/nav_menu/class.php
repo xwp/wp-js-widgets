@@ -15,6 +15,13 @@
 class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 
 	/**
+	 * Icon name.
+	 *
+	 * @var string
+	 */
+	public $icon_name = 'dashicons-menu';
+
+	/**
 	 * WP_JS_Widget_Nav_Menu constructor.
 	 *
 	 * @param JS_Widgets_Plugin  $plugin         Plugin.
@@ -101,7 +108,7 @@ class WP_JS_Widget_Nav_Menu extends WP_Adapter_JS_Widget {
 				),
 			) );
 			?>
-			<p>
+			<p class="edit-menu" hidden>
 				<button type="button" class="button edit"><?php esc_html_e( 'Edit Menu', 'default' ) ?></button>
 			</p>
 		</div>

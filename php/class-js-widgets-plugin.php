@@ -72,6 +72,13 @@ class JS_Widgets_Plugin {
 	public $script_handles = array();
 
 	/**
+	 * Shortcode UI (Shortcake) integration.
+	 *
+	 * @var Shortcode_UI
+	 */
+	public $shortcode_ui;
+
+	/**
 	 * Plugin constructor.
 	 */
 	public function __construct() {
@@ -100,17 +107,21 @@ class JS_Widgets_Plugin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'rest_api_init', array( $this, 'rest_api_init' ), 100 );
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'enqueue_customize_controls_scripts' ) );
+		add_action( 'customize_controls_print_scripts', array( $this, 'print_available_widget_icon_styles' ), 100 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_widgets_admin_scripts' ) );
 		add_action( 'customize_controls_print_footer_scripts', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'admin_footer-widgets.php', array( $this, 'render_widget_form_template_scripts' ) );
 		add_action( 'customize_controls_init', array( $this, 'upgrade_customize_widget_controls' ) );
-		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 		add_action( 'widgets_init', array( $this, 'upgrade_core_widgets' ) );
+		add_action( 'widgets_init', array( $this, 'capture_original_instances' ), 94 );
 
 		add_action( 'in_widget_form', array( $this, 'start_capturing_in_widget_form' ), 0, 3 );
 		add_action( 'in_widget_form', array( $this, 'stop_capturing_in_widget_form' ), 1000, 3 );
 
-		// @todo Add widget REST endpoint for getting the rendered value of widgets. Note originating context URL will need to be supplied when rendering some widgets.
+		// Shortcake integration.
+		require_once __DIR__ . '/class-js-widgets-shortcode-ui.php';
+		$this->shortcode_ui = new JS_Widgets_Shortcode_UI( $this );
+		$this->shortcode_ui->add_hooks();
 	}
 
 	/**
@@ -150,6 +161,11 @@ class JS_Widgets_Plugin {
 		$src = $plugin_dir_url . 'js/admin-js-widgets.js';
 		$deps = array( 'admin-widgets', $this->script_handles['form'] );
 		$wp_scripts->add( $this->script_handles['admin-js-widgets'], $src, $deps, $this->version );
+
+		$this->script_handles['shortcode-ui-view-widget-form-field'] = 'shortcode-ui-view-widget-form-field';
+		$src = $plugin_dir_url . 'js/shortcode-ui-view-widget-form-field.js';
+		$deps = array( 'shortcode-ui', $this->script_handles['form'] );
+		$wp_scripts->add( $this->script_handles['shortcode-ui-view-widget-form-field'], $src, $deps, $this->version );
 
 		$this->script_handles['trac-39389-controls'] = 'js-widgets-trac-39389-controls';
 		$src = $plugin_dir_url . 'js/trac-39389-controls.js';
@@ -236,6 +252,31 @@ class JS_Widgets_Plugin {
 	}
 
 	/**
+	 * Print the CSS styles to ensure the defined Dashicon $icon_name in the available JS widgets panel.
+	 *
+	 * This is somewhat hacky to parse the Dashicons CSS to obtain the necessary CSS properties
+	 * to output into the page
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 */
+	function print_available_widget_icon_styles() {
+		global $wp_widget_factory;
+
+		$dashicons_content = file_get_contents( ABSPATH . WPINC . '/css/dashicons.css' );
+
+		echo '<style type="text/css">';
+		foreach ( $wp_widget_factory->widgets as $widget ) {
+			if ( ! ( $widget instanceof WP_JS_Widget ) || empty( $widget->icon_name ) ) {
+				continue;
+			}
+			if ( preg_match( sprintf( '#\.%s:before\s*{(.+?)}#Ds', $widget->icon_name ), $dashicons_content, $matches ) ) {
+				printf( '#available-widgets .widget-tpl[id^="widget-tpl-%s"] .widget-title:before { %s }', $widget->id_base, $matches[1] );
+			}
+		}
+		echo '</style>';
+	}
+
+	/**
 	 * Enqueue scripts for the widgets admin screen.
 	 *
 	 * @access public
@@ -277,16 +318,17 @@ class JS_Widgets_Plugin {
 	 *
 	 * @access public
 	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global WP_Customize_Manager $wp_customize
 	 */
 	function enqueue_frontend_scripts() {
-		global $wp_widget_factory;
+		global $wp_widget_factory, $wp_customize;
 		foreach ( $wp_widget_factory->widgets as $widget ) {
 			if ( $widget instanceof WP_JS_Widget && ( is_active_widget( false, false, $widget->id_base ) || is_customize_preview() ) ) {
 				$widget->enqueue_frontend_scripts();
 			}
 		}
 
-		if ( is_customize_preview() ) {
+		if ( is_customize_preview() && ! empty( $wp_customize->widgets ) && current_user_can( 'edit_theme_options' ) ) {
 			wp_enqueue_script( $this->script_handles['trac-39389-preview'] );
 		}
 	}
