@@ -104,7 +104,7 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 		if ( is_array( $default_instance['exclude'] ) ) {
 			$default_instance['exclude'] = join( ',', $default_instance['exclude'] );
 		}
-		if ( is_array( $new_instance['exclude'] ) ) {
+		if ( isset( $new_instance['exclude'] ) && is_array( $new_instance['exclude'] ) ) {
 			$new_instance['exclude'] = join( ',', $new_instance['exclude'] );
 		}
 		$new_instance = array_merge( $default_instance, $new_instance );
