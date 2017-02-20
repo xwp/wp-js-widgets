@@ -354,6 +354,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array|false Settings to save or bool false to cancel saving.
 	 */
 	final public function update( $new_instance, $old_instance = array() ) {
+		global $js_widgets_plugin;
+
 		if ( ! isset( $new_instance['js_widget_instance_data'] ) ) {
 			$this->last_validity_error = new WP_Error( 'js_widget_instance_data_missing', __( 'Missing js_widget_instance_data.', 'js-widgets' ) );
 			return false;
@@ -364,12 +366,28 @@ abstract class WP_JS_Widget extends WP_Widget {
 			return false;
 		}
 
+		$request = $js_widgets_plugin->get_put_request( $new_instance_data, $this );
+		if ( $request ) {
+			$validity = $request->has_valid_params();
+			if ( is_wp_error( $validity ) ) {
+				$this->last_validity_error = $validity;
+				return false;
+			}
+		}
+
 		$validity = $this->validate( $new_instance_data );
 		if ( is_wp_error( $validity ) ) {
 			$this->last_validity_error = $validity;
 			return false;
 		}
 
+		$validity = $request->sanitize_params();
+		if ( is_wp_error( $validity ) ) {
+			$this->last_validity_error = $validity;
+			return false;
+		}
+
+		$new_instance_data = $request->get_body_params();
 		$new_instance_data = $this->sanitize( $new_instance_data, $old_instance );
 		if ( is_wp_error( $new_instance_data ) ) {
 			$this->last_validity_error = $new_instance_data;
@@ -408,8 +426,18 @@ abstract class WP_JS_Widget extends WP_Widget {
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
-		unset( $old_instance );
-		$new_instance = array_merge( $this->get_default_instance(), $new_instance );
+		$schema = $this->get_item_schema();
+		foreach ( $new_instance as $key => &$value ) {
+//			if (  ) {
+//
+//			}
+		}
+
+		$new_instance = array_merge(
+			$this->get_default_instance(),
+			$old_instance,
+			$new_instance
+		);
 		if ( isset( $instance['title'] ) ) {
 			$instance['title'] = sanitize_text_field( $instance['title'] );
 		}
@@ -458,6 +486,8 @@ abstract class WP_JS_Widget extends WP_Widget {
 		 * This is particularly important in the case of a widget used in a shortcode.
 		 */
 		$this->enqueue_frontend_scripts();
+
+		$instance = array_merge( $this->get_default_instance(), $instance );
 
 		$this->render( $args, $instance );
 	}

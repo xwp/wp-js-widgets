@@ -100,15 +100,10 @@ class WP_JS_Widget_Pages extends WP_Adapter_JS_Widget {
 	 * @return array|null|WP_Error Array instance if sanitization (and validation) passed. Returns `WP_Error` or `null` on failure.
 	 */
 	public function sanitize( $new_instance, $old_instance ) {
-		$default_instance = $this->get_default_instance();
-		if ( is_array( $default_instance['exclude'] ) ) {
-			$default_instance['exclude'] = join( ',', $default_instance['exclude'] );
-		}
-		if ( isset( $new_instance['exclude'] ) && is_array( $new_instance['exclude'] ) ) {
+		$new_instance = parent::sanitize( $new_instance, $old_instance );
+		if ( is_array( $new_instance['exclude'] ) ) {
 			$new_instance['exclude'] = join( ',', $new_instance['exclude'] );
 		}
-		$new_instance = array_merge( $default_instance, $new_instance );
-		$old_instance = array_merge( $default_instance, $old_instance );
 		return parent::sanitize( $new_instance, $old_instance );
 	}
 
