@@ -50,7 +50,8 @@ wp.widgets.formConstructor.pages = (function( api ) {
 						multiple: true,
 						width: '100%'
 					},
-					select_id: form.config.exclude_select_id
+					select_id: form.config.exclude_select_id,
+					show_add_buttons: false
 				});
 				selectorContainer = form.container.find( '.customize-object-selector-container:first' );
 				form.postObjectSelector.embed( selectorContainer );
