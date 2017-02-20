@@ -49,6 +49,13 @@ Limitations/Caveats:
 
 == Changelog ==
 
+= 0.4.1 - 2017-02-20 =
+
+* Fix undefined index warning in Pages widget. See [#40](https://github.com/xwp/wp-js-widgets/pull/40).
+* Disable the "Add" button for the page selector field as provided by the Customize Object Selector plugin when Customize Posts is also active.
+
+See <a href="https://github.com/xwp/wp-js-widgets/milestone/3?closed=1">issues and PRs in milestone</a> and <a href="https://github.com/xwp/wp-js-widgets/compare/0.4.0...0.4.1">full release commit log</a>.
+
 = 0.4.0 - 2017-02-17 =
 
 * Integrate with [Shortcake (Shortcode UI)](https://wordpress.org/plugins/shortcode-ui/) to allow any JS widget to be used inside the editor as a Post Element. See [#11](https://github.com/xwp/wp-js-widgets/issues/11), [#32](https://github.com/xwp/wp-js-widgets/pull/32).
