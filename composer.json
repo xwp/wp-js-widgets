@@ -26,6 +26,10 @@
 		}
 	],
 	"require-dev": {
-		"satooshi/php-coveralls": "dev-master"
+		"satooshi/php-coveralls": "dev-master",
+		"codeception/codeception": "*"
+	},
+	"autoload": {
+		"psr-4": { "XWP\\WordPress\\Behat\\": "tests/behat/features/bootstrap" }
 	}
 }
