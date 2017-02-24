@@ -13,6 +13,7 @@ cache:
     - node_modules
     - vendor
     - $HOME/terminus
+    - $HOME/.terminus/plugins
 
 env:
   global:

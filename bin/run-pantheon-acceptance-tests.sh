@@ -13,18 +13,23 @@ openssl aes-256-cbc -K $encrypted_759fa8e3f8c8_key -iv $encrypted_759fa8e3f8c8_i
 chmod 600 ~/.ssh/id_rsa
 echo "IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
 
-# TODO: For some reason this is not getting cached.
 if [ ! -e $HOME/terminus/terminus ]; then
-    echo "Installing terminus:"
-    mkdir -p $HOME/terminus
-    curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-dir=$HOME/terminus --bin-dir=$HOME/terminus
+  echo "Installing terminus:"
+  mkdir -p $HOME/terminus
+  curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-dir=$HOME/terminus --bin-dir=$HOME/terminus
+else
+  echo "Terminus already installed"
 fi
 PATH="$HOME/terminus:$PATH"
 
-echo "Installing terminus plugins:"
-mkdir -p $HOME/.terminus/plugins
-curl https://github.com/pantheon-systems/terminus-plugin-example/archive/1.x.tar.gz -L | tar -C ~/.terminus/plugins -xvz
-composer create-project -d ~/.terminus/plugins pantheon-systems/terminus-rsync-plugin:~1
+if [ ! -e $HOME/.terminus/plugins/terminus-rsync-plugin ]; then
+  echo "Installing terminus rsync plugin:"
+  mkdir -p $HOME/.terminus/plugins
+  curl https://github.com/pantheon-systems/terminus-plugin-example/archive/1.x.tar.gz -L | tar -C ~/.terminus/plugins -xvz
+  composer create-project -d ~/.terminus/plugins pantheon-systems/terminus-rsync-plugin:~1
+else
+  echo "Terminus rsync plugin already installed"
+fi
 
 echo "Authenticating to terminus:"
 terminus auth:login --machine-token="$ACCEPTANCE_PANTHEON_MACHINE_TOKEN"
