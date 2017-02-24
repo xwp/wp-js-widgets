@@ -1,0 +1,105 @@
+#!/bin/bash
+
+set -e
+
+# @todo Grunt should be installed as part of the NPM package.
+echo "Running grunt build:"
+npm install -g grunt-cli
+grunt build
+
+echo "Configuring SSH:"
+echo "StrictHostKeyChecking no" > ~/.ssh/config
+openssl aes-256-cbc -K $encrypted_759fa8e3f8c8_key -iv $encrypted_759fa8e3f8c8_iv -in .travis_id_rsa.enc -out ~/.ssh/id_rsa -d
+chmod 600 ~/.ssh/id_rsa
+echo "IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+
+if [ ! -e $HOME/terminus/terminus ]; then
+    echo "Installing terminus:"
+    mkdir -p $HOME/terminus
+    curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar && php installer.phar install --install-dir=$HOME/terminus --bin-dir=$HOME/terminus
+fi
+PATH="$HOME/terminus:$PATH"
+
+echo "Installing terminus plugins:"
+mkdir -p $HOME/.terminus/plugins
+curl https://github.com/pantheon-systems/terminus-plugin-example/archive/1.x.tar.gz -L | tar -C ~/.terminus/plugins -xvz
+composer create-project -d ~/.terminus/plugins pantheon-systems/terminus-rsync-plugin:~1
+
+echo "Authenticating to terminus:"
+terminus auth:login --machine-token="$ACCEPTANCE_PANTHEON_MACHINE_TOKEN"
+
+if [ -z "$ACCEPTANCE_PANTHEON_ENV" ]; then
+  ACCEPTANCE_PANTHEON_ENV=$( echo "$TRAVIS_REPO_SLUG" | md5sum | cut -c1-11 )
+fi
+if [ -z "$ACCEPTANCE_LOCK_TIMEOUT" ]; then
+  ACCEPTANCE_LOCK_TIMEOUT=600
+fi
+
+ACCEPTANCE_PANTHEON_SITEURL="http://$ACCEPTANCE_PANTHEON_ENV-$ACCEPTANCE_PANTHEON_SITE.pantheonsite.io"
+echo "ACCEPTANCE_PANTHEON_SITE: $ACCEPTANCE_PANTHEON_SITE"
+echo "ACCEPTANCE_PANTHEON_ENV: $ACCEPTANCE_PANTHEON_ENV"
+echo "Site environment URL: $ACCEPTANCE_PANTHEON_SITEURL"
+
+# Create multidev environment.
+if ! terminus multidev:list $ACCEPTANCE_PANTHEON_SITE --format=csv | tail -n+2 | grep -q "$ACCEPTANCE_PANTHEON_ENV"; then
+  echo "Creating multidev environment for $ACCEPTANCE_PANTHEON_ENV"
+  terminus multidev:create $ACCEPTANCE_PANTHEON_SITE.dev $ACCEPTANCE_PANTHEON_ENV
+  MULTIDEV_ENV_CREATED=1
+else
+  echo "Multidev for $ACCEPTANCE_PANTHEON_ENV already created."
+  MULTIDEV_ENV_CREATED=0
+fi
+
+echo "Checking for environment lock"
+if terminus remote:wp "$ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV" -- core is-installed; then
+  echo "Is installed, now checking if lock is present..."
+  while [[ $( date +%s ) -lt $(( $( terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option get testbed_lock_timestamp 2>/dev/null ) + $ACCEPTANCE_LOCK_TIMEOUT )) ]]; do
+    echo "Waiting 15 seconds for testbed lock to clear (up to $ACCEPTANCE_LOCK_TIMEOUT seconds)..."
+    sleep 15
+  done
+fi
+
+echo "Ensure SFTP mode:"
+terminus connection:set $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV sftp
+
+echo "Lock environment with HTTP Auth:"
+terminus lock:enable $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV "$ACCEPTANCE_PANTHEON_SITE_USERNAME" "$ACCEPTANCE_PANTHEON_SITE_PASSWORD"
+
+echo "Wipe environment:"
+if [ "$MULTIDEV_ENV_CREATED" == 1 ]; then
+  terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- db reset --yes
+else
+  terminus env:wipe $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV --no-interaction --yes
+fi
+
+echo "Update from upstream:"
+terminus upstream:updates:apply --updatedb --accept-upstream $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV
+
+# TODO Consider uploading a pantheon.yml that defines the PHP version as 7.0.
+
+echo "Install WordPress:"
+terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- core install \
+  --title="Testbed for $ACCEPTANCE_PLUGIN_SLUG" \
+  --url="$ACCEPTANCE_PANTHEON_SITEURL" \
+  --admin_user="$ACCEPTANCE_PANTHEON_SITE_USERNAME" \
+  --admin_password="$ACCEPTANCE_PANTHEON_SITE_PASSWORD" \
+  --admin_email="$ACCEPTANCE_PANTHEON_SITE_EMAIL" \
+  --skip-email
+terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option set testbed_lock_timestamp $( date +%s )
+
+echo "Upgrading to latest version of WP:"
+# TODO: --version=nightly
+terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- core update
+
+echo "Upload plugin files:"
+terminus rsync build/ $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV:code/wp-content/plugins/$ACCEPTANCE_PLUGIN_SLUG -- -avz --delete
+
+# TODO: Actually, we can let the WP user activate the plugin instead.
+echo "Activating plugin:"
+terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- plugin activate $ACCEPTANCE_PLUGIN_SLUG
+
+# Finally the env should be left set up so that a user can manually test it out, especially in the case of failure.
+# The end can print out a URL for a user to go and try it out. The admin password would have to be a secret.
+
+# Allow another build to proceed.
+terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option delete testbed_lock_timestamp

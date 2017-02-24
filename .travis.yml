@@ -5,13 +5,30 @@ language:
   - node_js
 
 php:
-  - 5.2
+#  - 5.2
   - 7.0
 
+cache:
+  directories:
+    - node_modules
+    - vendor
+    - $HOME/terminus
+
 env:
-  - WP_VERSION=4.5 WP_MULTISITE=0
-  - WP_VERSION=trunk WP_MULTISITE=0
-  - WP_VERSION=trunk WP_MULTISITE=1
+  global:
+    - ACCEPTANCE_PANTHEON_SITE=xwp-testbed
+    - ACCEPTANCE_PANTHEON_ENV=js-widgets
+    - ACCEPTANCE_PLUGIN_SLUG=js-widgets
+    - ACCEPTANCE_PANTHEON_SITE_USERNAME=js-widgets
+    # ACCEPTANCE_PANTHEON_SITE_PASSWORD:
+    - secure: "IZNOOECOOKZnVSPHmsdfm+jv+FDu4ZxN5B7MvKnrAU8WIwnhiAXx00liuOnhW4KHXmfPPRx1iAe/aIh5fFpUkp/OpgDNeXkhlx2BmLUaeVWLOtCvWmIDn5L1raR5uVz18/RVT7T2tNm9p8lTQqJw8qCGfSJGSf8RWup/nk0YuMDMLKpzBU4cUjfgyYrEF26CNwo5V2NeCEikmtVnuZyg4A3EDZN2JheorLQ2l8FAxdG1duU8Sb7o/n1Cj7oWrWCB7ENxfjP1oIsJC0i/pxh+WDDB4i9CGZ1Gv2R3+PqZGA814BEyp6G3DtJQAR0bPpmILtXatyik6Q1rTkLwpq/6oL8Mg4PIbDnVo/7XVSapCXIVLAwmNcy4tuE5ifgfrgCqEZjDyx1JRHKkEXLu0RKGU8yGjRnWQGp4ltpS8iYQb87SKW4r/0oIMqIzLEUAdVlXbPQwgGfOibM1HKo6FBUEGlmsNVY8XA3SZjuJZJiQ8G9yGUbRT/i1vVRX4ojBlpLUrQgpYsU+DHsIszceaLeJJhPvohCMxcM2TkabDdTLNA2PFChtPH+zo7Vb0sKSh35MlIujBTN/HNi0O/4rNiQSR2oF8Yq8JiPiT6aR8u264GqxYpLddoUEjGkpuJdzCFKaj2C8SbCz/kV6k3wL1vISzh72MhIGcBOYjjRw3DyhjaM="
+    - ACCEPTANCE_PANTHEON_SITE_EMAIL=js-widgets@example.com
+    # ACCEPTANCE_PANTHEON_MACHINE_TOKEN (for travis-ci+testbed Pantheon user):
+    - secure: "H4/yihROsjx0UsLkAOrhLOYE+sLjDhv/0sfVvYE/WLxgWUtNsGkp+PNxGHEHLJw/bxsH4E0hkcymfiEqMriGEmG8X7uFOn2bUjsAIvEpqR2vLPYUwdrzjFdtpyrhXxYgO4IMQNmBZh+6O+r6271h/qlv3UXJCisbyGJBS2ekNSGrsfe2CC18HguayWZnRZ3W3jhTQ8+gPqSGna5h/4folnSRmxb+rw4RW8+7J+RMZV10mk4W1sNxetkyxy431fiigW0HWru98jEjwB2+NztQekwLZ8OjZsdZ19Ldd8C9X6ARqR+xKH7F9bieoEUfe8vmbQhsnrUPRZ9OGNkMYIblBpiVeHBD6UC2NVCvdbRTTfP/VzBAv5pNoEIi12Q2PqfO/ET17wPvwdCY4sJQAYrA/OJPGgKdYNWKZfI/dfVUL8u9ZFk3QJEUhFwQ2m5HbpvUPSossjpVZmwJWvC/wyE0+W5F3n65liMc2D2r2gjKxoxDo8e50PPTMLNPPZRFMZIVJixg9VUH8/d1cnoTNCj/9uymDKME/PfOutq4Km2b2RSGGSlqWCmO75O18Q2eVJtJdVPnzl7Cw9c4QpfLSm+CrBi6GtSLiBuNAC0x8P7ifvR0T+pGYGX9aoZJ6/0Cc/zQTXtZsr0Ow1hks17VHelwbacT50J7Ge+NiopK0Jkqi0M="
+  matrix:
+    #- WP_VERSION=latest WP_MULTISITE=0
+    #- WP_VERSION=trunk WP_MULTISITE=1
+    - WP_VERSION=trunk WP_MULTISITE=0
 
 install:
   - nvm install 6 && nvm use 6
@@ -21,8 +38,12 @@ install:
   - source $DEV_LIB_PATH/travis.install.sh
 
 script:
-  - npm test
+  - if [ -s "$TEMP_DIRECTORY/paths-scope-js" ]; then npm test; fi
   - source $DEV_LIB_PATH/travis.script.sh
 
 after_script:
   - source $DEV_LIB_PATH/travis.after_script.sh
+  - |
+    if [[ "$WP_VERSION" == 'trunk' ]] && [[ "$WP_MULTISITE" == 0 ]] && [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then
+      bin/run-pantheon-acceptance-tests.sh;
+    fi
