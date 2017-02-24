@@ -2,6 +2,39 @@
 
 set -e
 
+if [ -z "$ACCEPTANCE_PANTHEON_SITE" ]; then
+  echo "ACCEPTANCE_PANTHEON_SITE environment variable not set"
+  exit 1
+elif [ -z "$ACCEPTANCE_PANTHEON_MACHINE_TOKEN" ]; then
+  echo "ACCEPTANCE_PANTHEON_MACHINE_TOKEN environment variable not set"
+  exit 1
+elif [ -z "$ACCEPTANCE_PANTHEON_SITE_USERNAME" ]; then
+  echo "ACCEPTANCE_PANTHEON_SITE_USERNAME environment variable not set"
+  exit 1
+elif [ -z "$ACCEPTANCE_PANTHEON_SITE_PASSWORD" ]; then
+  echo "ACCEPTANCE_PANTHEON_SITE_PASSWORD environment variable not set"
+  exit 1
+elif [ -z "$ACCEPTANCE_PLUGIN_SLUG" ]; then
+  echo "ACCEPTANCE_PLUGIN_SLUG environment variable not set"
+  exit 1
+fi
+
+if [ -z "$ACCEPTANCE_PANTHEON_ENV" ]; then
+  ACCEPTANCE_PANTHEON_ENV=$( echo "$TRAVIS_REPO_SLUG" | md5sum | cut -c1-11 )
+fi
+if [ -z "$ACCEPTANCE_LOCK_TIMEOUT" ]; then
+  ACCEPTANCE_LOCK_TIMEOUT=600
+fi
+if [ -z "$ACCEPTANCE_PANTHEON_SITE_EMAIL" ]; then
+  ACCEPTANCE_PANTHEON_SITE_EMAIL=$ACCEPTANCE_PANTHEON_ENV@testbed.example.com
+fi
+
+ACCEPTANCE_PANTHEON_SITEURL="http://$ACCEPTANCE_PANTHEON_ENV-$ACCEPTANCE_PANTHEON_SITE.pantheonsite.io"
+echo "ACCEPTANCE_PANTHEON_SITE: $ACCEPTANCE_PANTHEON_SITE"
+echo "ACCEPTANCE_PANTHEON_ENV: $ACCEPTANCE_PANTHEON_ENV"
+echo "Site environment URL: $ACCEPTANCE_PANTHEON_SITEURL"
+
+
 # @todo Grunt should be installed as part of the NPM package.
 echo "Running grunt build:"
 grunt build
@@ -33,18 +66,6 @@ fi
 
 echo "Authenticating to terminus:"
 terminus auth:login --machine-token="$ACCEPTANCE_PANTHEON_MACHINE_TOKEN"
-
-if [ -z "$ACCEPTANCE_PANTHEON_ENV" ]; then
-  ACCEPTANCE_PANTHEON_ENV=$( echo "$TRAVIS_REPO_SLUG" | md5sum | cut -c1-11 )
-fi
-if [ -z "$ACCEPTANCE_LOCK_TIMEOUT" ]; then
-  ACCEPTANCE_LOCK_TIMEOUT=600
-fi
-
-ACCEPTANCE_PANTHEON_SITEURL="http://$ACCEPTANCE_PANTHEON_ENV-$ACCEPTANCE_PANTHEON_SITE.pantheonsite.io"
-echo "ACCEPTANCE_PANTHEON_SITE: $ACCEPTANCE_PANTHEON_SITE"
-echo "ACCEPTANCE_PANTHEON_ENV: $ACCEPTANCE_PANTHEON_ENV"
-echo "Site environment URL: $ACCEPTANCE_PANTHEON_SITEURL"
 
 # Create multidev environment.
 if ! terminus multidev:list $ACCEPTANCE_PANTHEON_SITE --format=csv | tail -n+2 | grep -q "$ACCEPTANCE_PANTHEON_ENV"; then
