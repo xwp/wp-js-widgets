@@ -40,10 +40,10 @@ install:
 script:
   - if [ -s "$TEMP_DIRECTORY/paths-scope-js" ]; then npm test; fi
   - source $DEV_LIB_PATH/travis.script.sh
-
-after_script:
-  - source $DEV_LIB_PATH/travis.after_script.sh
   - |
     if [[ "$WP_VERSION" == 'trunk' ]] && [[ "$WP_MULTISITE" == 0 ]] && [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then
       bin/run-pantheon-acceptance-tests.sh;
     fi
+
+after_script:
+  - source $DEV_LIB_PATH/travis.after_script.sh
