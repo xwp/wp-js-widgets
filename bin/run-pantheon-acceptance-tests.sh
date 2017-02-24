@@ -4,15 +4,16 @@ set -e
 
 # @todo Grunt should be installed as part of the NPM package.
 echo "Running grunt build:"
-npm install -g grunt-cli
 grunt build
 
 echo "Configuring SSH:"
 echo "StrictHostKeyChecking no" > ~/.ssh/config
+# Next line provided by: travis encrypt-file .travis_id_rsa
 openssl aes-256-cbc -K $encrypted_759fa8e3f8c8_key -iv $encrypted_759fa8e3f8c8_iv -in .travis_id_rsa.enc -out ~/.ssh/id_rsa -d
 chmod 600 ~/.ssh/id_rsa
 echo "IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
 
+# TODO: For some reason this is not getting cached.
 if [ ! -e $HOME/terminus/terminus ]; then
     echo "Installing terminus:"
     mkdir -p $HOME/terminus
