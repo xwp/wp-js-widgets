@@ -2,6 +2,8 @@
 
 set -e
 
+# See also https://github.com/pantheon-systems/pantheon-wordpress-upstream-tests
+
 if [ -z "$ACCEPTANCE_PANTHEON_SITE" ]; then
   echo "ACCEPTANCE_PANTHEON_SITE environment variable not set"
   exit 1
@@ -127,6 +129,9 @@ terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- plugin 
 
 # Finally the env should be left set up so that a user can manually test it out, especially in the case of failure.
 # The end can print out a URL for a user to go and try it out. The admin password would have to be a secret.
+
+export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io"} }}'
+./vendor/bin/behat -c tests/behat/behat.yml --strict
 
 # Allow another build to proceed.
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option delete testbed_lock_timestamp

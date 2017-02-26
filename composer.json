@@ -26,6 +26,12 @@
 		}
 	],
 	"require-dev": {
+		"behat/behat": "^3.3",
+		"behat/mink-extension": "^2.2",
+		"behat/mink-goutte-driver": "^1.2",
 		"satooshi/php-coveralls": "dev-master"
+	},
+	"autoload": {
+		"psr-4": { "XWP\\WordPress\\Behat\\": "tests/behat/features/bootstrap" }
 	}
 }
