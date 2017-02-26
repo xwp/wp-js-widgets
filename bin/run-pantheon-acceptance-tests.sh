@@ -107,14 +107,14 @@ terminus upstream:updates:apply --updatedb --accept-upstream $ACCEPTANCE_PANTHEO
 # TODO Consider uploading a pantheon.yml that defines the PHP version as 7.0.
 
 echo "Install WordPress:"
-terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- core install \
-  --quiet \
+terminus remote:wp --quiet $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- core install \
   --title="Testbed for $ACCEPTANCE_PLUGIN_SLUG" \
   --url="$ACCEPTANCE_PANTHEON_SITEURL" \
   --admin_user="$ACCEPTANCE_PANTHEON_SITE_USERNAME" \
   --admin_password="$ACCEPTANCE_PANTHEON_SITE_PASSWORD" \
   --admin_email="$ACCEPTANCE_PANTHEON_SITE_EMAIL" \
   --skip-email
+
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option set testbed_lock_timestamp $( date +%s )
 
 echo "Upgrading to latest version of WP:"
@@ -131,8 +131,13 @@ terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- plugin 
 # Finally the env should be left set up so that a user can manually test it out, especially in the case of failure.
 # The end can print out a URL for a user to go and try it out. The admin password would have to be a secret.
 
+exit_code=0
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension": {"base_url": "'$ACCEPTANCE_PANTHEON_SITEURL'"} }}'
-./vendor/bin/behat -c tests/behat/behat.yml --strict
+if ! ./vendor/bin/behat -c tests/behat/behat.yml --strict; then
+	exit_code=1
+fi
 
 # Allow another build to proceed.
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option delete testbed_lock_timestamp
+
+exit $exit_code

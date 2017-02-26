@@ -53,6 +53,7 @@ class FeatureContext implements Context {
 	 * @Given I log in as an admin
 	 */
 	public function iLogInAsAnAdmin() {
+		$this->mink_context->getSession()->setBasicAuth( getenv( 'ACCEPTANCE_PANTHEON_SITE_USERNAME' ), getenv( 'ACCEPTANCE_PANTHEON_SITE_PASSWORD' ) );
 		$this->mink_context->visit( 'wp-login.php' );
 		$this->mink_context->fillField( 'log', getenv( 'ACCEPTANCE_PANTHEON_SITE_USERNAME' ) );
 		$this->mink_context->fillField( 'pwd', getenv( 'ACCEPTANCE_PANTHEON_SITE_PASSWORD' ) );
