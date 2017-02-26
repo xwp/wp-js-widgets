@@ -54,8 +54,8 @@ class FeatureContext implements Context {
 	 */
 	public function iLogInAsAnAdmin() {
 		$this->mink_context->visit( 'wp-login.php' );
-		$this->mink_context->fillField( 'log', getenv( 'WORDPRESS_ADMIN_USERNAME' ) );
-		$this->mink_context->fillField( 'pwd', getenv( 'WORDPRESS_ADMIN_PASSWORD' ) );
+		$this->mink_context->fillField( 'log', getenv( 'ACCEPTANCE_PANTHEON_SITE_USERNAME' ) );
+		$this->mink_context->fillField( 'pwd', getenv( 'ACCEPTANCE_PANTHEON_SITE_PASSWORD' ) );
 		$this->mink_context->pressButton( 'wp-submit' );
 		$this->mink_context->assertPageAddress( 'wp-admin/' );
 	}

@@ -108,6 +108,7 @@ terminus upstream:updates:apply --updatedb --accept-upstream $ACCEPTANCE_PANTHEO
 
 echo "Install WordPress:"
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- core install \
+  --quiet \
   --title="Testbed for $ACCEPTANCE_PLUGIN_SLUG" \
   --url="$ACCEPTANCE_PANTHEON_SITEURL" \
   --admin_user="$ACCEPTANCE_PANTHEON_SITE_USERNAME" \
@@ -130,7 +131,7 @@ terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- plugin 
 # Finally the env should be left set up so that a user can manually test it out, especially in the case of failure.
 # The end can print out a URL for a user to go and try it out. The admin password would have to be a secret.
 
-export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension" : {"base_url" : "http://'$TERMINUS_ENV'-'$TERMINUS_SITE'.pantheonsite.io"} }}'
+export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension": {"base_url": "'$ACCEPTANCE_PANTHEON_SITEURL'"} }}'
 ./vendor/bin/behat -c tests/behat/behat.yml --strict
 
 # Allow another build to proceed.
