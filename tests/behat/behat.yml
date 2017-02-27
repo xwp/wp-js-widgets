@@ -1,0 +1,14 @@
+default:
+  suites:
+    default:
+      contexts:
+        - Behat\MinkExtension\Context\MinkContext
+        - XWP\WordPress\Behat\FeatureContext
+
+  extensions:
+    Behat\MinkExtension:
+      goutte: ~
+      selenium2: ~
+
+# behat/mink suggests installing behat/mink-selenium2-driver (slow, but JS-enabled driver for any app (requires Selenium2))
+# behat/mink suggests installing behat/mink-zombie-driver (fast and JS-enabled headless driver for any app (requires node.js))
