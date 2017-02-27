@@ -91,9 +91,6 @@ fi
 echo "Ensure SFTP mode:"
 terminus connection:set $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV sftp
 
-echo "Lock environment with HTTP Auth:"
-terminus lock:enable $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV "$ACCEPTANCE_PANTHEON_SITE_USERNAME" "$ACCEPTANCE_PANTHEON_SITE_PASSWORD"
-
 echo "Wipe environment:"
 if [ "$MULTIDEV_ENV_CREATED" == 1 ]; then
   terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- db reset --yes
@@ -128,14 +125,18 @@ terminus rsync build/ $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV:code/wp
 echo "Activating plugin:"
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV -- plugin activate $ACCEPTANCE_PLUGIN_SLUG
 
-# Finally the env should be left set up so that a user can manually test it out, especially in the case of failure.
-# The end can print out a URL for a user to go and try it out. The admin password would have to be a secret.
+echo "Unlock environment from HTTP Auth so clients can freely connect"
+terminus lock:disable $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV
 
 exit_code=0
 export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension": {"base_url": "'$ACCEPTANCE_PANTHEON_SITEURL'"} }}'
 if ! ./vendor/bin/behat -c tests/behat/behat.yml --strict; then
 	exit_code=1
 fi
+
+# Re-lock the environment.
+echo "Re-lock environment to eliminate maintenance concerns"
+terminus lock:enable $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV "$ACCEPTANCE_PANTHEON_SITE_USERNAME" "$ACCEPTANCE_PANTHEON_SITE_PASSWORD"
 
 # Allow another build to proceed.
 terminus remote:wp $ACCEPTANCE_PANTHEON_SITE.$ACCEPTANCE_PANTHEON_ENV option delete testbed_lock_timestamp
