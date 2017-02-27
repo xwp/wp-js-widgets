@@ -4,7 +4,7 @@ set -e
 
 cd "$( dirname "$0" )/.."
 
-phantomjs --webdriver=8643 &
+phantomjs --webdriver=8643 --web-security=no &
 pjspid=$!
 sleep 3 # Wait for it to be ready.
 echo $pjspid

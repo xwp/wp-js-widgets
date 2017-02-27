@@ -3,12 +3,14 @@ Feature: Example
     Background:
         Given I log in as an admin
 
-    Scenario: Create and publish a blog post
-        When I go to "/wp-admin/post-new.php"
-        And I fill in "post_title" with a random string
-        And I press "publish"
-        Then print current URL
-        And I should see "Post published."
-
-        When I go to "/blog/"
-        And I should see the random string
+    @javascript
+    Scenario: Change the site title via the customizer
+        When I go to "/wp-admin/customize.php"
+        And I click on "#accordion-section-title_tagline" once it appears
+        And I type "Hello--World" into "#customize-control-blogname input[type=text]" once it appears
+        Then I should see "Hello--World" in the ".panel-title.site-title" element
+        Then I wait "100" milliseconds
+        And I should see "Hello--World" in the ".site-title" element inside the preview window
+        Then I wait "500" milliseconds
+        And I should see "Hello—World" in the ".site-title" element inside the preview window
+        # TODO: Publish changes.
