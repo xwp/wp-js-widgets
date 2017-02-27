@@ -2,6 +2,8 @@
 
 set -e
 
+cd "$( dirname "$0" )/.."
+
 # See also https://github.com/pantheon-systems/pantheon-wordpress-upstream-tests
 
 if [ -z "$ACCEPTANCE_PANTHEON_SITE" ]; then
