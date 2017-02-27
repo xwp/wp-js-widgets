@@ -134,7 +134,7 @@ phantomjs --webdriver=8643 --web-security=no &
 sleep 3 # Wait for it to be ready.
 
 exit_code=0
-export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension": {"base_url": "'$ACCEPTANCE_PANTHEON_SITEURL'", "selenium2":{ "wd_host": "http://localhost:8643/wd/hub" }}} }}'
+export BEHAT_PARAMS='{"extensions" : {"Behat\\MinkExtension": {"base_url": "'$ACCEPTANCE_PANTHEON_SITEURL'", "selenium2":{ "wd_host": "http://localhost:8643/wd/hub" }}} }'
 if ! ./vendor/bin/behat -c tests/behat/behat.yml --strict; then
 	exit_code=1
 fi
