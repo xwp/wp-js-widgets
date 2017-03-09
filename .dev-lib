@@ -1,2 +1,5 @@
 WPCS_GIT_TREE=develop
 ASSETS_DIR=wp-assets
+
+# Skip codeception locally for now since it is unknown what the URL will be. Travis has the configs to run manually.
+DEV_LIB_SKIP=codeception
