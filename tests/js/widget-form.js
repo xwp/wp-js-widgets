@@ -548,18 +548,6 @@ describe( 'wp.widgets.Form', function() {
 				expect( notificationsContainer.slideDown ).to.have.been.called;
 			} );
 
-			it( 'changes the css height property on the notification container to `auto`', function( done ) {
-				const notificationsContainer = jQuery( '.js-widget-form-notifications-container' );
-				notificationsContainer.css = sinon.spy();
-				form.getNotificationsContainerElement = () => notificationsContainer;
-				form.renderNotificationsToContainer();
-				// The height change happens async so we defer this assertion
-				setTimeout( function() {
-					expect( notificationsContainer.css ).to.have.been.calledWith( 'height', 'auto' );
-					done();
-				}, 0 );
-			} );
-
 			it( 'adds the `has-notifications` class on form.container', function() {
 				jQuery( '.findme' ).removeClass( 'has-notifications' );
 				form.renderNotificationsToContainer();
