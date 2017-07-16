@@ -654,6 +654,11 @@ abstract class WP_JS_Widget extends WP_Widget {
 			$input_attrs['name'] = '{{ domId }}-' . $field_name;
 		}
 
+		// See $schema_to_input_attrs_mapping in \WP_JS_Widget::render_form_field_template().
+		if ( isset( $input_attrs['placeholder'] ) && is_array( $input_attrs['placeholder'] ) ) {
+			$input_attrs['placeholder'] = join( ',', $input_attrs['placeholder'] );
+		}
+
 		echo '<p>';
 		echo '<# (function( domId ) { #>';
 		if ( 'checkbox' === $input_attrs['type'] ) {
