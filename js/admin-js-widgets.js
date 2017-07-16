@@ -35,7 +35,7 @@ wpWidgets.JSWidgets = (function( $ ) { // eslint-disable-line no-unused-vars
 	 */
 	component.handleWidgetInitClick = function handleWidgetInitClick( event ) {
 		var widgetElement = $( event.currentTarget ), idBase, FormConstructor, form, instanceData, formContainer, widgetContentElement, saveBtn;
-		if ( ! widgetElement.hasClass( 'open' ) || widgetElement.data( 'js-widget-form' ) ) {
+		if ( widgetElement.data( 'js-widget-form' ) ) {
 			return;
 		}
 		idBase = widgetElement.find( '> .widget-inside > form:first > .id_base' ).val();
