@@ -2,14 +2,16 @@
 Contributors:      xwp, westonruter, sirbrillig
 Tags:              customizer, widgets, rest-api
 Requires at least: 4.7.0
-Tested up to:      4.8-alpha
-Stable tag:        0.4.1
+Tested up to:      4.8
+Stable tag:        0.4.2
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
 
-The next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
+A prototype of next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
 
 == Description ==
+
+*Important note:* This project was first started before the Gutenberg feature plugin was started. As such, the JS Widgets plugin should now be considered a _prototype_ which may inform the way that widget *blocks* get implemented in Gutenberg. This plugin will no longer be actively developed.
 
 Also could be known as Widget Customizer 2.0, Widgets 3.0, or Widgets Next Generation.
 
@@ -48,6 +50,13 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 == Changelog ==
+
+= 0.4.2 - 2017-07-15 =
+
+* Update compatibility for WordPress 4.8.
+* Remove Text widget from being implemented as JS Widget since core widget now incorporates concepts from JS Widgets.
+* Prevent attempting to use array as placeholder input attribute value.
+* Ensure JS Widget is initialized on admin screen on first click.
 
 = 0.4.1 - 2017-02-20 =
 
