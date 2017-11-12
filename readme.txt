@@ -2,10 +2,11 @@
 Contributors:      xwp, westonruter, sirbrillig
 Tags:              customizer, widgets, rest-api
 Requires at least: 4.7.0
-Tested up to:      4.8
-Stable tag:        0.4.2
+Tested up to:      4.9.0
+Stable tag:        0.4.3
 License:           GPLv2 or later
 License URI:       http://www.gnu.org/licenses/gpl-2.0.html
+Requires PHP:      5.3
 
 A prototype of next generation of widgets in core, embracing JS for UI and powering the Widgets REST API.
 
@@ -50,6 +51,10 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 == Changelog ==
+
+= 0.4.3 - 2017-11-11 =
+
+Fix compatibility with WordPress 4.9.
 
 = 0.4.2 - 2017-07-15 =
 

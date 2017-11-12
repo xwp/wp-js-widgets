@@ -1,15 +1,27 @@
+dist: precise
 sudo: false
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
+
+cache:
+  directories:
+    - node_modules
+    - vendor
+    - $HOME/phpunit-bin
 
 language:
     - php
     - node_js
 
 php:
-    - 5.2
+    - 5.3
     - 7.0
 
 env:
-    - WP_VERSION=4.5 WP_MULTISITE=0
+    - WP_VERSION=4.7 WP_MULTISITE=0
     - WP_VERSION=trunk WP_MULTISITE=0
     - WP_VERSION=trunk WP_MULTISITE=1
 
@@ -22,6 +34,7 @@ install:
 
 script:
     - npm test
+    - set -x
     - source $DEV_LIB_PATH/travis.script.sh
 
 after_script:
