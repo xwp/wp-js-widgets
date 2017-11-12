@@ -91,76 +91,70 @@ wp.customize.JSWidgets = (function( wp, api, $, _ ) { // eslint-disable-line no-
 		 * Initialize.
 		 *
 		 * @param {string} id The widget id
-		 * @param {object} options - The options (see below)
-		 * @param {string} options.widget_id - The widget id
-		 * @param {string} options.widget_id_base - The widget id_base
-		 * @param {string} [options.type] - Must be 'widget_form'.
-		 * @param {string} [options.content] - This may be supplied by addWidget, but it will not be read since the form is constructed dynamically.
-		 * @param {string} [options.widget_control] - Handled internally, if supplied, an error will be thrown.
-		 * @param {string} [options.widget_content] - Handled internally, if supplied, an error will be thrown.
-		 * @param {object} [options.params] - The deprecated params.
+		 * @param {object} options The options (see below)
+		 * @param {object} options.params The params (see below)
+		 * @param {string} options.params.widget_id The widget id
+		 * @param {string} options.params.widget_id_base The widget id_base
+		 * @param {string} [options.params.type] - Must be 'widget_form'.
+		 * @param {string} [options.params.content] - This may be supplied by addWidget, but it will not be read since the form is constructed dynamically.
+		 * @param {string} [options.params.widget_control] - Handled internally, if supplied, an error will be thrown.
+		 * @param {string} [options.params.widget_content] - Handled internally, if supplied, an error will be thrown.
 		 * @returns {void}
 		 */
 		initialize: function initializeWidgetControl( id, options ) {
-			var control = this, elementId, elementClass, availableWidget, widgetNumber, widgetControlWrapperMarkup, params;
+			var control = this, elementId, elementClass, availableWidget, widgetNumber, widgetControlWrapperMarkup;
 
 			// @todo The arguments supplied via addWidget can just be ignored for JS Widgets.
 
-			params = _.extend(
-				{},
-				control.defaults || {},
-				options.params || options
-			);
-
-			if ( ! params.widget_id ) {
+			if ( ! options.params.widget_id ) {
 				throw new Error( 'Missing widget_id param.' );
 			}
-			if ( ! params.widget_id_base ) {
+			if ( ! options.params.widget_id_base ) {
 				throw new Error( 'Missing widget_id_base param.' );
 			}
-			widgetNumber = parseInt( params.widget_id.replace( /^.+-/, '' ), 10 );
-			if ( params.widget_id_base + '-' + String( widgetNumber ) !== params.widget_id ) {
+			widgetNumber = parseInt( options.params.widget_id.replace( /^.+-/, '' ), 10 );
+			if ( options.params.widget_id_base + '-' + String( widgetNumber ) !== options.params.widget_id ) {
 				throw new Error( 'Mismatch between widget_id and widget_id_base.' );
 			}
 
-			availableWidget = api.Widgets.availableWidgets.findWhere( { id_base: params.widget_id_base } );
+			availableWidget = api.Widgets.availableWidgets.findWhere( { id_base: options.params.widget_id_base } );
 			if ( ! availableWidget ) {
 				throw new Error( 'Unrecognized id_base.' );
 			}
-			if ( ! params.type ) {
-				params.type = 'widget_form';
+			if ( ! options.params.type ) {
+				options.params.type = 'widget_form';
 			}
-			if ( 'widget_form' !== params.type ) {
+			if ( 'widget_form' !== options.params.type ) {
 				throw new Error( 'Type must be widget_form' );
 			}
-			if ( params.widget_control ) {
+			if ( options.params.widget_control ) {
 				throw new Error( 'The widget_control param must not be supplied. It is handled internally.' );
 			}
-			if ( params.widget_content ) {
+			if ( options.params.widget_content ) {
 				throw new Error( 'The widget_content param must not be supplied. It is handled internally.' );
 			}
 
-			if ( ! api.Widgets.formConstructor[ params.widget_id_base ] ) {
-				throw new Error( 'Missing formConstructor for ' + params.widget_id_base );
+			if ( ! api.Widgets.formConstructor[ options.params.widget_id_base ] ) {
+				throw new Error( 'Missing formConstructor for ' + options.params.widget_id_base );
 			}
 
 			elementId = 'customize-control-' + id.replace( /\[/g, '-' ).replace( /]/, '' );
 			elementClass = 'customize-control';
 			elementClass += ' customize-widget-control';
-			elementClass += ' customize-control-' + params.type;
-			elementClass += ' widget-' + params.widget_id_base;
-			params.content = '<li id="' + elementId + '" class="' + elementClass + '"></li>';
+			elementClass += ' customize-control-' + options.params.type;
+			elementClass += ' widget-' + options.params.widget_id_base;
+			options.params.content = '<li id="' + elementId + '" class="' + elementClass + '"></li>';
 
 			widgetControlWrapperMarkup = $.trim( $( '#widget-tpl-' + availableWidget.get( 'id' ) ).html() );
 			widgetControlWrapperMarkup = widgetControlWrapperMarkup.replace( /<[^<>]+>/g, function( m ) {
 				return m.replace( /__i__|%i%/g, widgetNumber );
 			} );
-			params.widget_control = widgetControlWrapperMarkup;
+			options.params.widget_control = widgetControlWrapperMarkup;
 
 			// No-op renderNotifications in favor of letting Form handle it.
 			control.renderNotifications = function() {};
 
-			originalInitialize.call( control, id, { params: params } );
+			originalInitialize.call( control, id, options );
 		},
 
 		/**
