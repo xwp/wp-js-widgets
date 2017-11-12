@@ -46,7 +46,7 @@ wp.customize.JSWidgets = (function( wp, api, $, _ ) { // eslint-disable-line no-
 	/**
 	 * Inject WidgetControl instances with our component.WidgetControl method overrides.
 	 *
-	 * @param {wp.Customize.Widgets.WidgetControl} WidgetControl The constructor function to modify
+	 * @param {wp.customize.Widgets.WidgetControl} WidgetControl The constructor function to modify
 	 * @returns {WidgetControl} The constructor function with a modified prototype
 	 */
 	component.extendWidgetControl = function extendWidgetControl( WidgetControl ) {
@@ -54,18 +54,23 @@ wp.customize.JSWidgets = (function( wp, api, $, _ ) { // eslint-disable-line no-
 		/**
 		 * Initialize JS widget control.
 		 *
-		 * @param {string} id      Control ID.
-		 * @param {object} options Control options.
+		 * @param {string} id - Control ID.
+		 * @param {object} options - Control options.
+		 * @param {object} [options.params] - Deprecated params.
 		 * @returns {void}
 		 */
 		WidgetControl.prototype.initialize = function initializeWidgetControl( id, options ) {
-			var control = this, isJsWidget;
-			isJsWidget = options.params.widget_id_base && 'undefined' !== typeof wp.widgets.formConstructor[ options.params.widget_id_base ];
+			var control = this, isJsWidget, params;
+
+			// The params property is deprecated as of 4.9.
+			params = options.params || options;
+
+			isJsWidget = params.widget_id_base && 'undefined' !== typeof wp.widgets.formConstructor[ params.widget_id_base ];
 			if ( isJsWidget ) {
 				_.extend( control, component.WidgetControl.prototype );
-				component.WidgetControl.prototype.initialize.call( control, id, options );
+				component.WidgetControl.prototype.initialize.call( control, id, { params: params } );
 			} else {
-				originalInitialize.call( control, id, options );
+				originalInitialize.call( control, id, { params: params } );
 			}
 		};
 		return WidgetControl;

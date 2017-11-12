@@ -6,9 +6,10 @@ A prototype of next generation of widgets in core, embracing JS for UI and power
 **Contributors:** [xwp](https://profiles.wordpress.org/xwp), [westonruter](https://profiles.wordpress.org/westonruter), [sirbrillig](https://profiles.wordpress.org/sirbrillig)  
 **Tags:** [customizer](https://wordpress.org/plugins/tags/customizer), [widgets](https://wordpress.org/plugins/tags/widgets), [rest-api](https://wordpress.org/plugins/tags/rest-api)  
 **Requires at least:** 4.7.0  
-**Tested up to:** 4.8  
-**Stable tag:** 0.4.2  
+**Tested up to:** 4.9.0  
+**Stable tag:** 0.4.3  
 **License:** [GPLv2 or later](http://www.gnu.org/licenses/gpl-2.0.html)  
+**Requires PHP:** 5.3  
 
 [![Build Status](https://travis-ci.org/xwp/wp-js-widgets.svg?branch=master)](https://travis-ci.org/xwp/wp-js-widgets) [![Coverage Status](https://coveralls.io/repos/xwp/wp-js-widgets/badge.svg?branch=master)](https://coveralls.io/github/xwp/wp-js-widgets) [![Built with Grunt](https://cdn.gruntjs.com/builtwith.svg)](http://gruntjs.com) [![devDependency Status](https://david-dm.org/xwp/wp-js-widgets/dev-status.svg)](https://david-dm.org/xwp/wp-js-widgets#info=devDependencies) 
 
@@ -53,6 +54,9 @@ Limitations/Caveats:
 * Only widgets that extend `WP_JS_Widget` will be exposed via the REST API. The plugin includes a `WP_JS_Widget` adapter class which demonstrates how to adapt existing `WP_Widget` classes for the new widget functionality.
 
 ## Changelog ##
+
+### 0.4.3 - 2017-11-11 ###
+Fix compatibility with WordPress 4.9.
 
 ### 0.4.2 - 2017-07-15 ###
 * Update compatibility for WordPress 4.8.
